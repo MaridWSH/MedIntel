@@ -1,13 +1,17 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
+    <div className="relative min-h-screen bg-paper overflow-x-hidden">
+      <h1 className="display text-center text-5xl pt-32">
+        Medical literature,<br />
+        <span className="italic text-teal">finally understood</span>.
+      </h1>
+      <p className="serif-body text-center text-lg text-ink-soft mt-6 max-w-xl mx-auto">
+        Six specialised agents read every trial, review, and case report — and return a
+        PICO summary, mind map, infographic, and clinical bottom line in under twelve seconds.
+      </p>
+    </div>
+  );
+}
           width={100}
           height={20}
           priority

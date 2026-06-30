@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claritas — Search & Discovery</title>
+<meta name="view-transition" content="same-origin">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500,600&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #0b1d2a;
+    --ink-soft: #1a2c3a;
+    --paper: #f6f3ea;
+    --paper-warm: #f1ece0;
+    --paper-soft: #e8e1d1;
+    --rule: #e2dccb;
+    --teal: #0d9488;
+    --teal-deep: #0b7d72;
+    --teal-bright: #14b8a6;
+    --teal-mist: #5eaaa0;
+    --amber-ink: #967338;
+    --amber-bg: #f6ecd6;
+  }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html { background-color: #f6f3ea; }
+  body {
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    margin: 0;
+  }
+  .serif { font-family: 'Zodiak', 'Times New Roman', serif; }
+  .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+  .tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+  .bg-paper { background-color: var(--paper); }
+  .bg-paper-warm { background-color: var(--paper-warm); }
+  .bg-paper-soft { background-color: var(--paper-soft); }
+  .bg-ink { background-color: var(--ink); }
+  .bg-ink-soft { background-color: var(--ink-soft); }
+  .bg-teal-deep { background-color: var(--teal-deep); }
+  .bg-amber-bg { background-color: var(--amber-bg); }
+  .text-ink { color: var(--ink); }
+  .text-ink-soft { color: var(--ink-soft); }
+  .text-ink-mute { color: #5a6b78; }
+  .text-teal { color: var(--teal); }
+  .text-teal-mist { color: var(--teal-mist); }
+  .text-amber-ink { color: var(--amber-ink); }
+  .text-paper { color: var(--paper); }
+  .border-rule { border-color: var(--rule); }
+  .border-ink-10 { border-color: rgba(11, 29, 42, 0.1); }
+  .border-ink-15 { border-color: rgba(11, 29, 42, 0.15); }
+
+  .display {
+    font-family: 'Zodiak', serif;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 0.96;
+  }
+  .serif-body {
+    font-family: 'Zodiak', serif;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+  .mono-stat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(11,29,42,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(11,29,42,0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: center;
+  }
+
+  @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fade-up 1s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .delay-1 { animation-delay: 0.08s; }
+  .delay-2 { animation-delay: 0.16s; }
+  .delay-3 { animation-delay: 0.24s; }
+  .delay-4 { animation-delay: 0.32s; }
+  .delay-5 { animation-delay: 0.42s; }
+  .delay-6 { animation-delay: 0.52s; }
+  .delay-7 { animation-delay: 0.6s; }
+  .delay-8 { animation-delay: 0.68s; }
+  .delay-9 { animation-delay: 0.76s; }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .cursor-blink { animation: blink 1.4s infinite; }
+
+  .hover-tint { transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
+  .hover-tint:hover { background-color: rgba(11, 29, 42, 0.05); }
+
+  ::selection { background: var(--teal-bright); color: var(--ink); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(11,29,42,0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(11,29,42,0.3); }
+
+  .dropdown-panel { transition: opacity 200ms, transform 200ms; opacity: 0; transform: translateY(-4px); pointer-events: none; }
+  .dropdown-wrap:hover .dropdown-panel,
+  .dropdown-panel:focus-within { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  .btn-primary { transition: all 220ms cubic-bezier(0.22, 1, 0.36, 1); position: relative; overflow: hidden; }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%);
+    pointer-events: none;
+  }
+  .btn-primary:hover { background: var(--teal-deep); transform: translateY(-1px); box-shadow: 0 14px 30px -12px rgba(11, 125, 114, 0.55); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  nav input[type="radio"]:checked + label {
+    background-color: var(--ink);
+    color: var(--paper);
+  }
+
+  .tabular-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: rgba(11,29,42,0.1);
+    border: 1px solid rgba(11,29,42,0.1);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  @media (min-width: 768px) {
+    .tabular-grid { grid-template-columns: repeat(2); }
+  }
+  @media (min-width: 1100px) {
+    .tabular-grid { grid-template-columns: repeat(3); }
+  }
+
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+</style>
+  <style>sd-component { display: block; }</style>
+  <script src="https://cdn.jsdelivr.net/npm/petite-vue@0.4.1/dist/petite-vue.iife.js" defer init></script>
+</head>
+<body>
+<div class="relative min-h-screen bg-paper overflow-x-hidden">
+
+  <!-- ============ TOP UTILITY STRIP ============ -->
+  <!-- component: TopBar (480fe349-2600-484a-afcc-d7ccdefaf050) -->
+<div v-scope="{ ...{&quot;papersIndexed&quot;:&quot;50,418,727&quot;,&quot;agentsCount&quot;:6,&quot;physiciansCount&quot;:&quot;1,200+&quot;,&quot;version&quot;:&quot;v0.9.4&quot;}, $emit() {} }">
+<div class="bg-[#0b1d2a] text-[#f6f3ea]"><div class="max-w-[1380px] mx-auto px-6 h-9 flex items-center justify-between text-[10.5px] font-['JetBrains_Mono',_monospace] font-medium tracking-[0.04em] uppercase"><div class="flex items-center gap-5"><span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#14b8a6] animate-pulse"></span>{{ papersIndexed }} papers indexed</span><span class="hidden md:flex items-center gap-2 text-[#f6f3ea]/55"><iconify-icon icon="lucide:shield-check" class="text-[#14b8a6] text-[11px]"></iconify-icon>Synthesised by {{ agentsCount }} specialised agents · Reviewed by {{ physiciansCount }} physicians</span></div><div class="flex items-center gap-4 text-[#f6f3ea]/65"><span>BETA · {{ version }}</span><span class="hidden md:inline text-[#f6f3ea]/30">·</span><span class="hidden md:inline">CME accredited · EG-MS · AB-2938</span></div></div></div>
+</div>
+<!-- /component: TopBar (480fe349-2600-484a-afcc-d7ccdefaf050) -->
+
+  <!-- ============ MAIN NAVIGATION ============ -->
+  <!-- component: Header (28fd511a-eb31-4f22-a1a7-991df42263ca) -->
+<div v-scope="{ ...{&quot;activeItem&quot;:&quot;evidence&quot;,&quot;logoHref&quot;:&quot;#&quot;,&quot;howHref&quot;:&quot;#how-it-works&quot;,&quot;evidenceHref&quot;:&quot;#&quot;,&quot;institutionsHref&quot;:&quot;#proof&quot;,&quot;pricingHref&quot;:&quot;#&quot;,&quot;cmeHref&quot;:&quot;#&quot;,&quot;docsHref&quot;:&quot;#&quot;,&quot;signinHref&quot;:&quot;#&quot;,&quot;tryfreeHref&quot;:&quot;https://draft-715a7b82-14a9-4594-b38a-72cac1cca8b3.preview.superdesign.dev&quot;,&quot;currentLang&quot;:&quot;EN&quot;,&quot;searchEnglish&quot;:true,&quot;searchArabic&quot;:true}, $emit() {} }">
+<header class="relative z-30 border-b border-black/10 bg-[#f6f3ea]/95 backdrop-blur-[6px] sticky top-0">
+  <div class="max-w-[1380px] mx-auto px-6 h-[68px] flex items-center justify-between gap-6">
+    <!-- Logo -->
+    <a :href="logoHref" id="nav-logo-link" class="flex items-center gap-2.5 shrink-0 group">
+      <div class="relative w-9 h-9 bg-[#0b1d2a] rounded-[10px] flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#14b8a6]/30 via-transparent to-transparent"></div>
+        <span class="text-[#f6f3ea] text-xl font-medium tracking-tight relative" style="font-family: 'Zodiak', serif;">C</span>
+        <div class="absolute w-1 h-1 bg-[#14b8a6] rounded-full bottom-1.5 right-1.5"></div>
+      </div>
+      <span class="text-xl font-medium tracking-tight" style="font-family: 'Zodiak', serif;">Claritas</span>
+    </a>
+
+    <!-- Primary nav -->
+    <nav class="hidden lg:flex items-center gap-1 text-[13.5px]">
+      <a :href="howHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'how' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">How it works</a>
+      <a :href="evidenceHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'evidence' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Evidence Engine</a>
+      <a :href="institutionsHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'institutions' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">For institutions</a>
+      <a :href="pricingHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'pricing' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Pricing</a>
+      <a :href="cmeHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'cme' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">CME credits</a>
+      <a :href="docsHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'docs' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Docs</a>
+    </nav>
+
+    <!-- Right cluster -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <!-- Language dropdown -->
+      <div class="relative group">
+        <button class="flex items-center gap-1.5 px-2.5 h-9 rounded-md border border-[#0b1d2a]/15 text-[12.5px] font-medium hover:bg-[#0b1d2a]/5 transition-colors" aria-haspopup="true">
+          <iconify-icon icon="lucide:globe" class="text-[14px] text-[#0d9488]"></iconify-icon>
+          <span v-text="currentLang"></span>
+          <span class="text-[#0b1d2a]/30">·</span>
+          <span class="text-[#0b1d2a]/55">ع</span>
+          <iconify-icon icon="lucide:chevron-down" class="text-[13px] text-[#0b1d2a]/40"></iconify-icon>
+        </button>
+        <div class="absolute top-[calc(100%+4px)] right-0 w-56 bg-[#f6f3ea] border border-[#0b1d2a]/15 rounded-xl shadow-[0_20px_50px_-12px_rgba(11,29,42,0.22)] p-1.5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="px-2 py-1.5 text-[10px] text-[#0b1d2a]/45 uppercase font-medium tracking-wider" style="font-family: 'JetBrains Mono', monospace;">Interface Language</div>
+          <button @click="$emit('languageChange', 'EN')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[#0b1d2a]/5 transition-colors" :class="{ 'bg-[#0b1d2a]/[0.04]': currentLang === 'EN' }">
+            <span class="flex items-center gap-2.5 text-[13px] font-medium"><span class="text-base">EN</span><span>English</span></span>
+            <iconify-icon v-if="currentLang === 'EN'" icon="lucide:check" class="text-[#0d9488] text-[14px]"></iconify-icon>
+          </button>
+          <button @click="$emit('languageChange', 'AR')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[#0b1d2a]/5 transition-colors" :class="{ 'bg-[#0b1d2a]/[0.04]': currentLang === 'AR' }">
+            <span class="flex items-center gap-2.5 text-[13px] font-medium"><span class="text-base">ع</span><span>العربية · Arabic</span></span>
+            <iconify-icon v-if="currentLang === 'AR'" icon="lucide:check" class="text-[#0d9488] text-[14px]"></iconify-icon>
+          </button>
+          <div class="h-px bg-[#0b1d2a]/10 my-1.5"></div>
+          <div class="px-2 py-1.5 text-[10px] text-[#0b1d2a]/45 uppercase font-medium tracking-wider" style="font-family: 'JetBrains Mono', monospace;">Search Content</div>
+          <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#0b1d2a]/5 transition-colors cursor-pointer text-[12.5px]">
+            <input type="checkbox" :checked="searchEnglish" @change="$emit('filterToggle', { key: 'english', value: $event.target.checked })" class="accent-[#0b7d72] w-3.5 h-3.5">
+            <span>English corpus</span>
+          </label>
+          <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#0b1d2a]/5 transition-colors cursor-pointer text-[12.5px]">
+            <input type="checkbox" :checked="searchArabic" @change="$emit('filterToggle', { key: 'arabic', value: $event.target.checked })" class="accent-[#0b7d72] w-3.5 h-3.5">
+            <span>Arabic abstracts</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sign in -->
+      <a :href="signinHref" class="hidden md:inline-flex items-center px-3 h-9 rounded-md text-[12.5px] font-medium hover:bg-[#0b1d2a]/5 transition-colors">
+        Sign in
+      </a>
+
+      <!-- Try Free -->
+      <a :href="tryfreeHref" class="inline-flex items-center gap-1.5 px-4 h-9 rounded-md bg-[#0b7d72] text-[#f6f3ea] text-[12.5px] font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+        Try Free
+        <iconify-icon icon="lucide:arrow-right" class="text-[14px]"></iconify-icon>
+      </a>
+    </div>
+  </div>
+</header>
+</div>
+<!-- /component: Header (28fd511a-eb31-4f22-a1a7-991df42263ca) -->
+
+  <!-- ============ SEARCH & DISCOVERY WORKSPACE ============ -->
+  <main style="view-transition-name: main-content" class="relative">
+
+    <!-- Search header band -->
+    <section class="relative border-b border-ink-10 bg-paper-warm/40 overflow-hidden">
+      <div class="absolute inset-0 grid-bg pointer-events-none opacity-60"></div>
+      <div class="absolute inset-x-0 top-0 h-[280px] pointer-events-none" style="background: radial-gradient(ellipse 50% 80% at 30% 20%, rgba(20, 184, 166, 0.10) 0%, rgba(20, 184, 166, 0.03) 40%, rgba(246, 243, 234, 0) 70%);"></div>
+
+      <div class="max-w-[1380px] mx-auto px-6 pt-8 pb-6 relative">
+
+        <!-- Breadcrumb + title row -->
+        <div class="flex items-start justify-between gap-4 mb-5">
+          <div class="fade-up">
+            <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/45 mb-3">
+              <a href="#" id="crumb-home-link" class="hover:text-teal-deep">CLARITAS</a>
+              <iconify-icon icon="lucide:chevron-right" class="text-[11px] text-ink/30"></iconify-icon>
+              <span>SEARCH</span>
+              <iconify-icon icon="lucide:chevron-right" class="text-[11px] text-ink/30"></iconify-icon>
+              <span class="text-ink-soft">CARDIOLOGY</span>
+            </div>
+            <h1 class="display text-[36px] md:text-[48px] tracking-tight">
+              Search <span class="italic text-teal">&amp; discovery</span>
+            </h1>
+          </div>
+
+          <div class="fade-up delay-1 hidden md:flex items-center gap-2 text-[10.5px] mono-stat text-ink/50">
+            <span class="flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-ink-15 bg-paper">
+              <iconify-icon icon="lucide:zap" class="text-[11px] text-teal"></iconify-icon>
+              <span class="tnum">HYBRID SEARCH</span>
+            </span>
+            <span class="flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-ink-15 bg-paper">
+              <iconify-icon icon="lucide:globe" class="text-[11px] text-teal"></iconify-icon>
+              <span>EN + AR CORPUS</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Search bar (sticky) -->
+        <div class="fade-up delay-2 relative" id="search-bar-wrap">
+          <div class="absolute -inset-1.5 bg-gradient-to-r from-teal-bright/30 via-teal-deep/20 to-teal-bright/20 blur-2xl opacity-40 rounded-[26px]"></div>
+          <div class="relative bg-paper border border-ink-15 rounded-[22px] shadow-[0_24px_60px_-30px_rgba(11,29,42,0.35),0_2px_8px_-4px_rgba(11,29,42,0.1)] overflow-hidden">
+            <div class="flex items-center gap-3 pl-5 pr-3 py-3.5">
+              <iconify-icon icon="lucide:search" class="text-[20px] text-teal shrink-0"></iconify-icon>
+              <input type="text" value="semaglutide cardiovascular outcomes 2024" class="flex-1 bg-transparent outline-none text-[15.5px] placeholder:text-ink/35 w-full" placeholder="Search 50M+ medical papers, understood in seconds">
+              <span class="hidden md:flex items-center gap-1 px-2 h-7 rounded-md border border-ink-12 text-ink/55 text-[11.5px] mono-stat">⌘K</span>
+              <button class="btn-primary h-10 px-5 bg-ink text-paper rounded-[12px] text-[13px] font-semibold inline-flex items-center gap-1.5">
+                Synthesise
+                <iconify-icon icon="lucide:sparkles" class="text-[14px] text-teal-bright"></iconify-icon>
+              </button>
+            </div>
+
+            <!-- Active filter rail -->
+            <div class="border-t border-ink-8 px-4 py-2.5 flex items-center gap-2 text-[11.5px] bg-paper-warm/60 overflow-x-auto">
+              <span class="text-[10px] mono-stat text-ink/45 shrink-0">ACTIVE</span>
+              <div class="flex items-center gap-1 px-2.5 h-7 rounded-full border border-teal-deep/30 bg-teal-deep/8 shrink-0">
+                <iconify-icon icon="lucide:stethoscope" class="text-[12px] text-teal-deep"></iconify-icon>
+                <span class="text-ink-soft">Cardiology</span>
+                <button class="ml-1 w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-ink/10" aria-label="Remove filter">
+                  <iconify-icon icon="lucide:x" class="text-[11px] text-ink/50"></iconify-icon>
+                </button>
+              </div>
+              <div class="flex items-center gap-1 px-2.5 h-7 rounded-full border border-teal-deep/30 bg-teal-deep/8 shrink-0">
+                <span class="text-ink-soft">Systematic review</span>
+                <button class="ml-1 w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-ink/10" aria-label="Remove filter">
+                  <iconify-icon icon="lucide:x" class="text-[11px] text-ink/50"></iconify-icon>
+                </button>
+              </div>
+              <div class="flex items-center gap-1 px-2.5 h-7 rounded-full border border-teal-deep/30 bg-teal-deep/8 shrink-0">
+                <span class="text-ink-soft">2022 — 2024</span>
+                <button class="ml-1 w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-ink/10" aria-label="Remove filter">
+                  <iconify-icon icon="lucide:x" class="text-[11px] text-ink/50"></iconify-icon>
+                </button>
+              </div>
+              <div class="flex items-center gap-1 px-2.5 h-7 rounded-full bg-ink text-paper shrink-0">
+                <iconify-icon icon="lucide:shield-check" class="text-[11px] text-teal-bright"></iconify-icon>
+                <span>Level I ≥</span>
+                <button class="ml-1 w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-paper/15" aria-label="Remove filter">
+                  <iconify-icon icon="lucide:x" class="text-[11px] text-paper/60"></iconify-icon>
+                </button>
+              </div>
+              <button class="shrink-0 text-[11px] text-teal-deep font-medium hover:underline px-2 h-7 inline-flex items-center gap-1">
+                <iconify-icon icon="lucide:plus" class="text-[12px]"></iconify-icon>
+                Add filter
+              </button>
+              <div class="ml-auto shrink-0 flex items-center gap-2 pl-3 border-l border-ink-10 text-ink/55">
+                <span class="mono-stat text-ink/45">N</span>
+                <span class="tnum font-semibold text-ink-soft">1,847</span>
+                <span>papers</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESULTS WORKSPACE ============ -->
+    <section class="relative max-w-[1380px] mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+
+      <!-- ============ LEFT SIDEBAR — FILTERS ============ -->
+      <aside class="col-span-12 lg:col-span-3 fade-up delay-3">
+        <div class="lg:sticky lg:top-4">
+
+          <!-- Filter panel header -->
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="serif text-[20px] tracking-tight flex items-center gap-2">
+              <iconify-icon icon="lucide:sliders-horizontal" class="text-[18px] text-teal-deep"></iconify-icon>
+              Filters
+            </h2>
+            <button class="text-[10.5px] mono-stat text-teal-deep hover:underline">RESET ALL</button>
+          </div>
+
+          <!-- Specialty -->
+          <div class="bg-paper border border-ink-12 rounded-2xl mb-3 overflow-hidden">
+            <button class="w-full flex items-center justify-between px-4 h-11 hover-tint">
+              <span class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
+                <iconify-icon icon="lucide:stethoscope" class="text-[15px] text-teal-deep"></iconify-icon>
+                Specialty
+              </span>
+              <iconify-icon icon="lucide:chevron-down" class="text-[14px] text-ink/45"></iconify-icon>
+            </button>
+            <div class="px-3 pb-4 pt-1">
+              <div class="flex items-center gap-2 px-2 h-8 rounded-md bg-ink/[0.04] border border-ink-10 mb-3">
+                <iconify-icon icon="lucide:search" class="text-[13px] text-ink/40"></iconify-icon>
+                <input type="text" placeholder="Search specialty" class="flex-1 bg-transparent outline-none text-[12px] placeholder:text-ink/40">
+              </div>
+              <ul class="space-y-0.5">
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" checked class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft font-medium">Cardiology</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">642</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" checked class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft font-medium">Endocrinology</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">418</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Internal medicine</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">312</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Nephrology</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">147</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Preventive medicine</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">98</span>
+                  </label>
+                </li>
+              </ul>
+              <button class="mt-2 w-full text-[11px] mono-stat text-teal-deep hover:underline py-1">SHOW 42 MORE</button>
+            </div>
+          </div>
+
+          <!-- Study Type -->
+          <div class="bg-paper border border-ink-12 rounded-2xl mb-3 overflow-hidden">
+            <button class="w-full flex items-center justify-between px-4 h-11 hover-tint">
+              <span class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
+                <iconify-icon icon="lucide:file-text" class="text-[15px] text-teal-deep"></iconify-icon>
+                Study Type
+              </span>
+              <iconify-icon icon="lucide:chevron-down" class="text-[14px] text-ink/45"></iconify-icon>
+            </button>
+            <div class="px-3 pb-4 pt-1">
+              <ul class="space-y-0.5">
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" checked class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft font-medium">Systematic review</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">284</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Randomised trial</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">498</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Meta-analysis</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">112</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Cohort study</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">329</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Case-control</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">84</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Guideline</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">29</span>
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Date Range -->
+          <div class="bg-paper border border-ink-12 rounded-2xl mb-3 overflow-hidden">
+            <button class="w-full flex items-center justify-between px-4 h-11 hover-tint">
+              <span class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
+                <iconify-icon icon="lucide:calendar" class="text-[15px] text-teal-deep"></iconify-icon>
+                Date Range
+              </span>
+              <iconify-icon icon="lucide:chevron-down" class="text-[14px] text-ink/45"></iconify-icon>
+            </button>
+            <div class="px-3 pb-4 pt-1">
+              <div class="px-2 mb-3">
+                <div class="text-[10px] mono-stat text-ink/45 mb-2">PUBLISHED</div>
+                <div class="flex items-center gap-2 text-[12px]">
+                  <input type="text" value="2022-01" class="flex-1 bg-ink/[0.04] border border-ink-10 rounded-md px-2 h-8 outline-none focus:border-teal-deep tnum text-ink-soft">
+                  <span class="text-ink/30">—</span>
+                  <input type="text" value="2024-12" class="flex-1 bg-ink/[0.04] border border-ink-10 rounded-md px-2 h-8 outline-none focus:border-teal-deep tnum text-ink-soft">
+                </div>
+              </div>
+              <!-- Histogram bar (mini) -->
+              <div class="px-2">
+                <div class="text-[10px] mono-stat text-ink/45 mb-2">DISTRIBUTION BY YEAR</div>
+                <div class="flex items-end gap-1 h-12">
+                  <div class="flex-1 bg-ink/15 rounded-sm" style="height: 24%"></div>
+                  <div class="flex-1 bg-ink/25 rounded-sm" style="height: 38%"></div>
+                  <div class="flex-1 bg-ink/40 rounded-sm" style="height: 56%"></div>
+                  <div class="flex-1 bg-teal-deep rounded-sm" style="height: 82%"></div>
+                  <div class="flex-1 bg-teal-deep rounded-sm" style="height: 100%"></div>
+                  <div class="flex-1 bg-ink/20 rounded-sm" style="height: 32%"></div>
+                  <div class="flex-1 bg-ink/15 rounded-sm" style="height: 22%"></div>
+                </div>
+                <div class="flex justify-between mt-1 text-[9px] mono-stat text-ink/40 tnum">
+                  <span>2018</span><span>2020</span><span>2022</span><span>2024</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evidence Level -->
+          <div class="bg-paper border border-ink-12 rounded-2xl mb-3 overflow-hidden">
+            <button class="w-full flex items-center justify-between px-4 h-11 hover-tint">
+              <span class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
+                <iconify-icon icon="lucide:shield-check" class="text-[15px] text-teal-deep"></iconify-icon>
+                Evidence Level
+              </span>
+              <iconify-icon icon="lucide:chevron-down" class="text-[14px] text-ink/45"></iconify-icon>
+            </button>
+            <div class="px-3 pb-4 pt-1">
+              <ul class="space-y-0.5">
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" checked class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft font-medium">Level I (RCT, SR)</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">412</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" checked class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft font-medium">Level II (Cohort)</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">329</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Level III (Case-control)</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">84</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Level IV (Expert opinion)</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">29</span>
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Validation Status -->
+          <div class="bg-paper border border-ink-12 rounded-2xl mb-3 overflow-hidden">
+            <button class="w-full flex items-center justify-between px-4 h-11 hover-tint">
+              <span class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
+                <iconify-icon icon="lucide:badge-check" class="text-[15px] text-teal-deep"></iconify-icon>
+                Validation Status
+              </span>
+              <iconify-icon icon="lucide:chevron-down" class="text-[14px] text-ink/45"></iconify-icon>
+            </button>
+            <div class="px-3 pb-4 pt-1">
+              <ul class="space-y-0.5">
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" checked class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft font-medium">Validated (MD-reviewed)</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">1,184</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-ink-soft">Pending review</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">478</span>
+                  </label>
+                </li>
+                <li>
+                  <label class="flex items-center justify-between gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                    <span class="flex items-center gap-2">
+                      <input type="checkbox" class="accent-teal-deep w-3.5 h-3.5">
+                      <span class="text-amber-ink">Preprint (not peer-reviewed)</span>
+                    </span>
+                    <span class="text-[10px] mono-stat text-ink/45 tnum">185</span>
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Journal -->
+          <div class="bg-paper border border-ink-12 rounded-2xl overflow-hidden">
+            <button class="w-full flex items-center justify-between px-4 h-11 hover-tint">
+              <span class="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
+                <iconify-icon icon="lucide:book-open" class="text-[15px] text-teal-deep"></iconify-icon>
+                Journal
+              </span>
+              <iconify-icon icon="lucide:chevron-right" class="text-[14px] text-ink/45"></iconify-icon>
+            </button>
+          </div>
+
+          <!-- Saved search CTA -->
+          <div class="mt-4 bg-ink text-paper border border-ink rounded-2xl p-4 relative overflow-hidden">
+            <div class="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-teal-bright/15 blur-2xl pointer-events-none"></div>
+            <div class="relative">
+              <div class="text-[10px] mono-stat text-teal-bright mb-2">SAVE THIS SEARCH</div>
+              <p class="text-[12px] text-paper/75 leading-[1.5] mb-3">
+                Get email alerts when new papers match this query. Daily or weekly digest.
+              </p>
+              <button class="w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-md bg-teal-bright text-ink text-[12px] font-semibold btn-primary">
+                <iconify-icon icon="lucide:bell" class="text-[13px]"></iconify-icon>
+                Subscribe
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============ RIGHT — RESULTS GRID ============ -->
+      <div class="col-span-12 lg:col-span-9 fade-up delay-4">
+
+        <!-- Results meta bar -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-5 pb-4 border-b border-ink-10">
+          <div class="flex items-baseline gap-3">
+            <div>
+              <div class="text-[10.5px] mono-stat text-ink/45 mb-1">RESULTS</div>
+              <div class="serif text-[28px] tracking-tight tnum">
+                1,847 <span class="text-ink/40 text-[20px]">papers found</span>
+              </div>
+            </div>
+            <span class="hidden md:inline-flex px-2 h-6 rounded-md bg-teal-deep/10 border border-teal-deep/20 text-teal-deep text-[9.5px] mono-stat items-center">VALIDATED ONLY · 1,184</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="dropdown-wrap relative">
+              <button class="flex items-center gap-2 px-3 h-9 rounded-md border border-ink-15 bg-paper text-[12.5px] font-medium hover-tint">
+                <iconify-icon icon="lucide:arrow-up-down" class="text-[13px] text-teal"></iconify-icon>
+                <span class="text-ink/55">Sort:</span>
+                <span class="text-ink-soft">Relevance</span>
+                <iconify-icon icon="lucide:chevron-down" class="text-[13px] text-ink/40"></iconify-icon>
+              </button>
+              <div class="dropdown-panel absolute top-[calc(100%+4px)] right-0 w-52 bg-paper border border-ink-15 rounded-xl shadow-[0_20px_50px_-12px_rgba(11,29,42,0.22)] p-1.5 z-50 text-[12.5px]">
+                <button class="w-full flex items-center justify-between px-2.5 py-2 rounded-md hover-tint bg-ink/[0.04]">
+                  <span class="flex items-center gap-2 text-ink-soft font-medium">
+                    <iconify-icon icon="lucide:check" class="text-[13px] text-teal"></iconify-icon>
+                    Relevance
+                  </span>
+                </button>
+                <button class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md hover-tint text-ink-soft">
+                  <span class="w-[13px]"></span>
+                  Newest first
+                </button>
+                <button class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md hover-tint text-ink-soft">
+                  <span class="w-[13px]"></span>
+                  Most cited
+                </button>
+                <button class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md hover-tint text-ink-soft">
+                  <span class="w-[13px]"></span>
+                  Highest GRADE
+                </button>
+                <button class="w-full flex items-center gap-2 px-2.5 py-2 rounded-md hover-tint text-ink-soft">
+                  <span class="w-[13px]"></span>
+                  Practice-changing first
+                </button>
+              </div>
+            </div>
+
+            <!-- View toggle -->
+            <div class="flex items-center gap-1 p-1 rounded-md border border-ink-15 bg-paper">
+              <button class="w-7 h-7 rounded bg-ink text-paper inline-flex items-center justify-center" aria-label="Grid view">
+                <iconify-icon icon="lucide:layout-grid" class="text-[14px]"></iconify-icon>
+              </button>
+              <button class="w-7 h-7 rounded text-ink/55 hover-tint inline-flex items-center justify-center" aria-label="List view">
+                <iconify-icon icon="lucide:list" class="text-[14px]"></iconify-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ RESULTS GRID ============ -->
+        <div class="tabular-grid">
+          <!-- Card 1 -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;NEJM&quot;,&quot;date&quot;:&quot;2024;391:106-116&quot;,&quot;title&quot;:&quot;Once-Weekly Semaglutide and Cardiovascular Outcomes in Adults with Overweight or Obesity&quot;,&quot;badgeLabel&quot;:&quot;VALIDATED&quot;,&quot;isValidated&quot;:true,&quot;tldr&quot;:&quot;In adults with overweight or obesity and established cardiovascular disease, weekly subcutaneous semaglutide reduced the composite of cardiovascular death, MI, and stroke by 21%.&quot;,&quot;hrValue&quot;:&quot;0.79&quot;,&quot;pValue&quot;:&quot;< 0.001&quot;,&quot;gradeLabel&quot;:&quot;GRADE A&quot;,&quot;tags&quot;:[&quot;Cardiology&quot;,&quot;Endocrinology&quot;,&quot;Prevention&quot;],&quot;timeAgo&quot;:&quot;11.8s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 2 -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;Lancet&quot;,&quot;date&quot;:&quot;2024;403:1214-1226&quot;,&quot;title&quot;:&quot;Effect of Semaglutide on Heart Failure Symptoms in Patients with Obesity and HFpEF&quot;,&quot;badgeLabel&quot;:&quot;VALIDATED&quot;,&quot;isValidated&quot;:true,&quot;tldr&quot;:&quot;Once-weekly semaglutide improved Kansas City Cardiomyopathy Questionnaire score by 16.6 points versus placebo in patients with HFpEF and obesity over 52 weeks.&quot;,&quot;hrValue&quot;:&quot;1.76&quot;,&quot;pValue&quot;:&quot;< 0.001&quot;,&quot;gradeLabel&quot;:&quot;GRADE A&quot;,&quot;tags&quot;:[&quot;Cardiology&quot;,&quot;Heart Failure&quot;],&quot;timeAgo&quot;:&quot;2.4s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 3 (Preprint — amber badge styling would be in component) -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;medRxiv&quot;,&quot;date&quot;:&quot;2024.07.14.24310841&quot;,&quot;title&quot;:&quot;Renal Protective Effects of GLP-1 Receptor Agonists in Patients with T2DM and CKD Stage 3-4&quot;,&quot;badgeLabel&quot;:&quot;NOT PEER REVIEWED&quot;,&quot;isValidated&quot;:false,&quot;tldr&quot;:&quot;In a retrospective cohort of 4,218 patients with T2DM and CKD stage 3-4, GLP-1 RA therapy was associated with a 31% reduction in composite renal outcomes over 36 months.&quot;,&quot;hrValue&quot;:&quot;0.69&quot;,&quot;pValue&quot;:&quot;0.002&quot;,&quot;gradeLabel&quot;:&quot;GRADE C&quot;,&quot;tags&quot;:[&quot;Nephrology&quot;,&quot;Endocrinology&quot;],&quot;timeAgo&quot;:&quot;8.1s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 4 -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;JAMA&quot;,&quot;date&quot;:&quot;2024;331:1421-1430&quot;,&quot;title&quot;:&quot;Tirzepatide vs Semaglutide for Weight Loss in Adults with Obesity: A Randomized Noninferiority Trial&quot;,&quot;badgeLabel&quot;:&quot;VALIDATED&quot;,&quot;isValidated&quot;:true,&quot;tldr&quot;:&quot;Tirzepatide achieved a 22.4% mean weight reduction vs 14.8% with semaglutide at 72 weeks, meeting noninferiority criteria and showing superior efficacy.&quot;,&quot;hrValue&quot;:&quot;1.51&quot;,&quot;pValue&quot;:&quot;< 0.001&quot;,&quot;gradeLabel&quot;:&quot;GRADE A&quot;,&quot;tags&quot;:[&quot;Endocrinology&quot;,&quot;Prevention&quot;],&quot;timeAgo&quot;:&quot;3.7s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 5 -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;BMJ&quot;,&quot;date&quot;:&quot;2023;383:e076346&quot;,&quot;title&quot;:&quot;Long-term Cardiovascular Safety of GLP-1 Receptor Agonists: A Systematic Review and Meta-analysis&quot;,&quot;badgeLabel&quot;:&quot;VALIDATED&quot;,&quot;isValidated&quot;:true,&quot;tldr&quot;:&quot;Pooled analysis of 38 RCTs (n=84,212) confirms GLP-1 RAs reduce MACE by 14%, with consistent safety across cardiovascular, renal, and retinal endpoints.&quot;,&quot;hrValue&quot;:&quot;0.86&quot;,&quot;pValue&quot;:&quot;< 0.001&quot;,&quot;gradeLabel&quot;:&quot;GRADE A&quot;,&quot;tags&quot;:[&quot;Cardiology&quot;,&quot;Prevention&quot;,&quot;Pharmacology&quot;],&quot;timeAgo&quot;:&quot;1.2s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 6 (Pending review — grey clock) -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;Eur Heart J&quot;,&quot;date&quot;:&quot;2024;45:2893-2904&quot;,&quot;title&quot;:&quot;Real-world Effectiveness of Once-Weekly Semaglutide in Heart Failure with Reduced Ejection Fraction&quot;,&quot;badgeLabel&quot;:&quot;PENDING REVIEW&quot;,&quot;isValidated&quot;:false,&quot;tldr&quot;:&quot;In a propensity-matched registry of 2,408 patients, semaglutide use in HFrEF was associated with a 19% relative reduction in heart failure hospitalisations.&quot;,&quot;hrValue&quot;:&quot;0.81&quot;,&quot;pValue&quot;:&quot;0.003&quot;,&quot;gradeLabel&quot;:&quot;GRADE B&quot;,&quot;tags&quot;:[&quot;Cardiology&quot;,&quot;Heart Failure&quot;],&quot;timeAgo&quot;:&quot;4.6s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 7 -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;Circulation&quot;,&quot;date&quot;:&quot;2023;148:1426-1438&quot;,&quot;title&quot;:&quot;Incretin-based Therapies and Arrhythmia Risk: A Multi-database Cohort Study&quot;,&quot;badgeLabel&quot;:&quot;VALIDATED&quot;,&quot;isValidated&quot;:true,&quot;tldr&quot;:&quot;Across 1.2 million patients, GLP-1 RA exposure was not associated with increased atrial or ventricular arrhythmia risk, supporting cardiovascular safety.&quot;,&quot;hrValue&quot;:&quot;0.94&quot;,&quot;pValue&quot;:&quot;0.18&quot;,&quot;gradeLabel&quot;:&quot;GRADE B&quot;,&quot;tags&quot;:[&quot;Cardiology&quot;,&quot;Arrhythmia&quot;,&quot;Pharmacology&quot;],&quot;timeAgo&quot;:&quot;5.2s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 8 -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;N Engl J Med&quot;,&quot;date&quot;:&quot;2023;389:514-526&quot;,&quot;title&quot;:&quot;Oral Semaglutide and Composite Cardiovascular Outcomes in Type 2 Diabetes&quot;,&quot;badgeLabel&quot;:&quot;VALIDATED&quot;,&quot;isValidated&quot;:true,&quot;tldr&quot;:&quot;Oral semaglutide 14 mg daily reduced the composite of CV death, nonfatal MI, and nonfatal stroke by 14% versus placebo in T2DM patients over 32 months.&quot;,&quot;hrValue&quot;:&quot;0.86&quot;,&quot;pValue&quot;:&quot;0.01&quot;,&quot;gradeLabel&quot;:&quot;GRADE A&quot;,&quot;tags&quot;:[&quot;Cardiology&quot;,&quot;Endocrinology&quot;],&quot;timeAgo&quot;:&quot;6.3s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+
+          <!-- Card 9 -->
+          <!-- component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+<div v-scope="{ ...{&quot;journal&quot;:&quot;Diabetes Care&quot;,&quot;date&quot;:&quot;2024;47:1314-1322&quot;,&quot;title&quot;:&quot;Effect of Continuous Semaglutide Use on Hospital Readmission in Patients with HFpEF&quot;,&quot;badgeLabel&quot;:&quot;VALIDATED&quot;,&quot;isValidated&quot;:true,&quot;tldr&quot;:&quot;Patients with HFpEF discharge-initiated on semaglutide had 23% fewer 30-day readmissions in a propensity-matched cohort of 1,892 patients.&quot;,&quot;hrValue&quot;:&quot;0.77&quot;,&quot;pValue&quot;:&quot;0.004&quot;,&quot;gradeLabel&quot;:&quot;GRADE B&quot;,&quot;tags&quot;:[&quot;Cardiology&quot;,&quot;Heart Failure&quot;,&quot;Prevention&quot;],&quot;timeAgo&quot;:&quot;9.4s AGO&quot;,&quot;viewHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;}, $emit() {} }">
+<article class="relative bg-[#f6f3ea] border border-[#0b1d2a]/12 rounded-2xl shadow-[0_8px_24px_-6px_rgba(11,29,42,0.15)] overflow-hidden transition-all duration-200 hover:bg-[#0b1d2a]/[0.05]">
+  <div class="p-5">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 font-['JetBrains_Mono',monospace] text-[10px] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+          <span class="font-semibold text-[#1a2c3a]">{{ journal }}</span>
+          <span class="text-[#0b1d2a]/25">·</span>
+          <span class="[font-variant-numeric:tabular-nums]">{{ date }}</span>
+        </div>
+        <h3 class="font-['Zodiak',serif] text-[18px] leading-[1.2] tracking-tight max-w-[340px] line-clamp-2 text-[#0b1d2a]">{{ title }}</h3>
+      </div>
+      <div :class="isValidated ? 'bg-[#0b1d2a] text-[#f6f3ea]' : 'bg-[#0b1d2a]/10 text-[#0b1d2a]/60'" class="shrink-0 inline-flex items-center gap-1 px-2 h-6 rounded-full">
+        <span class="w-1 h-1 rounded-full" :class="isValidated ? 'bg-[#14b8a6]' : 'bg-[#0b1d2a]/30'"></span>
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-semibold uppercase tracking-[0.04em]">{{ badgeLabel }}</span>
+      </div>
+    </div>
+    <p class="text-[11.5px] text-[#1a2c3a] leading-[1.4] line-clamp-2 mb-4">{{ tldr }}</p>
+    <div class="flex items-center gap-2 flex-wrap mb-3">
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a] text-[#f6f3ea] text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">
+        <span>HR</span>
+        <span class="text-[#f6f3ea]/60">=</span>
+        <span class="font-semibold">{{ hrValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0b1d2a]/08 border border-[#0b1d2a]/10 text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#1a2c3a]">
+        <span>P</span>
+        <span class="font-medium">{{ pValue }}</span>
+      </div>
+      <div class="inline-flex items-center gap-1 px-1.5 h-6 rounded-md bg-[#0d9488]/10 border border-[#0d9488]/20 text-[#0b7d72]">
+        <span class="text-[9.5px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase">{{ gradeLabel }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span v-for="tag in tags" :key="tag" class="px-2 h-6 rounded-full bg-[#0b1d2a]/[0.04] border border-[#0b1d2a]/10 text-[10px] text-[#1a2c3a] inline-flex items-center font-medium">
+        {{ tag }}
+      </span>
+    </div>
+  </div>
+  <div class="border-t border-[#0b1d2a]/08 px-5 py-3 bg-[#f1ece0]/40 flex items-center justify-between text-[10px] font-['JetBrains_Mono',monospace] font-medium tracking-[0.04em] uppercase text-[#0b1d2a]/55">
+    <span class="flex items-center gap-1">
+      <iconify-icon icon="lucide:clock" class="text-[11px] text-[#0d9488]"></iconify-icon>
+      {{ timeAgo }}
+    </span>
+    <a :href="viewHref" class="text-[#0b7d72] hover:underline font-medium inline-flex items-center gap-0.5">
+      VIEW
+      <iconify-icon icon="lucide:arrow-right" class="text-[9px]"></iconify-icon>
+    </a>
+  </div>
+</article>
+</div>
+<!-- /component: PaperCard (d7e745b5-4e84-4bab-813e-4652b47a4e2a) -->
+        </div>
+
+        <!-- ============ PAGINATION ============ -->
+        <div class="mt-10 flex flex-col md:flex-row items-center justify-between gap-4 pt-6 border-t border-ink-10">
+          <div class="text-[11px] mono-stat text-ink/55">
+            SHOWING <span class="text-ink-soft font-semibold tnum">1 – 9</span> OF <span class="text-ink-soft font-semibold tnum">1,847</span> · <span class="tnum">205</span> PAGES
+          </div>
+          <nav class="flex items-center gap-1" aria-label="Pagination">
+            <button class="w-9 h-9 rounded-md border border-ink-15 inline-flex items-center justify-center hover-tint text-ink/55" aria-label="Previous page">
+              <iconify-icon icon="lucide:chevron-left" class="text-[15px]"></iconify-icon>
+            </button>
+            <button class="w-9 h-9 rounded-md bg-ink text-paper text-[12.5px] font-semibold inline-flex items-center justify-center">1</button>
+            <button class="w-9 h-9 rounded-md border border-ink-15 text-ink-soft text-[12.5px] font-medium inline-flex items-center justify-center hover-tint">2</button>
+            <button class="w-9 h-9 rounded-md border border-ink-15 text-ink-soft text-[12.5px] font-medium inline-flex items-center justify-center hover-tint">3</button>
+            <button class="w-9 h-9 rounded-md border border-ink-15 text-ink-soft text-[12.5px] font-medium inline-flex items-center justify-center hover-tint">4</button>
+            <span class="px-2 text-ink/40">…</span>
+            <button class="w-9 h-9 rounded-md border border-ink-15 text-ink-soft text-[12.5px] font-medium inline-flex items-center justify-center hover-tint">205</button>
+            <button class="w-9 h-9 rounded-md border border-ink-15 inline-flex items-center justify-center hover-tint text-ink-soft" aria-label="Next page">
+              <iconify-icon icon="lucide:chevron-right" class="text-[15px]"></iconify-icon>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EMPTY-CASE HINT STRIP ============ -->
+    <section class="relative pb-12 max-w-[1380px] mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="bg-paper-warm/60 border border-ink-12 rounded-2xl p-5 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-ink text-paper flex items-center justify-center shrink-0">
+            <iconify-icon icon="lucide:sparkles" class="text-[16px] text-teal-bright"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="serif text-[15px] tracking-tight mb-1">Ask in plain Arabic or English</h3>
+            <p class="text-[11.5px] text-ink-soft leading-[1.5]">Type "أفضل علاج لفشل القلب مع الحفاظ على القذف" or "best therapy for HFrEF" — the engine handles both.</p>
+          </div>
+        </div>
+
+        <div class="bg-paper-warm/60 border border-ink-12 rounded-2xl p-5 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-ink text-paper flex items-center justify-center shrink-0">
+            <iconify-icon icon="lucide:filter-x" class="text-[16px] text-teal-bright"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="serif text-[15px] tracking-tight mb-1">Combine filters with operators</h3>
+            <p class="text-[11.5px] text-ink-soft leading-[1.5]">Use <code class="px-1 py-0.5 rounded bg-ink/8 mono text-[10.5px]">NOT pediatric</code> or <code class="px-1 py-0.5 rounded bg-ink/8 mono text-[10.5px]">("heart failure" OR HFpEF)</code> right in the search bar.</p>
+          </div>
+        </div>
+
+        <div class="bg-paper-warm/60 border border-ink-12 rounded-2xl p-5 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-ink text-paper flex items-center justify-center shrink-0">
+            <iconify-icon icon="lucide:library" class="text-[16px] text-teal-bright"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="serif text-[15px] tracking-tight mb-1">Build a systematic review corpus</h3>
+            <p class="text-[11.5px] text-ink-soft leading-[1.5]">Select papers, then export a PRISMA-ready bundle with citations in your preferred format.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <!-- component: Footer (a1603e00-484b-4efd-b69a-c0c69c6b593c) -->
+<div v-scope="{ ...{&quot;homeHref&quot;:&quot;#&quot;,&quot;searchHref&quot;:&quot;#&quot;,&quot;detailHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;cmeHref&quot;:&quot;#cme&quot;,&quot;dashHref&quot;:&quot;https://draft-977adc9a-942f-4f82-a76b-84e3744935fa.preview.superdesign.dev&quot;,&quot;adminHref&quot;:&quot;#admin&quot;,&quot;mobileHref&quot;:&quot;#mobile&quot;,&quot;methodHref&quot;:&quot;#methodology&quot;,&quot;agentsHref&quot;:&quot;#agents&quot;,&quot;reviewHref&quot;:&quot;#review&quot;,&quot;gradeHref&quot;:&quot;#grade&quot;,&quot;sourcesHref&quot;:&quot;#sources&quot;,&quot;salesHref&quot;:&quot;#sales&quot;,&quot;ssoHref&quot;:&quot;#sso&quot;,&quot;billingHref&quot;:&quot;#billing&quot;,&quot;bulkHref&quot;:&quot;#bulk-api&quot;,&quot;uptimeHref&quot;:&quot;#uptime&quot;,&quot;aboutHref&quot;:&quot;#mission&quot;,&quot;teamHref&quot;:&quot;#team&quot;,&quot;careersHref&quot;:&quot;#careers&quot;,&quot;pressHref&quot;:&quot;#press&quot;,&quot;contactHref&quot;:&quot;#contact&quot;,&quot;privacyHref&quot;:&quot;#privacy&quot;,&quot;termsHref&quot;:&quot;#terms&quot;,&quot;hcpHref&quot;:&quot;#hcp-license&quot;,&quot;phiHref&quot;:&quot;#phi-policy&quot;,&quot;versionNumber&quot;:&quot;v0.9.4&quot;,&quot;showSystemStatus&quot;:true}, $emit() {} }">
+<footer class="relative py-16 md:py-20 border-t" style="background-color: #f1ece0; border-color: rgba(11, 29, 42, 0.1); text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"><div class="max-w-[1380px] mx-auto px-6"><div class="grid grid-cols-12 gap-10 md:gap-12 mb-14"><div class="col-span-12 md:col-span-4"><a :href="homeHref" id="footer-logo-link" class="flex items-center gap-2.5 mb-5"><div class="relative w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden" style="background-color: #0b1d2a;"><div class="absolute inset-0 bg-gradient-to-br from-teal-400/30 via-transparent to-transparent"></div><span class="text-paper text-xl font-medium tracking-tight relative" style="font-family: Zodiak, serif; color: #f6f3ea;">C</span><div class="absolute w-1 h-1 rounded-full bottom-1.5 right-1.5" style="background-color: #14b8a6;"></div></div><span class="text-xl font-medium tracking-tight" style="font-family: Zodiak, serif; color: #0b1d2a;">Claritas</span></a><p class="text-[15px] leading-[1.55] max-w-[300px] mb-6" style="font-family: Zodiak, serif; font-weight: 400; color: #1a2c3a;">Clinical literature, finally understood — and the physicians who read it, finally on time.</p><div class="flex gap-1.5" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;"><span class="px-2 h-7 rounded-md border inline-flex items-center" style="border-color: rgba(11, 29, 42, 0.15); color: #1a2c3a;">RTL · EN / ع</span><span class="px-2 h-7 rounded-md border inline-flex items-center gap-1" style="border-color: rgba(11, 29, 42, 0.15); color: #1a2c3a;"><iconify-icon icon="lucide:sun" class="text-[12px]"></iconify-icon><iconify-icon icon="lucide:moon" class="text-[12px]"></iconify-icon>DARK MODE</span></div></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">PRODUCT</div><ul class="space-y-2.5 text-[13px]"><li><a :href="searchHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Search & discovery</a></li><li><a :href="detailHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Paper detail view</a></li><li><a :href="cmeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">CME module</a></li><li><a :href="dashHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Physician dashboard</a></li><li><a :href="adminHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Hospital admin portal</a></li><li><a :href="mobileHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Mobile (iOS / Android)</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">EVIDENCE</div><ul class="space-y-2.5 text-[13px]"><li><a :href="methodHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Methodology</a></li><li><a :href="agentsHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">The six agents</a></li><li><a :href="reviewHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">HITL review process</a></li><li><a :href="gradeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">GRADE framework</a></li><li><a :href="sourcesHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Corpus sources (17)</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">INSTITUTIONAL</div><ul class="space-y-2.5 text-[13px]"><li><a :href="salesHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Contact sales</a></li><li><a :href="ssoHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">SSO (SAML / OIDC)</a></li><li><a :href="billingHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Billing & seats</a></li><li><a :href="bulkHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Bulk export API</a></li><li><a :href="uptimeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Uptime & SLAs</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">COMPANY</div><ul class="space-y-2.5 text-[13px]"><li><a :href="aboutHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Mission</a></li><li><a :href="teamHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Clinical team</a></li><li><a :href="careersHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Careers · 7 open</a></li><li><a :href="pressHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Press & papers</a></li><li><a :href="contactHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Contact</a></li></ul></div></div><div class="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-[11px]" style="border-color: rgba(11, 29, 42, 0.1); font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.55);"><div class="flex flex-wrap justify-center md:justify-start items-center gap-4"><span>© 2024 CLARITAS MEDICAL, INC.</span><a :href="privacyHref" class="hover:text-teal-700 transition-colors">PRIVACY</a><a :href="termsHref" class="hover:text-teal-700 transition-colors">TERMS</a><a :href="hcpHref" class="hover:text-teal-700 transition-colors">HCP LICENSE</a><a :href="phiHref" class="hover:text-teal-700 transition-colors">PHI POLICY</a></div><div class="flex items-center gap-3"><span v-if="showSystemStatus" class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-teal-600 animate-pulse"></span>ALL SYSTEMS OPERATIONAL</span><span>·</span><span>{{ versionNumber }} · BETA</span></div></div></div></footer>
+</div>
+<!-- /component: Footer (a1603e00-484b-4efd-b69a-c0c69c6b593c) -->
+
+</div>
+</body>
+</html>
