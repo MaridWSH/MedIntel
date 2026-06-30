@@ -7,7 +7,7 @@
 <meta name="view-transition" content="same-origin">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-<script src="https://unpkg.com/petite-vue@0.4.4/dist/petite-vue.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/petite-vue@0.4.1/dist/petite-vue.iife.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -927,7 +927,7 @@
                     <div class="text-[12.5px] font-medium text-ink">Third-party tracking</div>
                     <div class="text-[10.5px] text-ink/55 mt-0.5">Always off · we never enable this</div>
                   </div>
-                  <div class="toggle-pill" onclick="return false; opacity: 0.4; pointer-events: none;"><div class="toggle-thumb"></div></div>
+                  <div class="toggle-pill" style="opacity: 0.4; pointer-events: none;" onclick="return false;"><div class="toggle-thumb"></div></div>
                 </div>
               </div>
             </div>
@@ -1065,7 +1065,7 @@
 
   <script>
     // Mount Petite-Vue for component rendering
-    petiteVue.createApp({}).mount();
+    PetiteVue.createApp({}).mount();
 
     // Active tab tracking (basic visual sync via IntersectionObserver)
     const tabs = document.querySelectorAll('.tab-trigger');
