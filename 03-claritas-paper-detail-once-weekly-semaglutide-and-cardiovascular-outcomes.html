@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claritas · Paper Detail · Once-Weekly Semaglutide and Cardiovascular Outcomes</title>
+<meta name="view-transition" content="same-origin">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<script src="https://unpkg.com/petite-vue@0.4.2/dist/petite-vue.iife.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0b1d2a;
+    --ink-soft: #1a2c3a;
+    --paper: #f6f3ea;
+    --paper-warm: #f1ece0;
+    --paper-soft: #e8e1d1;
+    --rule: #e2dccb;
+    --teal: #0d9488;
+    --teal-deep: #0b7d72;
+    --teal-bright: #14b8a6;
+    --teal-mist: #5eaaa0;
+    --amber-ink: #967338;
+    --amber-bg: #f6ecd6;
+  }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html { background-color: #f6f3ea; }
+  body { font-family: 'Inter', sans-serif; color: var(--ink); margin: 0; }
+  .serif { font-family: 'Zodiak', 'Times New Roman', serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+  .bg-paper { background-color: var(--paper); }
+  .bg-paper-warm { background-color: var(--paper-warm); }
+  .bg-paper-soft { background-color: var(--paper-soft); }
+  .bg-ink { background-color: var(--ink); }
+  .bg-ink-soft { background-color: var(--ink-soft); }
+  .bg-teal-deep { background-color: var(--teal-deep); }
+  .bg-amber-bg { background-color: var(--amber-bg); }
+  .text-ink { color: var(--ink); }
+  .text-ink-soft { color: var(--ink-soft); }
+  .text-ink-mute { color: #5a6b78; }
+  .text-teal { color: var(--teal); }
+  .text-teal-mist { color: var(--teal-mist); }
+  .text-amber-ink { color: var(--amber-ink); }
+  .text-paper { color: var(--paper); }
+  .border-ink-10 { border-color: rgba(11, 29, 42, 0.1); }
+  .border-ink-15 { border-color: rgba(11, 29, 42, 0.15); }
+
+  .display { font-family: 'Zodiak', serif; font-weight: 500; letter-spacing: -0.025em; line-height: 0.96; }
+  .serif-body { font-family: 'Zodiak', serif; font-weight: 400; letter-spacing: -0.005em; }
+  .mono-stat { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .grain-overlay::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.35; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.1 0 0 0 0 0.16 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  @keyframes pulse-mark { 0%, 100% { opacity: 1; r: 5.2; } 50% { opacity: 0.5; r: 5.8; } }
+  .pulse-mark { animation: pulse-mark 2.4s ease-in-out infinite; }
+  @keyframes rotate-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .rotate-slow { animation: rotate-slow 32s linear infinite; transform-origin: center; }
+  @keyframes dash-flow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -32; } }
+  .dash-flow { animation: dash-flow 1.6s linear infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .cursor-blink { animation: blink 1.4s infinite; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fade-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .d-1 { animation-delay: 0.08s; } .d-2 { animation-delay: 0.16s; } .d-3 { animation-delay: 0.24s; } .d-4 { animation-delay: 0.32s; } .d-5 { animation-delay: 0.40s; } .d-6 { animation-delay: 0.48s; } .d-7 { animation-delay: 0.56s; } .d-8 { animation-delay: 0.64s; }
+  @keyframes scroll-y { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+  .scroll-strip { animation: scroll-y 18s linear infinite; }
+
+  .hover-tint { transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease; }
+  .hover-tint:hover { background-color: rgba(11, 29, 42, 0.05); }
+  ::selection { background: var(--teal-bright); color: var(--ink); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(11,29,42,0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(11,29,42,0.3); }
+
+  .btn-primary { transition: all 220ms cubic-bezier(0.22, 1, 0.36, 1); position: relative; overflow: hidden; }
+  .btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%); pointer-events: none; }
+  .btn-primary:hover { background: var(--teal-deep); transform: translateY(-1px); box-shadow: 0 14px 30px -12px rgba(11, 125, 114, 0.55); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .tab-active { background-color: var(--ink); color: var(--paper); }
+  .tab-active .tab-num { color: var(--teal-bright); }
+  .tab-idle { background-color: rgba(11,29,42,0.04); color: var(--ink-soft); }
+  .tab-idle:hover { background-color: rgba(11,29,42,0.08); }
+  .tab-idle .tab-num { color: rgba(11,29,42,0.4); }
+
+  [v-cloak] { display: none; }
+  [data-reveal] { opacity: 0; transform: translateY(8px); transition: opacity .5s ease, transform .5s ease; }
+  [data-reveal].shown { opacity: 1; transform: translateY(0); }
+
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+</style>
+</head>
+<body>
+<div v-scope="#app" v-cloak>
+
+  <!-- component: TopBar (480fe349-2600-484a-afcc-d7ccdefaf050) -->
+<div v-scope="{ ...{&quot;papersIndexed&quot;:&quot;50,418,727&quot;,&quot;agentsCount&quot;:6,&quot;physiciansCount&quot;:&quot;1,200+&quot;,&quot;version&quot;:&quot;v0.9.4&quot;}, $emit() {} }">
+<div class="bg-[#0b1d2a] text-[#f6f3ea]"><div class="max-w-[1380px] mx-auto px-6 h-9 flex items-center justify-between text-[10.5px] font-['JetBrains_Mono',_monospace] font-medium tracking-[0.04em] uppercase"><div class="flex items-center gap-5"><span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#14b8a6] animate-pulse"></span>{{ papersIndexed }} papers indexed</span><span class="hidden md:flex items-center gap-2 text-[#f6f3ea]/55"><iconify-icon icon="lucide:shield-check" class="text-[#14b8a6] text-[11px]"></iconify-icon>Synthesised by {{ agentsCount }} specialised agents · Reviewed by {{ physiciansCount }} physicians</span></div><div class="flex items-center gap-4 text-[#f6f3ea]/65"><span>BETA · {{ version }}</span><span class="hidden md:inline text-[#f6f3ea]/30">·</span><span class="hidden md:inline">CME accredited · EG-MS · AB-2938</span></div></div></div>
+</div>
+<!-- /component: TopBar (480fe349-2600-484a-afcc-d7ccdefaf050) -->
+  <!-- component: Header (28fd511a-eb31-4f22-a1a7-991df42263ca) -->
+<div v-scope="{ ...{&quot;activeItem&quot;:&quot;evidence&quot;,&quot;logoHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;howHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;evidenceHref&quot;:&quot;#tldr&quot;,&quot;institutionsHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;pricingHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;cmeHref&quot;:&quot;#&quot;,&quot;docsHref&quot;:&quot;#&quot;,&quot;signinHref&quot;:&quot;https://draft-715a7b82-14a9-4594-b38a-72cac1cca8b3.preview.superdesign.dev&quot;,&quot;tryfreeHref&quot;:&quot;https://draft-715a7b82-14a9-4594-b38a-72cac1cca8b3.preview.superdesign.dev&quot;,&quot;currentLang&quot;:&quot;EN&quot;,&quot;searchEnglish&quot;:true,&quot;searchArabic&quot;:true}, $emit() {} }">
+<header class="relative z-30 border-b border-black/10 bg-[#f6f3ea]/95 backdrop-blur-[6px] sticky top-0">
+  <div class="max-w-[1380px] mx-auto px-6 h-[68px] flex items-center justify-between gap-6">
+    <!-- Logo -->
+    <a :href="logoHref" id="nav-logo-link" class="flex items-center gap-2.5 shrink-0 group">
+      <div class="relative w-9 h-9 bg-[#0b1d2a] rounded-[10px] flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#14b8a6]/30 via-transparent to-transparent"></div>
+        <span class="text-[#f6f3ea] text-xl font-medium tracking-tight relative" style="font-family: 'Zodiak', serif;">C</span>
+        <div class="absolute w-1 h-1 bg-[#14b8a6] rounded-full bottom-1.5 right-1.5"></div>
+      </div>
+      <span class="text-xl font-medium tracking-tight" style="font-family: 'Zodiak', serif;">Claritas</span>
+    </a>
+
+    <!-- Primary nav -->
+    <nav class="hidden lg:flex items-center gap-1 text-[13.5px]">
+      <a :href="howHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'how' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">How it works</a>
+      <a :href="evidenceHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'evidence' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Evidence Engine</a>
+      <a :href="institutionsHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'institutions' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">For institutions</a>
+      <a :href="pricingHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'pricing' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Pricing</a>
+      <a :href="cmeHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'cme' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">CME credits</a>
+      <a :href="docsHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'docs' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Docs</a>
+    </nav>
+
+    <!-- Right cluster -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <!-- Language dropdown -->
+      <div class="relative group">
+        <button class="flex items-center gap-1.5 px-2.5 h-9 rounded-md border border-[#0b1d2a]/15 text-[12.5px] font-medium hover:bg-[#0b1d2a]/5 transition-colors" aria-haspopup="true">
+          <iconify-icon icon="lucide:globe" class="text-[14px] text-[#0d9488]"></iconify-icon>
+          <span v-text="currentLang"></span>
+          <span class="text-[#0b1d2a]/30">·</span>
+          <span class="text-[#0b1d2a]/55">ع</span>
+          <iconify-icon icon="lucide:chevron-down" class="text-[13px] text-[#0b1d2a]/40"></iconify-icon>
+        </button>
+        <div class="absolute top-[calc(100%+4px)] right-0 w-56 bg-[#f6f3ea] border border-[#0b1d2a]/15 rounded-xl shadow-[0_20px_50px_-12px_rgba(11,29,42,0.22)] p-1.5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="px-2 py-1.5 text-[10px] text-[#0b1d2a]/45 uppercase font-medium tracking-wider" style="font-family: 'JetBrains Mono', monospace;">Interface Language</div>
+          <button @click="$emit('languageChange', 'EN')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[#0b1d2a]/5 transition-colors" :class="{ 'bg-[#0b1d2a]/[0.04]': currentLang === 'EN' }">
+            <span class="flex items-center gap-2.5 text-[13px] font-medium"><span class="text-base">EN</span><span>English</span></span>
+            <iconify-icon v-if="currentLang === 'EN'" icon="lucide:check" class="text-[#0d9488] text-[14px]"></iconify-icon>
+          </button>
+          <button @click="$emit('languageChange', 'AR')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[#0b1d2a]/5 transition-colors" :class="{ 'bg-[#0b1d2a]/[0.04]': currentLang === 'AR' }">
+            <span class="flex items-center gap-2.5 text-[13px] font-medium"><span class="text-base">ع</span><span>العربية · Arabic</span></span>
+            <iconify-icon v-if="currentLang === 'AR'" icon="lucide:check" class="text-[#0d9488] text-[14px]"></iconify-icon>
+          </button>
+          <div class="h-px bg-[#0b1d2a]/10 my-1.5"></div>
+          <div class="px-2 py-1.5 text-[10px] text-[#0b1d2a]/45 uppercase font-medium tracking-wider" style="font-family: 'JetBrains Mono', monospace;">Search Content</div>
+          <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#0b1d2a]/5 transition-colors cursor-pointer text-[12.5px]">
+            <input type="checkbox" :checked="searchEnglish" @change="$emit('filterToggle', { key: 'english', value: $event.target.checked })" class="accent-[#0b7d72] w-3.5 h-3.5">
+            <span>English corpus</span>
+          </label>
+          <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#0b1d2a]/5 transition-colors cursor-pointer text-[12.5px]">
+            <input type="checkbox" :checked="searchArabic" @change="$emit('filterToggle', { key: 'arabic', value: $event.target.checked })" class="accent-[#0b7d72] w-3.5 h-3.5">
+            <span>Arabic abstracts</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sign in -->
+      <a :href="signinHref" class="hidden md:inline-flex items-center px-3 h-9 rounded-md text-[12.5px] font-medium hover:bg-[#0b1d2a]/5 transition-colors">
+        Sign in
+      </a>
+
+      <!-- Try Free -->
+      <a :href="tryfreeHref" class="inline-flex items-center gap-1.5 px-4 h-9 rounded-md bg-[#0b7d72] text-[#f6f3ea] text-[12.5px] font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+        Try Free
+        <iconify-icon icon="lucide:arrow-right" class="text-[14px]"></iconify-icon>
+      </a>
+    </div>
+  </div>
+</header>
+</div>
+<!-- /component: Header (28fd511a-eb31-4f22-a1a7-991df42263ca) -->
+
+  <!-- MAIN DETAIL LAYOUT -->
+  <main style="view-transition-name: main-content" class="relative bg-paper">
+    <div class="max-w-[1380px] mx-auto px-6 pt-8 pb-20">
+      <div class="grid grid-cols-12 gap-8">
+
+        <!-- LEFT: Paper detail (col-span-8) -->
+        <div class="col-span-12 lg:col-span-8 min-w-0">
+
+          <!-- Breadcrumb + meta -->
+          <div class="fade-in d-1 flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div class="flex items-center gap-2 text-[11px] mono-stat text-ink/55 min-w-0">
+              <a href="https://draft-b1782f20-e5ae-4998-b345-58013979ed71.preview.superdesign.dev" class="text-ink/55 hover:text-teal-deep">SEARCH</a>
+              <iconify-icon icon="lucide:chevron-right" class="text-[11px] text-ink/30"></iconify-icon>
+              <span class="text-ink-soft">CARDIOLOGY</span>
+              <iconify-icon icon="lucide:chevron-right" class="text-[11px] text-ink/30"></iconify-icon>
+              <span class="text-ink truncate">NEJM 2024;391:106</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button class="w-9 h-9 rounded-lg border border-ink-15 hover-tint inline-flex items-center justify-center" aria-label="Save" @click="saved = !saved">
+                <iconify-icon icon="lucide:bookmark" class="text-[16px]" :class="saved ? 'text-teal-deep' : 'text-ink-soft'"></iconify-icon>
+              </button>
+              <button class="h-9 px-3 rounded-lg border border-ink-15 hover-tint inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-soft">
+                <iconify-icon icon="lucide:share-2" class="text-[14px] text-teal"></iconify-icon>
+                <span class="hidden md:inline">Share</span>
+              </button>
+              <button class="h-9 px-3 rounded-lg border border-ink-15 hover-tint inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-soft">
+                <iconify-icon icon="lucide:bell" class="text-[14px] text-teal"></iconify-icon>
+                <span class="hidden md:inline">Follow topic</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Title + meta + badges -->
+          <header class="fade-in d-2 pb-7 border-b border-ink-10">
+            <div class="flex flex-wrap items-center gap-2 mb-4 text-[11px] mono-stat text-ink/55">
+              <span class="text-ink-soft font-semibold">NEJM</span>
+              <span class="text-ink/25">·</span>
+              <span class="tnum">2024;391:106-116</span>
+              <span class="text-ink/25">·</span>
+              <span>DOI 10.1056/NEJMoa2403180</span>
+              <span class="text-ink/25">·</span>
+              <span>14 centers · 41 authors</span>
+            </div>
+            <h1 class="display text-[34px] md:text-[44px] tracking-[-0.02em] max-w-[760px] mb-3">
+              Once-Weekly Semaglutide and Cardiovascular Outcomes in Adults with Overweight or Obesity
+            </h1>
+            <p class="text-[13px] text-ink/60 italic mb-5">
+              Lepault R, Aroda VR, Davies M, de la Sierra A, Erdur EK, ... · for the STEP-HFpEF Trial Investigators
+            </p>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink text-paper">
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-bright"></span>
+                <span class="text-[10.5px] mono-stat font-semibold tracking-wider">VALIDATED</span>
+                <iconify-icon icon="lucide:badge-check" class="text-[13px] text-teal-bright"></iconify-icon>
+              </div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-ink-15 bg-paper-warm/60">
+                <iconify-icon icon="lucide:user-round-check" class="text-[12px] text-teal"></iconify-icon>
+                <span class="text-[11px] text-ink-soft font-medium">K. El-Sherif, MD · Cardiology</span>
+              </div>
+
+              <div class="w-px h-6 bg-ink/12 mx-1"></div>
+
+              <div class="inline-flex items-center gap-1 px-2.5 h-7 rounded-md bg-ink text-paper">
+                <span class="text-[10.5px] mono-stat">HR</span>
+                <span class="text-[11px] mono-stat text-paper/60">=</span>
+                <span class="text-[12px] mono-stat font-semibold">0.79</span>
+              </div>
+              <div class="inline-flex items-center gap-1 px-2.5 h-7 rounded-md bg-ink/8 border border-ink-10">
+                <span class="text-[10.5px] mono-stat text-ink/55">95% CI</span>
+                <span class="text-[12px] mono-stat font-medium text-ink-soft">0.72 – 0.87</span>
+              </div>
+              <div class="inline-flex items-center gap-1 px-2.5 h-7 rounded-md bg-ink/8 border border-ink-10">
+                <span class="text-[10.5px] mono-stat text-ink/55">P</span>
+                <span class="text-[12px] mono-stat font-medium text-ink-soft">&lt; 0.001</span>
+              </div>
+              <div class="inline-flex items-center gap-1 px-2.5 h-7 rounded-md bg-teal-deep/10 border border-teal-deep/20">
+                <span class="text-[10.5px] mono-stat text-teal-deep">GRADE A</span>
+              </div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-amber-bg border border-amber-ink/20">
+                <iconify-icon icon="lucide:check-circle-2" class="text-[12px] text-amber-ink"></iconify-icon>
+                <span class="text-[10.5px] mono-stat text-amber-ink">PEER REVIEWED</span>
+              </div>
+            </div>
+          </header>
+
+          <!-- TAB NAVIGATION -->
+          <nav class="fade-in d-3 mt-7 sticky top-[68px] z-30 -mx-2 px-2 py-2 bg-paper rounded-2xl">
+            <div class="flex gap-1 overflow-x-auto" role="tablist">
+              <button v-for="t in tabs" :key="t.id" @click="active = t.id"
+                :class="active === t.id ? 'tab-active' : 'tab-idle'"
+                class="shrink-0 inline-flex items-center gap-2 px-3.5 h-10 rounded-[12px] text-[12.5px] font-medium transition-all">
+                <span class="tab-num text-[9.5px] mono-stat">{{ t.num }}</span>
+                <span>{{ t.label }}</span>
+              </button>
+            </div>
+          </nav>
+
+          <!-- PANES -->
+          <div class="mt-7">
+
+            <!-- ===== TLDR PANE ===== -->
+            <section v-show="active === 'tldr'" data-reveal="tldr" class="space-y-5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
+                  <span class="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink"></span>
+                  AGENT 01 · STRUCTURED SUMMARY · 0.4s
+                </div>
+                <button class="text-[10.5px] mono-stat text-teal-deep hover:underline inline-flex items-center gap-1">
+                  <iconify-icon icon="lucide:scan-eye" class="text-[12px]"></iconify-icon>TRACE TO SOURCE
+                </button>
+              </div>
+
+              <article class="relative bg-paper-warm/50 border border-ink-10 rounded-3xl p-7 md:p-10 overflow-hidden">
+                <div class="absolute -top-12 -left-12 w-44 h-44 rounded-full bg-teal/8 blur-3xl pointer-events-none"></div>
+                <div class="absolute top-6 right-6 serif text-[120px] leading-none text-teal/15 select-none">"</div>
+                <div class="relative">
+                  <div class="serif-body text-[20px] md:text-[24px] leading-[1.4] text-ink-soft max-w-[640px] mb-6">
+                    In adults with overweight or obesity and established cardiovascular disease, weekly subcutaneous semaglutide <span class="font-medium text-ink">reduced the composite of cardiovascular death, nonfatal MI, and stroke by 21%</span> — a benefit consistent across pre-specified subgroups and durable over 48 months of follow-up.
+                  </div>
+
+                  <div class="h-px bg-ink/10 my-7"></div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-7">
+                    <div class="border-l-2 border-teal pl-4">
+                      <div class="flex items-center gap-2 mb-1.5">
+                        <span class="text-[9.5px] mono-stat text-teal-deep">P</span>
+                        <span class="text-[12.5px] font-semibold text-ink">POPULATION</span>
+                      </div>
+                      <div class="text-[13.5px] text-ink-soft leading-[1.55]">n = 17,604 adults (≥45 yrs), BMI ≥ 27, with established ASCVD. 41% female, 84% with prior MI, 31% with prior stroke.</div>
+                    </div>
+                    <div class="border-l-2 border-teal pl-4">
+                      <div class="flex items-center gap-2 mb-1.5">
+                        <span class="text-[9.5px] mono-stat text-teal-deep">I</span>
+                        <span class="text-[12.5px] font-semibold text-ink">INTERVENTION</span>
+                      </div>
+                      <div class="text-[13.5px] text-ink-soft leading-[1.55]">Subcutaneous semaglutide 2.4 mg weekly, titrated over 16 weeks. Standard dietary counselling at each visit.</div>
+                    </div>
+                    <div class="border-l-2 border-teal pl-4">
+                      <div class="flex items-center gap-2 mb-1.5">
+                        <span class="text-[9.5px] mono-stat text-teal-deep">C</span>
+                        <span class="text-[12.5px] font-semibold text-ink">COMPARATOR</span>
+                      </div>
+                      <div class="text-[13.5px] text-ink-soft leading-[1.55]">Matching placebo, volume-matched weekly SC injection. Identical injection device and titration schedule.</div>
+                    </div>
+                    <div class="border-l-2 border-teal pl-4">
+                      <div class="flex items-center gap-2 mb-1.5">
+                        <span class="text-[9.5px] mono-stat text-teal-deep">O</span>
+                        <span class="text-[12.5px] font-semibold text-ink">OUTCOME</span>
+                      </div>
+                      <div class="text-[13.5px] text-ink-soft leading-[1.55]">Primary composite: cardiovascular death, nonfatal MI, nonfatal stroke — adjudicated, time-to-first event, 48-month median follow-up.</div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Synthesis meta strip -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                <div class="bg-paper-warm/40 border border-ink-10 rounded-2xl p-4">
+                  <div class="text-[9.5px] mono-stat text-ink/45 mb-1.5">SYNTHESISED</div>
+                  <div class="flex items-center gap-1.5 text-[12.5px] text-ink-soft font-medium">
+                    <iconify-icon icon="lucide:clock" class="text-[14px] text-teal"></iconify-icon>
+                    <span>11.8s · 6 agents</span>
+                  </div>
+                </div>
+                <div class="bg-paper-warm/40 border border-ink-10 rounded-2xl p-4">
+                  <div class="text-[9.5px] mono-stat text-ink/45 mb-1.5">SOURCES</div>
+                  <div class="flex items-center gap-1.5 text-[12.5px] text-ink-soft font-medium">
+                    <iconify-icon icon="lucide:scroll-text" class="text-[14px] text-teal"></iconify-icon>
+                    <span>41 cites · 6 figs</span>
+                  </div>
+                </div>
+                <div class="bg-paper-warm/40 border border-ink-10 rounded-2xl p-4">
+                  <div class="text-[9.5px] mono-stat text-ink/45 mb-1.5">VALIDATED BY</div>
+                  <div class="flex items-center gap-1.5 text-[12.5px] text-ink-soft font-medium">
+                    <iconify-icon icon="lucide:user-round-check" class="text-[14px] text-teal"></iconify-icon>
+                    <span>K. El-Sherif, MD</span>
+                  </div>
+                </div>
+                <div class="bg-paper-warm/40 border border-ink-10 rounded-2xl p-4">
+                  <div class="text-[9.5px] mono-stat text-ink/45 mb-1.5">CME ELIGIBLE</div>
+                  <div class="flex items-center gap-1.5 text-[12.5px] text-ink-soft font-medium">
+                    <iconify-icon icon="lucide:award" class="text-[14px] text-teal"></iconify-icon>
+                    <span>0.5 hrs · Card</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ===== MIND MAP PANE ===== -->
+            <section v-show="active === 'mindmap'" data-reveal="mindmap" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
+                  <span class="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink"></span>
+                  AGENT 02 · INTERACTIVE KNOWLEDGE GRAPH · 1.6s
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <div class="inline-flex items-center gap-1 px-2 h-7 rounded-md border border-ink-15 hover-tint cursor-pointer text-[10.5px] mono-stat">
+                    <iconify-icon icon="lucide:layout" class="text-[12px] text-teal"></iconify-icon>SPATIAL
+                  </div>
+                  <div class="inline-flex items-center gap-1 px-2 h-7 rounded-md bg-ink text-paper text-[10.5px] mono-stat">
+                    <iconify-icon icon="lucide:git-fork" class="text-[12px] text-teal-bright"></iconify-icon>RADIAL
+                  </div>
+                </div>
+              </div>
+
+              <!-- MIND MAP CANVAS -->
+              <div class="relative bg-ink rounded-3xl overflow-hidden h-[620px] border border-ink-soft">
+                <!-- Grid background -->
+                <svg class="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none">
+                  <pattern id="grid-dot" width="28" height="28" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="0.8" fill="#f6f3ea"/>
+                  </pattern>
+                  <rect width="100%" height="100%" fill="url(#grid-dot)"/>
+                </svg>
+
+                <!-- Center halo -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-teal-bright/15 blur-3xl pointer-events-none"></div>
+
+                <!-- MIND MAP SVG -->
+                <svg viewBox="0 0 900 620" class="absolute inset-0 w-full h-full">
+                  <defs>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                      <feMerge>
+                        <feMergeNode in="blur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <!-- Rotating ring -->
+                  <g class="rotate-slow" style="transform-origin: 450px 310px;">
+                    <circle cx="450" cy="310" r="240" fill="none" stroke="#14b8a6" stroke-width="0.5" stroke-dasharray="3 8" opacity="0.25"/>
+                    <circle cx="450" cy="310" r="180" fill="none" stroke="#14b8a6" stroke-width="0.4" stroke-dasharray="2 10" opacity="0.18"/>
+                  </g>
+
+                  <!-- Connections (radial) -->
+                  <g stroke="#14b8a6" fill="none">
+                    <path d="M 450 310 Q 280 220, 180 145" stroke-width="1.4" opacity="0.6" stroke-dasharray="4 4" class="dash-flow"/>
+                    <path d="M 450 310 Q 600 200, 730 130" stroke-width="1.4" opacity="0.6"/>
+                    <path d="M 450 310 Q 200 310, 100 310" stroke-width="1.4" opacity="0.6"/>
+                    <path d="M 450 310 Q 700 310, 815 310" stroke-width="1.4" opacity="0.6"/>
+                    <path d="M 450 310 Q 280 400, 180 475" stroke-width="1.4" opacity="0.6"/>
+                    <path d="M 450 310 Q 600 420, 730 490" stroke-width="1.4" opacity="0.6" stroke-dasharray="4 4" class="dash-flow"/>
+                  </g>
+
+                  <!-- Sub-branches -->
+                  <g stroke="#5eaaa0" fill="none" opacity="0.4" stroke-width="1">
+                    <path d="M 180 145 L 80 95"/><path d="M 180 145 L 95 175"/>
+                    <path d="M 730 130 L 830 90"/><path d="M 730 130 L 820 165"/>
+                    <path d="M 100 310 L 35 270"/><path d="M 100 310 L 35 350"/>
+                    <path d="M 815 310 L 870 270"/><path d="M 815 310 L 870 350"/>
+                    <path d="M 180 475 L 80 525"/><path d="M 180 475 L 105 440"/>
+                    <path d="M 730 490 L 830 530"/><path d="M 730 490 L 825 455"/>
+                  </g>
+
+                  <!-- ====== CENTER NODE ====== -->
+                  <g>
+                    <circle cx="450" cy="310" r="78" fill="#0b1d2a" stroke="#14b8a6" stroke-width="2" filter="url(#glow)"/>
+                    <circle cx="450" cy="310" r="62" fill="none" stroke="#14b8a6" stroke-width="0.6" opacity="0.5"/>
+                    <text x="450" y="285" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="#5eaaa0" letter-spacing="1.5">CORE FINDING</text>
+                    <text x="450" y="312" text-anchor="middle" font-family="JetBrains Mono" font-size="22" font-weight="700" fill="#14b8a6">–21%</text>
+                    <text x="450" y="330" text-anchor="middle" font-family="Inter" font-size="9" fill="#f6f3ea" opacity="0.6">3-pt MACE</text>
+                  </g>
+
+                  <!-- ====== NODE: POPULATION ====== -->
+                  <g class="cursor-pointer">
+                    <rect x="100" y="118" width="160" height="56" rx="10" fill="#1a2c3a" stroke="#14b8a6" stroke-width="1" opacity="0.96"/>
+                    <text x="115" y="138" font-family="JetBrains Mono" font-size="8.5" font-weight="600" fill="#5eaaa0" letter-spacing="1">P · POPULATION</text>
+                    <text x="115" y="156" font-family="Inter" font-size="13" font-weight="600" fill="#f6f3ea">17,604 adults</text>
+                    <text x="115" y="167" font-family="Inter" font-size="9" fill="#f6f3ea" opacity="0.55">BMI ≥ 27 · ASCVD · ≥45 y</text>
+                  </g>
+                  <circle cx="80" cy="95" r="3" fill="#5eaaa0" opacity="0.7"/>
+                  <text x="50" y="98" font-family="Inter" font-size="8" fill="#f6f3ea" opacity="0.45">84% prior MI</text>
+                  <circle cx="95" cy="175" r="3" fill="#5eaaa0" opacity="0.7"/>
+                  <text x="60" y="178" font-family="Inter" font-size="8" fill="#f6f3ea" opacity="0.45">41% female</text>
+
+                  <!-- ====== NODE: RESULTS ====== -->
+                  <g class="cursor-pointer">
+                    <rect x="650" y="102" width="160" height="56" rx="10" fill="#1a2c3a" stroke="#14b8a6" stroke-width="1.4" opacity="0.96"/>
+                    <text x="665" y="122" font-family="JetBrains Mono" font-size="8.5" font-weight="600" fill="#5eaaa0" letter-spacing="1">O · RESULTS</text>
+                    <text x="665" y="140" font-family="Inter" font-size="12.5" font-weight="700" fill="#14b8a6">HR 0.79 (0.72–0.87)</text>
+                    <text x="665" y="152" font-family="JetBrains Mono" font-size="8" fill="#f6f3ea" opacity="0.55">P&lt;0.001 · NNT 49</text>
+                  </g>
+                  <circle cx="830" cy="90" r="3" fill="#5eaaa0" opacity="0.7"/>
+                  <text x="838" y="93" font-family="Inter" font-size="8" fill="#f6f3ea" opacity="0.45">NNT 49</text>
+                  <circle cx="820" cy="165" r="3" fill="#5eaaa0" opacity="0.7"/>
+                  <text x="828" y="168" font-family="Inter" font-size="8" fill="#f6f3ea" opacity="0.45">3,581 events</text>
+
+                  <!-- ====== NODE: SUBGROUPS ====== -->
+                  <g class="cursor-pointer">
+                    <rect x="20" y="282" width="160" height="56" rx="10" fill="#1a2c3a" stroke="#14b8a6" stroke-width="1" opacity="0.96"/>
+                    <text x="35" y="302" font-family="JetBrains Mono" font-size="8.5" font-weight="600" fill="#5eaaa0" letter-spacing="1">S · SUBGROUPS</text>
+                    <text x="35" y="320" font-family="Inter" font-size="12" font-weight="600" fill="#f6f3ea">Consistent across</text>
+                    <text x="35" y="333" font-family="Inter" font-size="9" fill="#f6f3ea" opacity="0.55">all strata · I² = 0%</text>
+                  </g>
+
+                  <!-- ====== NODE: SAFETY ====== -->
+                  <g class="cursor-pointer">
+                    <rect x="735" y="282" width="160" height="56" rx="10" fill="#1a2c3a" stroke="#14b8a6" stroke-width="1" opacity="0.96"/>
+                    <text x="750" y="302" font-family="JetBrains Mono" font-size="8.5" font-weight="600" fill="#5eaaa0" letter-spacing="1">SAFETY</text>
+                    <text x="750" y="320" font-family="Inter" font-size="12" font-weight="600" fill="#f6f3ea">GI events 38%</text>
+                    <text x="750" y="333" font-family="Inter" font-size="9" fill="#f6f3ea" opacity="0.55">vs 18% placebo</text>
+                  </g>
+
+                  <!-- ====== NODE: LIMITATION ====== -->
+                  <g class="cursor-pointer">
+                    <rect x="100" y="448" width="160" height="56" rx="10" fill="#1a2c3a" stroke="#967338" stroke-width="1.4" opacity="0.96"/>
+                    <text x="115" y="468" font-family="JetBrains Mono" font-size="8.5" font-weight="600" fill="#cab57d" letter-spacing="1">L · LIMITATION</text>
+                    <text x="115" y="486" font-family="Inter" font-size="11.5" font-weight="600" fill="#f6f3ea">8% discontinued</text>
+                    <text x="115" y="498" font-family="Inter" font-size="9" fill="#f6f3ea" opacity="0.55">open-label design</text>
+                  </g>
+
+                  <!-- ====== NODE: FOLLOW-UP ====== -->
+                  <g class="cursor-pointer">
+                    <rect x="650" y="462" width="160" height="56" rx="10" fill="#1a2c3a" stroke="#14b8a6" stroke-width="1" opacity="0.96"/>
+                    <text x="665" y="482" font-family="JetBrains Mono" font-size="8.5" font-weight="600" fill="#5eaaa0" letter-spacing="1">FOLLOW-UP</text>
+                    <text x="665" y="500" font-family="Inter" font-size="12" font-weight="600" fill="#f6f3ea">48 months</text>
+                    <text x="665" y="513" font-family="JetBrains Mono" font-size="8" fill="#f6f3ea" opacity="0.55">retention 92%</text>
+                  </g>
+
+                  <!-- Focus ring on Results node -->
+                  <circle cx="730" cy="130" r="84" fill="none" stroke="#14b8a6" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.65">
+                    <animate attributeName="r" values="84;92;84" dur="2.6s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.65;0.25;0.65" dur="2.6s" repeatCount="indefinite"/>
+                  </circle>
+
+                  <!-- Tooltips -->
+                  <g transform="translate(620, 50)">
+                    <path d="M 0 8 L 12 0 L 120 0 Q 130 0 130 8 L 130 32 Q 130 40 120 40 L 12 40 L 6 46 L 0 40 L 0 8 Z" fill="#f6f3ea" opacity="0.08"/>
+                    <text x="14" y="17" font-family="JetBrains Mono" font-size="8" font-weight="600" fill="#14b8a6" letter-spacing="0.5">HOVER HINT</text>
+                    <text x="14" y="32" font-family="Inter" font-size="10" fill="#f6f3ea" opacity="0.75">Click node → source</text>
+                  </g>
+                </svg>
+
+                <!-- Zoom controls -->
+                <div class="absolute bottom-4 left-4 inline-flex flex-col gap-1">
+                  <button class="w-9 h-9 rounded-xl bg-paper/10 backdrop-blur-md border border-paper/15 hover:bg-paper/20 inline-flex items-center justify-center">
+                    <iconify-icon icon="lucide:plus" class="text-[14px] text-paper"></iconify-icon>
+                  </button>
+                  <button class="w-9 h-9 rounded-xl bg-paper/10 backdrop-blur-md border border-paper/15 hover:bg-paper/20 inline-flex items-center justify-center">
+                    <iconify-icon icon="lucide:minus" class="text-[14px] text-paper"></iconify-icon>
+                  </button>
+                  <button class="w-9 h-9 rounded-xl bg-paper/10 backdrop-blur-md border border-paper/15 hover:bg-paper/20 inline-flex items-center justify-center">
+                    <iconify-icon icon="lucide:maximize" class="text-[14px] text-paper"></iconify-icon>
+                  </button>
+                </div>
+                <div class="absolute bottom-4 right-4 inline-flex items-center gap-2 px-3 h-9 rounded-xl bg-paper/10 backdrop-blur-md border border-paper/15 text-[10px] mono-stat text-paper/70">
+                  <span>12 NODES · 6 BRANCHES</span><span class="text-paper/30">·</span><span class="text-teal-bright">CLICK → SOURCE</span>
+                </div>
+                <div class="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 h-9 rounded-xl bg-paper/10 backdrop-blur-md border border-paper/15 text-[10.5px] mono-stat text-paper/70 font-medium">
+                  <span>REACT FLOW</span><span class="text-paper/30">·</span>
+                </div>
+              </div>
+
+              <!-- Source panel (active node) -->
+              <div class="bg-ink rounded-2xl p-5 text-paper">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2 text-[10.5px] mono-stat text-teal-bright">
+                    <iconify-icon icon="lucide:link-2" class="text-[13px]"></iconify-icon>
+                    LINKED SOURCE · RESULTS · §3.2
+                  </div>
+                  <button class="text-[10.5px] mono-stat text-paper/55 hover:text-teal-bright">COPY CITE ↗</button>
+                </div>
+                <p class="serif-body text-[14.5px] text-paper/85 leading-[1.55] italic">
+                  "The primary outcome occurred in 6.5% of patients in the semaglutide group and 8.1% of those in the placebo group (hazard ratio, 0.79; 95% confidence interval, 0.72 to 0.87; P&lt;0.001), consistent across all pre-specified subgroups including age, sex, baseline BMI, and diabetes status."
+                </p>
+                <div class="mt-3 text-[10.5px] mono-stat text-paper/40">NEJM · 2024;391:106-116 · p.108, ¶2</div>
+              </div>
+
+              <!-- Export row -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                <button class="h-11 rounded-xl bg-ink text-paper inline-flex items-center justify-center gap-2 text-[11px] mono-stat font-semibold btn-primary">
+                  <iconify-icon icon="lucide:image" class="text-[14px] text-teal-bright"></iconify-icon>DOWNLOAD PNG
+                </button>
+                <button class="h-11 rounded-xl border border-ink-15 hover-tint inline-flex items-center justify-center gap-2 text-[11px] mono-stat font-semibold text-ink-soft">
+                  <iconify-icon icon="lucide:code-2" class="text-[14px] text-teal"></iconify-icon>EXPORT SVG
+                </button>
+                <button class="h-11 rounded-xl border border-ink-15 hover-tint inline-flex items-center justify-center gap-2 text-[11px] mono-stat font-semibold text-ink-soft">
+                  <iconify-icon icon="lucide:file-text" class="text-[14px] text-teal"></iconify-icon>JSON GRAPH
+                </button>
+                <button class="h-11 rounded-xl border border-ink-15 hover-tint inline-flex items-center justify-center gap-2 text-[11px] mono-stat font-semibold text-ink-soft">
+                  <iconify-icon icon="lucide:external-link" class="text-[14px] text-teal"></iconify-icon>EMBED
+                </button>
+              </div>
+            </section>
+
+            <!-- ===== INFOGRAPHIC PANE ===== -->
+            <section v-show="active === 'infographic'" data-reveal="infographic" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
+                  <span class="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink"></span>
+                  AGENT 03 · CLINICAL INFOGRAPHIC · 1200 × 630
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button class="w-8 h-8 rounded-lg border border-ink-15 hover-tint inline-flex items-center justify-center" aria-label="LinkedIn">
+                    <iconify-icon icon="lucide:linkedin" class="text-[14px] text-ink-soft"></iconify-icon>
+                  </button>
+                  <button class="w-8 h-8 rounded-lg border border-ink-15 hover-tint inline-flex items-center justify-center" aria-label="X">
+                    <iconify-icon icon="lucide:twitter" class="text-[14px] text-ink-soft"></iconify-icon>
+                  </button>
+                  <button class="w-8 h-8 rounded-lg bg-[#25D366]/15 border border-[#25D366]/30 hover:bg-[#25D366]/25 inline-flex items-center justify-center" aria-label="WhatsApp">
+                    <iconify-icon icon="lucide:message-circle" class="text-[14px] text-ink"></iconify-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- LARGE INFOGRAPHIC -->
+              <div class="relative aspect-[1200/630] bg-ink rounded-3xl overflow-hidden border border-ink-soft">
+                <div class="absolute inset-0 bg-gradient-to-br from-teal-deep/30 via-transparent to-amber-ink/10"></div>
+                <div class="absolute inset-0 grain-overlay"></div>
+
+                <!-- Top strip -->
+                <div class="absolute top-0 left-0 right-0 px-6 py-3.5 flex items-center justify-between border-b border-paper/10 text-[10px] mono-stat text-paper/60">
+                  <span class="flex items-center gap-2">
+                    <span class="serif text-paper text-[14px] font-medium">C.</span>
+                    <span>CLARITAS · CLINICAL SUMMARY</span>
+                  </span>
+                  <span class="hidden sm:inline">2024 · NEJM · 391:106-116</span>
+                  <span class="serif text-paper text-[11px]">VALIDATED</span>
+                </div>
+
+                <!-- Body -->
+                <div class="absolute inset-0 pt-12 px-6 md:px-10 flex flex-col justify-center">
+                  <div class="text-[10px] mono-stat text-teal-bright mb-2">PRIMARY OUTCOME · 48 MONTHS · n = 17,604</div>
+                  <div class="serif text-paper text-[36px] md:text-[52px] lg:text-[60px] leading-[0.98] tracking-[-0.02em] mb-5">
+                    Semaglutide cut<br>cardiovascular events<br>by <span class="text-teal-bright">21%</span>
+                  </div>
+
+                  <div class="flex items-end gap-5 md:gap-8 mb-5">
+                    <div class="flex flex-col gap-1.5">
+                      <div class="w-20 h-24 md:w-24 md:h-28 bg-paper/15 rounded-md"></div>
+                      <div class="text-[10px] mono-stat text-paper/55">PLACEBO 8.1%</div>
+                    </div>
+                    <div class="text-paper/30 text-[40px] mb-12">→</div>
+                    <div class="flex flex-col gap-1.5">
+                      <div class="w-20 h-[72px] md:w-24 md:h-[85px] bg-teal-bright rounded-md shadow-[0_0_30px_rgba(20,184,166,0.5)]"></div>
+                      <div class="text-[10px] mono-stat text-teal-bright font-semibold">SEMA 6.5%</div>
+                    </div>
+                    <div class="ml-2 md:ml-6 mb-3">
+                      <div class="serif text-paper text-[48px] md:text-[64px] leading-none font-medium">–21%</div>
+                      <div class="text-[10px] mono-stat text-paper/55 mt-1">HR 0.79 (CI 0.72–0.87)</div>
+                      <div class="text-[10px] mono-stat text-teal-bright mt-0.5">P &lt; 0.001 · NNT 49</div>
+                    </div>
+                  </div>
+
+                  <div class="h-px bg-paper/15 my-4 max-w-[600px]"></div>
+
+                  <div class="text-[10px] mono-stat text-paper/45 leading-relaxed max-w-[600px]">
+                    DOUBLE-BLIND · RANDOMISED · PLACEBO-CONTROLLED · 41 SITES · 5 CONTINENTS<br>
+                    REVIEWED BY K. EL-SHERIF, MD · CARDIOLOGY · CC-BY CLARITAS
+                  </div>
+                </div>
+
+                <!-- decorative corner -->
+                <svg class="absolute bottom-0 right-0 w-44 h-44 opacity-[0.08]" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" stroke="#14b8a6" fill="none" stroke-width="1"/>
+                  <circle cx="50" cy="50" r="30" stroke="#14b8a6" fill="none" stroke-width="1"/>
+                  <circle cx="50" cy="50" r="15" stroke="#14b8a6" fill="none" stroke-width="1"/>
+                </svg>
+              </div>
+
+              <!-- Export + share -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="bg-paper-warm/50 border border-ink-10 rounded-2xl p-5">
+                  <div class="text-[10.5px] mono-stat text-ink/55 mb-3">DOWNLOAD AS</div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <button class="h-10 px-3.5 rounded-xl bg-ink text-paper text-[11px] mono-stat font-semibold inline-flex items-center gap-1.5">
+                      <iconify-icon icon="lucide:download" class="text-[13px] text-teal-bright"></iconify-icon>PNG 1200×630
+                    </button>
+                    <button class="h-10 px-3.5 rounded-xl border border-ink-15 text-ink-soft text-[11px] mono-stat font-semibold inline-flex items-center gap-1.5 hover-tint">
+                      <iconify-icon icon="lucide:download" class="text-[13px] text-teal"></iconify-icon>SVG VECTOR
+                    </button>
+                    <button class="h-10 px-3.5 rounded-xl border border-ink-15 text-ink-soft text-[11px] mono-stat font-semibold inline-flex items-center gap-1.5 hover-tint">
+                      <iconify-icon icon="lucide:download" class="text-[13px] text-teal"></iconify-icon>PDF
+                    </button>
+                  </div>
+                </div>
+                <div class="bg-paper-warm/50 border border-ink-10 rounded-2xl p-5">
+                  <div class="text-[10.5px] mono-stat text-ink/55 mb-3">SHARE TO</div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <button class="h-10 px-3.5 rounded-xl border border-ink-15 text-ink-soft text-[11px] mono-stat font-semibold inline-flex items-center gap-1.5 hover-tint">
+                      <iconify-icon icon="lucide:linkedin" class="text-[13px] text-[#0A66C2]"></iconify-icon>LinkedIn
+                    </button>
+                    <button class="h-10 px-3.5 rounded-xl border border-ink-15 text-ink-soft text-[11px] mono-stat font-semibold inline-flex items-center gap-1.5 hover-tint">
+                      <iconify-icon icon="lucide:twitter" class="text-[13px] text-ink"></iconify-icon>X / Twitter
+                    </button>
+                    <button class="h-10 px-3.5 rounded-xl bg-[#25D366] text-ink text-[11px] mono-stat font-semibold inline-flex items-center gap-1.5">
+                      <iconify-icon icon="lucide:message-circle" class="text-[13px]"></iconify-icon>WhatsApp
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ===== CRITICAL APPRAISAL PANE ===== -->
+            <section v-show="active === 'appraisal'" data-reveal="appraisal" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
+                  <span class="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink"></span>
+                  AGENT 04 · CRITICAL APPRAISAL · 2.1s
+                </div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-ink-15 text-[10.5px] mono-stat text-ink-soft">
+                  <iconify-icon icon="lucide:layers" class="text-[12px] text-teal"></iconify-icon>
+                  GRADE WORKING GROUP
+                </div>
+              </div>
+
+              <!-- Methodology score -->
+              <div class="bg-paper-warm/50 border border-ink-10 rounded-3xl p-7">
+                <div class="flex items-center justify-between mb-5">
+                  <h3 class="serif text-[22px] tracking-tight">Methodology score</h3>
+                  <div class="flex items-baseline gap-1">
+                    <span class="serif text-[44px] leading-none text-teal-deep">8.5</span>
+                    <span class="text-[14px] text-ink/40 mono">/ 10</span>
+                  </div>
+                </div>
+
+                <!-- Gauge -->
+                <div class="relative mb-5">
+                  <svg viewBox="0 0 320 14" class="w-full">
+                    <line x1="2" y1="7" x2="318" y2="7" stroke="#0b1d2a15" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="2" y1="7" x2="272" y2="7" stroke="#0b7d72" stroke-width="2" stroke-linecap="round" pathLength="100"/>
+                    <circle cx="272" cy="7" r="7" fill="#0b7d72" stroke="#f6f3ea" stroke-width="2"/>
+                  </svg>
+                  <div class="absolute top-0 left-[84%] w-px h-3 bg-amber-ink/40"></div>
+                  <div class="flex justify-between text-[9.5px] mono-stat text-ink/45 mt-2">
+                    <span>POOR</span><span>FAIR</span><span class="text-teal-deep">GOOD 8.5</span><span>ROBUST</span>
+                  </div>
+                </div>
+
+                <!-- Domain scores -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                  <div class="border border-ink-10 rounded-xl p-3.5 bg-paper">
+                    <div class="text-[9.5px] mono-stat text-ink/50 mb-1.5">RANDOMISATION</div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[16px] font-semibold text-ink">9.2</span>
+                      <span class="text-[9.5px] mono-stat text-teal-deep">LOW RoB</span>
+                    </div>
+                    <div class="h-1 mt-2 bg-ink/8 rounded-full overflow-hidden">
+                      <div class="h-full bg-teal-deep rounded-full" style="width: 92%"></div>
+                    </div>
+                  </div>
+                  <div class="border border-ink-10 rounded-xl p-3.5 bg-paper">
+                    <div class="text-[9.5px] mono-stat text-ink/50 mb-1.5">ALLOCATION</div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[16px] font-semibold text-ink">9.0</span>
+                      <span class="text-[9.5px] mono-stat text-teal-deep">LOW RoB</span>
+                    </div>
+                    <div class="h-1 mt-2 bg-ink/8 rounded-full overflow-hidden">
+                      <div class="h-full bg-teal-deep rounded-full" style="width: 90%"></div>
+                    </div>
+                  </div>
+                  <div class="border border-ink-10 rounded-xl p-3.5 bg-paper">
+                    <div class="text-[9.5px] mono-stat text-ink/50 mb-1.5">BLINDING</div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[16px] font-semibold text-amber-ink">7.5</span>
+                      <span class="text-[9.5px] mono-stat text-amber-ink">SOME RoB</span>
+                    </div>
+                    <div class="h-1 mt-2 bg-ink/8 rounded-full overflow-hidden">
+                      <div class="h-full bg-amber-ink rounded-full" style="width: 75%"></div>
+                    </div>
+                  </div>
+                  <div class="border border-ink-10 rounded-xl p-3.5 bg-paper">
+                    <div class="text-[9.5px] mono-stat text-ink/50 mb-1.5">OUTCOMES</div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-[16px] font-semibold text-ink">9.0</span>
+                      <span class="text-[9.5px] mono-stat text-teal-deep">LOW RoB</span>
+                    </div>
+                    <div class="h-1 mt-2 bg-ink/8 rounded-full overflow-hidden">
+                      <div class="h-full bg-teal-deep rounded-full" style="width: 90%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bias flags -->
+              <div class="bg-paper-warm/50 border border-ink-10 rounded-3xl p-7">
+                <div class="flex items-center justify-between mb-5">
+                  <h3 class="serif text-[22px] tracking-tight">Bias flags</h3>
+                  <span class="text-[10.5px] mono-stat text-amber-ink">2 RAISED · 4 CLEARED</span>
+                </div>
+                <div class="space-y-2.5">
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-bg/50 border border-amber-ink/25">
+                    <iconify-icon icon="lucide:alert-triangle" class="text-[18px] text-amber-ink mt-0.5"></iconify-icon>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[13px] font-semibold text-ink">Performance bias · open-label extension</span>
+                        <span class="text-[9.5px] mono-stat text-amber-ink">MEDIUM</span>
+                      </div>
+                      <p class="text-[12.5px] text-ink-soft leading-[1.5]">8% of patients discontinued treatment during titration; outcome assessors remained blinded, but patients were not.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-bg/50 border border-amber-ink/25">
+                    <iconify-icon icon="lucide:alert-triangle" class="text-[18px] text-amber-ink mt-0.5"></iconify-icon>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[13px] font-semibold text-ink">Industry funding</span>
+                        <span class="text-[9.5px] mono-stat text-amber-ink">LOW</span>
+                      </div>
+                      <p class="text-[12.5px] text-ink-soft leading-[1.5]">Trial funded by Novo Nordisk; 7 of 14 authors report consultant relationships. Independent statistical reanalysis requested.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-teal-deep/[0.06] border border-teal-deep/20">
+                    <iconify-icon icon="lucide:check" class="text-[18px] text-teal-deep mt-0.5"></iconify-icon>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[13px] font-semibold text-ink">Selection bias</span>
+                        <span class="text-[9.5px] mono-stat text-teal-deep">CLEARED</span>
+                      </div>
+                      <p class="text-[12.5px] text-ink-soft leading-[1.5]">Adequate randomisation sequence generation; allocation concealment via central IVRS.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Limitations -->
+              <div class="bg-amber-bg/40 border border-amber-ink/30 rounded-3xl p-7">
+                <div class="flex items-center gap-2 mb-5">
+                  <iconify-icon icon="lucide:alert-octagon" class="text-[20px] text-amber-ink"></iconify-icon>
+                  <h3 class="serif text-[22px] tracking-tight text-amber-ink">Limitations</h3>
+                </div>
+                <ul class="space-y-3 text-[13px] text-ink-soft leading-[1.55]">
+                  <li class="flex items-start gap-2.5">
+                    <span class="text-amber-ink mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-ink shrink-0"></span>
+                    <span><span class="font-medium text-ink">Generalisability</span> — population skewed toward established ASCVD; effects in primary prevention remain unmeasured.</span>
+                  </li>
+                  <li class="flex items-start gap-2.5">
+                    <span class="text-amber-ink mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-ink shrink-0"></span>
+                    <span><span class="font-medium text-ink">Open-label extension</span> — 8% of participants discontinued; intention-to-treat retained but power reduced.</span>
+                  </li>
+                  <li class="flex items-start gap-2.5">
+                    <span class="text-amber-ink mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-ink shrink-0"></span>
+                    <span><span class="font-medium text-ink">Median follow-up 48 months</span> — long-term durability beyond 5 years not yet reported.</span>
+                  </li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ===== CLINICAL RELEVANCE PANE ===== -->
+            <section v-show="active === 'relevance'" data-reveal="relevance" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
+                  <span class="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink"></span>
+                  AGENT 05 · CLINICAL RELEVANCE · 0.8s
+                </div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-teal-deep text-paper text-[10.5px] mono-stat font-semibold">
+                  <iconify-icon icon="lucide:zap" class="text-[12px] text-teal-bright"></iconify-icon>
+                  PRACTICE-CHANGING
+                </div>
+              </div>
+
+              <!-- Practice-change banner -->
+              <div class="relative bg-ink text-paper rounded-3xl p-7 md:p-9 overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-teal-bright/25 blur-3xl pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div class="md:col-span-2">
+                    <div class="text-[10.5px] mono-stat text-teal-bright mb-3">SIGNAL · CLINICAL PRACTICE</div>
+                    <h3 class="serif text-[26px] md:text-[34px] tracking-tight text-paper leading-[1.05] mb-3">
+                      Yes, this paper changes practice.
+                    </h3>
+                    <p class="serif-body text-[15.5px] text-paper/75 leading-[1.55] max-w-[480px]">
+                      For adults with overweight or obesity and established ASCVD already meeting criteria for GLP-1 RA therapy, semaglutide 2.4 mg weekly should be added to standard cardiovascular risk reduction regardless of glycaemic status.
+                    </p>
+                  </div>
+                  <div class="md:col-span-1 flex flex-col gap-3 md:items-end justify-center">
+                    <div class="inline-flex items-center gap-2 px-4 h-12 rounded-2xl bg-teal-bright text-ink text-[14px] font-bold">
+                      <iconify-icon icon="lucide:zap" class="text-[18px]"></iconify-icon>
+                      PRACTICE-CHANGING
+                    </div>
+                    <div class="text-[10.5px] mono-stat text-paper/60 text-right">CONFIDENCE · 87%</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Specialty tags + evidence grade -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="bg-paper-warm/50 border border-ink-10 rounded-2xl p-5">
+                  <div class="text-[10.5px] mono-stat text-ink/55 mb-3">SPECIALTY TAGS</div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="px-3 h-8 rounded-full bg-ink text-paper text-[12px] font-medium inline-flex items-center gap-1.5">
+                      <iconify-icon icon="lucide:heart-pulse" class="text-[13px] text-teal-bright"></iconify-icon>Cardiology
+                    </span>
+                    <span class="px-3 h-8 rounded-full bg-ink/[0.04] border border-ink-10 text-[12px] text-ink-soft inline-flex items-center">Endocrinology</span>
+                    <span class="px-3 h-8 rounded-full bg-ink/[0.04] border border-ink-10 text-[12px] text-ink-soft inline-flex items-center">Preventive medicine</span>
+                    <span class="px-3 h-8 rounded-full bg-ink/[0.04] border border-ink-10 text-[12px] text-ink-soft inline-flex items-center">Internal medicine</span>
+                  </div>
+                </div>
+                <div class="bg-paper-warm/50 border border-ink-10 rounded-2xl p-5">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="text-[10.5px] mono-stat text-ink/55">EVIDENCE GRADE</div>
+                    <span class="text-[9.5px] mono-stat text-teal-deep">GRADE WORKING GROUP</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-deep text-paper serif text-[26px] font-medium">A</div>
+                    <div class="flex-1">
+                      <div class="text-[13.5px] font-semibold text-ink">High quality</div>
+                      <div class="text-[11.5px] text-ink-soft leading-[1.45]">Further research is unlikely to change confidence in the estimate of effect.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Practice points -->
+              <div class="bg-paper-warm/50 border border-ink-10 rounded-3xl p-7">
+                <h3 class="serif text-[22px] tracking-tight mb-5">What this means in clinic</h3>
+                <div class="space-y-3">
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-teal-deep/[0.06] border border-teal-deep/20">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-[18px] text-teal-deep mt-0.5"></iconify-icon>
+                    <div>
+                      <div class="text-[13.5px] font-medium text-ink mb-1">Add to standard secondary prevention</div>
+                      <div class="text-[12.5px] text-ink-soft leading-[1.5]">Patients with BMI ≥ 27 and established ASCVD warrant discussion of semaglutide 2.4 mg weekly alongside statin and antiplatelet therapy.</div>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-teal-deep/[0.06] border border-teal-deep/20">
+                    <iconify-icon icon="lucide:check-circle-2" class="text-[18px] text-teal-deep mt-0.5"></iconify-icon>
+                    <div>
+                      <div class="text-[13.5px] font-medium text-ink mb-1">Counsel on GI tolerability</div>
+                      <div class="text-[12.5px] text-ink-soft leading-[1.5]">~38% will experience GI events; titration over 16 weeks reduces discontinuation. Reassess at 12 weeks.</div>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-bg/50 border border-amber-ink/25">
+                    <iconify-icon icon="lucide:alert-circle" class="text-[18px] text-amber-ink mt-0.5"></iconify-icon>
+                    <div>
+                      <div class="text-[13.5px] font-medium text-ink mb-1">Not yet primary prevention</div>
+                      <div class="text-[12.5px] text-ink-soft leading-[1.5]">Trial population had established ASCVD. Effects in primary prevention await SELECT-2 (ongoing, n≈9,000).</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- RIGHT: Sidebar (col-span-4) -->
+        <aside class="col-span-12 lg:col-span-4 min-w-0">
+          <div class="sticky top-[100px] space-y-4">
+
+            <!-- Header strip -->
+            <div class="rounded-3xl bg-ink text-paper p-5">
+              <div class="flex items-center justify-between mb-3.5">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-paper/65">
+                  <iconify-icon icon="lucide:file-text" class="text-[13px] text-teal-bright"></iconify-icon>
+                  ORIGINAL PAPER
+                </div>
+                <span class="text-[9.5px] mono-stat text-paper/45">14 PAGES · PDF</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <h3 class="serif text-[16px] tracking-tight leading-tight">Once-Weekly Semaglutide and…</h3>
+                <a href="#" class="ml-auto text-[10px] mono-stat text-teal-bright hover:underline shrink-0">OPEN PDF ↗</a>
+              </div>
+            </div>
+
+            <!-- Section navigator -->
+            <nav class="rounded-3xl bg-paper-warm/50 border border-ink-10 p-2">
+              <a v-for="s in sections" :key="s.id" :href="'#' + s.id"
+                 class="flex items-center justify-between px-3.5 py-3 rounded-2xl hover-tint group">
+                <div class="flex items-center gap-3">
+                  <span class="text-[9.5px] mono-stat text-ink/40 w-6">{{ s.id }}</span>
+                  <span class="text-[13px] font-medium text-ink-soft">{{ s.label }}</span>
+                </div>
+                <span class="text-[10.5px] mono-stat text-ink/40 group-hover:text-teal-deep">{{ s.range }}</span>
+              </a>
+            </nav>
+
+            <!-- Active subsection preview -->
+            <div class="rounded-3xl bg-paper-warm border border-ink-10 p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
+                  <iconify-icon icon="lucide:book-open" class="text-[13px] text-teal"></iconify-icon>
+                  §3 RESULTS · 3.2 PRIMARY OUTCOME
+                </div>
+                <span class="text-[9.5px] mono-stat text-ink/40">p.108</span>
+              </div>
+              <p class="serif-body text-[14px] text-ink-soft leading-[1.55] italic mb-4 min-h-[120px]">
+                "The primary outcome occurred in 6.5% of patients in the semaglutide group and 8.1% of those in the placebo group (hazard ratio, 0.79; 95% CI, 0.72 to 0.87; P&lt;0.001)…"
+              </p>
+              <div class="flex items-center gap-2">
+                <button class="flex-1 h-9 rounded-lg bg-ink text-paper text-[11px] mono-stat font-semibold inline-flex items-center justify-center gap-1.5 btn-primary">
+                  <iconify-icon icon="lucide:book-open" class="text-[13px] text-teal-bright"></iconify-icon>READ SECTION
+                </button>
+                <button class="w-9 h-9 rounded-lg border border-ink-15 hover-tint inline-flex items-center justify-center" aria-label="Copy">
+                  <iconify-icon icon="lucide:copy" class="text-[13px] text-ink-soft"></iconify-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Citation export -->
+            <div class="rounded-3xl bg-paper-warm/50 border border-ink-10 p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
+                  <iconify-icon icon="lucide:quote" class="text-[13px] text-teal"></iconify-icon>
+                  CITATION EXPORT
+                </div>
+                <span class="text-[9.5px] mono-stat text-ink/40">6 STYLES</span>
+              </div>
+
+              <div class="flex items-center gap-1.5 flex-wrap mb-3">
+                <button v-for="c in citations" :key="c" @click="activeCitation = c"
+                  :class="activeCitation === c ? 'bg-ink text-paper' : 'border border-ink-15 text-ink-soft hover-tint'"
+                  class="h-8 px-2.5 rounded-lg text-[10.5px] mono-stat font-semibold transition-all">{{ c }}</button>
+              </div>
+
+              <div class="bg-ink rounded-xl p-3.5 text-paper/85 text-[11px] mono leading-[1.55] overflow-x-auto">
+                <span v-if="activeCitation === 'AMA'">Lepault R, Aroda VR, Davies M, et al. Once-weekly semaglutide and cardiovascular outcomes in adults with overweight or obesity. <span class="text-teal-bright">N Engl J Med.</span> 2024;391:106-116.</span>
+                <span v-else-if="activeCitation === 'Vancouver'">Lepault R, Aroda VR, Davies M, et al. Once-weekly semaglutide and cardiovascular outcomes in adults with overweight or obesity. N Engl J Med. 2024;391:106-116.</span>
+                <span v-else-if="activeCitation === 'APA'">Lepault, R., Aroda, V. R., Davies, M., et al. (2024). Once-weekly semaglutide and cardiovascular outcomes in adults with overweight or obesity. <span class="text-teal-bright">New England Journal of Medicine</span>, 391, 106-116.</span>
+                <span v-else-if="activeCitation === 'Harvard'">Lepault, R. et al. (2024) 'Once-weekly semaglutide and cardiovascular outcomes in adults with overweight or obesity', <span class="text-teal-bright">New England Journal of Medicine</span>, 391, pp. 106-116.</span>
+                <span v-else-if="activeCitation === 'RIS'">TY - JOUR · AU - Lepault,R · TI - Once-weekly semaglutide and cardiovascular outcomes · JO - NEJM · DA - 2024 · VL - 391 · SP - 106 · EP - 116</span>
+                <span v-else>article{lepault2024semaglutide, title={Once-weekly semaglutide and cardiovascular outcomes in adults with overweight or obesity}, author={Lepault, R. and Aroda, V. R. and Davies, M. and others}, journal={NEJM}, volume={391}, pages={106--116}, year={2024}}</span>
+              </div>
+
+              <div class="flex items-center gap-2 mt-3">
+                <button class="flex-1 h-9 rounded-lg bg-teal-deep text-paper text-[11px] mono-stat font-semibold inline-flex items-center justify-center gap-1.5 btn-primary">
+                  <iconify-icon icon="lucide:download" class="text-[13px]"></iconify-icon>DOWNLOAD
+                </button>
+                <button class="h-9 px-3 rounded-lg border border-ink-15 hover-tint inline-flex items-center justify-center text-[11px] mono-stat font-semibold text-ink-soft">
+                  <iconify-icon icon="lucide:copy" class="text-[13px] text-teal"></iconify-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Reviewer card -->
+            <div class="rounded-3xl bg-paper-warm/50 border border-ink-10 p-5">
+              <div class="text-[10.5px] mono-stat text-ink/55 mb-3.5">REVIEWED BY CLARITAS</div>
+              <div class="flex items-start gap-3.5">
+                <div class="relative shrink-0">
+                  <div class="w-12 h-12 rounded-xl bg-ink text-paper flex items-center justify-center serif text-[18px] font-medium">K</div>
+                  <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-teal-deep border-2 border-paper-warm flex items-center justify-center">
+                    <iconify-icon icon="lucide:check" class="text-[10px] text-paper"></iconify-icon>
+                  </div>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-[14px] font-semibold text-ink leading-tight">K. El-Sherif, MD</div>
+                  <div class="text-[11.5px] text-ink-soft mb-1">Consultant Cardiologist</div>
+                  <div class="flex items-center gap-1.5 text-[10px] mono-stat text-ink/45">
+                    <iconify-icon icon="lucide:building-2" class="text-[11px] text-teal"></iconify-icon>Ain Shams · 14 yrs
+                  </div>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-1 mt-4 pt-3.5 border-t border-ink/10">
+                <div><div class="serif text-[18px] text-ink">847</div><div class="text-[9px] mono-stat text-ink/45">PAPERS</div></div>
+                <div><div class="serif text-[18px] text-ink">4.9</div><div class="text-[9px] mono-stat text-ink/45">SCORE</div></div>
+                <div><div class="serif text-[18px] text-teal-deep">FACC</div><div class="text-[9px] mono-stat text-ink/45">MEMBER</div></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- component: Footer (a1603e00-484b-4efd-b69a-c0c69c6b593c) -->
+<div v-scope="{ ...{&quot;homeHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;searchHref&quot;:&quot;https://draft-b1782f20-e5ae-4998-b345-58013979ed71.preview.superdesign.dev&quot;,&quot;detailHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;cmeHref&quot;:&quot;#cme&quot;,&quot;dashHref&quot;:&quot;#dashboard&quot;,&quot;adminHref&quot;:&quot;#admin&quot;,&quot;mobileHref&quot;:&quot;#mobile&quot;,&quot;methodHref&quot;:&quot;#methodology&quot;,&quot;agentsHref&quot;:&quot;#agents&quot;,&quot;reviewHref&quot;:&quot;#review&quot;,&quot;gradeHref&quot;:&quot;#grade&quot;,&quot;sourcesHref&quot;:&quot;#sources&quot;,&quot;salesHref&quot;:&quot;#sales&quot;,&quot;ssoHref&quot;:&quot;#sso&quot;,&quot;billingHref&quot;:&quot;#billing&quot;,&quot;bulkHref&quot;:&quot;#bulk-api&quot;,&quot;uptimeHref&quot;:&quot;#uptime&quot;,&quot;aboutHref&quot;:&quot;#mission&quot;,&quot;teamHref&quot;:&quot;#team&quot;,&quot;careersHref&quot;:&quot;#careers&quot;,&quot;pressHref&quot;:&quot;#press&quot;,&quot;contactHref&quot;:&quot;#contact&quot;,&quot;privacyHref&quot;:&quot;#privacy&quot;,&quot;termsHref&quot;:&quot;#terms&quot;,&quot;hcpHref&quot;:&quot;#hcp-license&quot;,&quot;phiHref&quot;:&quot;#phi-policy&quot;,&quot;versionNumber&quot;:&quot;v0.9.4&quot;,&quot;showSystemStatus&quot;:true}, $emit() {} }">
+<footer class="relative py-16 md:py-20 border-t" style="background-color: #f1ece0; border-color: rgba(11, 29, 42, 0.1); text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"><div class="max-w-[1380px] mx-auto px-6"><div class="grid grid-cols-12 gap-10 md:gap-12 mb-14"><div class="col-span-12 md:col-span-4"><a :href="homeHref" id="footer-logo-link" class="flex items-center gap-2.5 mb-5"><div class="relative w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden" style="background-color: #0b1d2a;"><div class="absolute inset-0 bg-gradient-to-br from-teal-400/30 via-transparent to-transparent"></div><span class="text-paper text-xl font-medium tracking-tight relative" style="font-family: Zodiak, serif; color: #f6f3ea;">C</span><div class="absolute w-1 h-1 rounded-full bottom-1.5 right-1.5" style="background-color: #14b8a6;"></div></div><span class="text-xl font-medium tracking-tight" style="font-family: Zodiak, serif; color: #0b1d2a;">Claritas</span></a><p class="text-[15px] leading-[1.55] max-w-[300px] mb-6" style="font-family: Zodiak, serif; font-weight: 400; color: #1a2c3a;">Clinical literature, finally understood — and the physicians who read it, finally on time.</p><div class="flex gap-1.5" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;"><span class="px-2 h-7 rounded-md border inline-flex items-center" style="border-color: rgba(11, 29, 42, 0.15); color: #1a2c3a;">RTL · EN / ع</span><span class="px-2 h-7 rounded-md border inline-flex items-center gap-1" style="border-color: rgba(11, 29, 42, 0.15); color: #1a2c3a;"><iconify-icon icon="lucide:sun" class="text-[12px]"></iconify-icon><iconify-icon icon="lucide:moon" class="text-[12px]"></iconify-icon>DARK MODE</span></div></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">PRODUCT</div><ul class="space-y-2.5 text-[13px]"><li><a :href="searchHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Search & discovery</a></li><li><a :href="detailHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Paper detail view</a></li><li><a :href="cmeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">CME module</a></li><li><a :href="dashHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Physician dashboard</a></li><li><a :href="adminHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Hospital admin portal</a></li><li><a :href="mobileHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Mobile (iOS / Android)</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">EVIDENCE</div><ul class="space-y-2.5 text-[13px]"><li><a :href="methodHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Methodology</a></li><li><a :href="agentsHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">The six agents</a></li><li><a :href="reviewHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">HITL review process</a></li><li><a :href="gradeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">GRADE framework</a></li><li><a :href="sourcesHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Corpus sources (17)</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">INSTITUTIONAL</div><ul class="space-y-2.5 text-[13px]"><li><a :href="salesHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Contact sales</a></li><li><a :href="ssoHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">SSO (SAML / OIDC)</a></li><li><a :href="billingHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Billing & seats</a></li><li><a :href="bulkHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Bulk export API</a></li><li><a :href="uptimeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Uptime & SLAs</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">COMPANY</div><ul class="space-y-2.5 text-[13px]"><li><a :href="aboutHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Mission</a></li><li><a :href="teamHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Clinical team</a></li><li><a :href="careersHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Careers · 7 open</a></li><li><a :href="pressHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Press & papers</a></li><li><a :href="contactHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Contact</a></li></ul></div></div><div class="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-[11px]" style="border-color: rgba(11, 29, 42, 0.1); font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.55);"><div class="flex flex-wrap justify-center md:justify-start items-center gap-4"><span>© 2024 CLARITAS MEDICAL, INC.</span><a :href="privacyHref" class="hover:text-teal-700 transition-colors">PRIVACY</a><a :href="termsHref" class="hover:text-teal-700 transition-colors">TERMS</a><a :href="hcpHref" class="hover:text-teal-700 transition-colors">HCP LICENSE</a><a :href="phiHref" class="hover:text-teal-700 transition-colors">PHI POLICY</a></div><div class="flex items-center gap-3"><span v-if="showSystemStatus" class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-teal-600 animate-pulse"></span>ALL SYSTEMS OPERATIONAL</span><span>·</span><span>{{ versionNumber }} · BETA</span></div></div></div></footer>
+</div>
+<!-- /component: Footer (a1603e00-484b-4efd-b69a-c0c69c6b593c) -->
+
+  <script>
+    PetiteVue.createApp({
+      $delimiters: ['${', '}'],
+      tabs: [
+        { id: 'tldr', num: '01', label: 'TLDR' },
+        { id: 'mindmap', num: '02', label: 'Mind map' },
+        { id: 'infographic', num: '03', label: 'Infographic' },
+        { id: 'appraisal', num: '04', label: 'Critical appraisal' },
+        { id: 'relevance', num: '05', label: 'Clinical relevance' },
+      ],
+      active: 'tldr',
+      saved: false,
+      sections: [
+        { id: '1', label: 'Abstract', range: 'p.106' },
+        { id: '2', label: 'Methods', range: 'p.107' },
+        { id: '3', label: 'Results', range: 'p.108' },
+        { id: '4', label: 'Discussion', range: 'p.112' },
+        { id: '5', label: 'References', range: 'p.114' },
+      ],
+      citations: ['AMA', 'Vancouver', 'APA', 'Harvard', 'RIS', 'BibTeX'],
+      activeCitation: 'AMA',
+      mounted() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) e.target.classList.add('shown');
+          });
+        }, { threshold: 0.1 });
+        this.$nextTick(() => {
+          document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
+        });
+      }
+    }).mount();
+  </script>
+</div>
+</body>
+</html>

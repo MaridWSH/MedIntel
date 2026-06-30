@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claritas — Sign up & start your trial</title>
+<meta name="view-transition" content="same-origin">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500,600&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #0b1d2a;
+    --ink-soft: #1a2c3a;
+    --paper: #f6f3ea;
+    --paper-warm: #f1ece0;
+    --paper-soft: #e8e1d1;
+    --rule: #e2dccb;
+    --teal: #0d9488;
+    --teal-deep: #0b7d72;
+    --teal-bright: #14b8a6;
+    --teal-mist: #5eaaa0;
+    --amber-ink: #967338;
+    --amber-bg: #f6ecd6;
+  }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html { background-color: #f6f3ea; }
+  body { font-family: 'Inter', sans-serif; color: var(--ink); margin: 0; }
+  .serif { font-family: 'Zodiak', 'Times New Roman', serif; }
+  .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+  .tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+  .bg-paper { background-color: var(--paper); }
+  .bg-paper-warm { background-color: var(--paper-warm); }
+  .bg-paper-soft { background-color: var(--paper-soft); }
+  .bg-ink { background-color: var(--ink); }
+  .bg-ink-soft { background-color: var(--ink-soft); }
+  .bg-teal-deep { background-color: var(--teal-deep); }
+  .bg-amber-bg { background-color: var(--amber-bg); }
+  .text-ink { color: var(--ink); }
+  .text-ink-soft { color: var(--ink-soft); }
+  .text-ink-mute { color: #5a6b78; }
+  .text-teal { color: var(--teal); }
+  .text-teal-mist { color: var(--teal-mist); }
+  .text-amber-ink { color: var(--amber-ink); }
+  .text-paper { color: var(--paper); }
+  .border-rule { border-color: var(--rule); }
+  .border-ink-10 { border-color: rgba(11, 29, 42, 0.1); }
+  .border-ink-15 { border-color: rgba(11, 29, 42, 0.15); }
+
+  .display { font-family: 'Zodiak', serif; font-weight: 500; letter-spacing: -0.025em; line-height: 0.96; }
+  .serif-body { font-family: 'Zodiak', serif; font-weight: 400; letter-spacing: -0.005em; }
+  .mono-stat { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .grain-overlay::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.4; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.1 0 0 0 0 0.16 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .grid-bg { background-image: linear-gradient(rgba(11,29,42,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(11,29,42,0.04) 1px, transparent 1px); background-size: 56px 56px; background-position: center; }
+  .halo { background: radial-gradient(ellipse 60% 70% at 50% 35%, rgba(20, 184, 166, 0.22) 0%, rgba(20, 184, 166, 0.08) 40%, rgba(246, 243, 234, 0) 70%); }
+
+  @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fade-up 1s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+  .delay-1 { animation-delay: 0.08s; }
+  .delay-2 { animation-delay: 0.16s; }
+  .delay-3 { animation-delay: 0.24s; }
+  .delay-4 { animation-delay: 0.32s; }
+  .delay-5 { animation-delay: 0.42s; }
+  .delay-6 { animation-delay: 0.52s; }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .cursor-blink { animation: blink 1.4s infinite; }
+  @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.6; } 70% { transform: scale(1.4); opacity: 0; } 100% { opacity: 0; } }
+  .pulse-ring { animation: pulse-ring 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  @keyframes draw { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
+  .draw-line { stroke-dasharray: 200; animation: draw 1.2s ease-out forwards; }
+
+  .hover-tint { transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease; }
+  .hover-tint:hover { background-color: rgba(11, 29, 42, 0.05); }
+
+  ::selection { background: var(--teal-bright); color: var(--ink); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(11,29,42,0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(11,29,42,0.3); }
+
+  .btn-primary { transition: all 220ms cubic-bezier(0.22, 1, 0.36, 1); position: relative; overflow: hidden; }
+  .btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%); pointer-events: none; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 30px -12px rgba(11, 125, 114, 0.55); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-ink:hover { background: #143449; }
+
+  .field-input { transition: all 180ms ease; }
+  .field-input:focus { border-color: var(--teal-deep); box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12); }
+  .field-input.is-valid { border-color: var(--teal-deep); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230b7d72' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  .field-input.is-error { border-color: #b44b3c; box-shadow: 0 0 0 3px rgba(180, 75, 60, 0.08); }
+
+  .toggle-switch { position: relative; transition: background 240ms ease; cursor: pointer; }
+  .toggle-switch-thumb { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 999px; background: var(--paper); box-shadow: 0 2px 6px rgba(0,0,0,0.18); transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .toggle-switch.on { background: var(--teal-deep); }
+  .toggle-switch.on .toggle-switch-thumb { transform: translateX(20px); }
+  .toggle-switch.large .toggle-switch-thumb { width: 28px; height: 28px; }
+  .toggle-switch.large.on .toggle-switch-thumb { transform: translateX(28px); }
+  .toggle-switch.large { width: 56px; height: 34px; }
+
+  .plan-radio:checked + .plan-card { border-color: var(--ink); box-shadow: 0 16px 40px -16px rgba(11,29,42,0.25); transform: translateY(-1px); }
+  .plan-radio:checked + .plan-card .plan-check { opacity: 1; transform: scale(1); }
+
+  .step-line { background: linear-gradient(90deg, var(--teal-deep) var(--p, 0%), rgba(11,29,42,0.12) var(--p, 0%)); }
+
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+</style>
+  <style>sd-component { display: block; }</style>
+  <script src="https://cdn.jsdelivr.net/npm/petite-vue@0.4.1/dist/petite-vue.iife.js" defer init></script>
+</head>
+<body>
+<div class="relative min-h-screen bg-paper overflow-x-hidden">
+
+  <!-- ============ TOP UTILITY STRIP ============ -->
+  <!-- component: TopBar (480fe349-2600-484a-afcc-d7ccdefaf050) -->
+<div v-scope="{ ...{&quot;papersIndexed&quot;:&quot;50,418,727&quot;,&quot;agentsCount&quot;:6,&quot;physiciansCount&quot;:&quot;1,200+&quot;,&quot;version&quot;:&quot;v0.9.4&quot;}, $emit() {} }">
+<div class="bg-[#0b1d2a] text-[#f6f3ea]"><div class="max-w-[1380px] mx-auto px-6 h-9 flex items-center justify-between text-[10.5px] font-['JetBrains_Mono',_monospace] font-medium tracking-[0.04em] uppercase"><div class="flex items-center gap-5"><span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#14b8a6] animate-pulse"></span>{{ papersIndexed }} papers indexed</span><span class="hidden md:flex items-center gap-2 text-[#f6f3ea]/55"><iconify-icon icon="lucide:shield-check" class="text-[#14b8a6] text-[11px]"></iconify-icon>Synthesised by {{ agentsCount }} specialised agents · Reviewed by {{ physiciansCount }} physicians</span></div><div class="flex items-center gap-4 text-[#f6f3ea]/65"><span>BETA · {{ version }}</span><span class="hidden md:inline text-[#f6f3ea]/30">·</span><span class="hidden md:inline">CME accredited · EG-MS · AB-2938</span></div></div></div>
+</div>
+<!-- /component: TopBar (480fe349-2600-484a-afcc-d7ccdefaf050) -->
+
+  <!-- ============ MAIN NAVIGATION ============ -->
+  <!-- component: Header (28fd511a-eb31-4f22-a1a7-991df42263ca) -->
+<div v-scope="{ ...{&quot;activeItem&quot;:&quot;&quot;,&quot;logoHref&quot;:&quot;#&quot;,&quot;howHref&quot;:&quot;https://draft-715a7b82-14a9-4594-b38a-72cac1cca8b3.preview.superdesign.dev&quot;,&quot;evidenceHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;institutionsHref&quot;:&quot;https://draft-715a7b82-14a9-4594-b38a-72cac1cca8b3.preview.superdesign.dev&quot;,&quot;pricingHref&quot;:&quot;https://draft-715a7b82-14a9-4594-b38a-72cac1cca8b3.preview.superdesign.dev&quot;,&quot;cmeHref&quot;:&quot;#&quot;,&quot;docsHref&quot;:&quot;#&quot;,&quot;signinHref&quot;:&quot;#&quot;,&quot;tryfreeHref&quot;:&quot;#&quot;,&quot;currentLang&quot;:&quot;EN&quot;,&quot;searchEnglish&quot;:true,&quot;searchArabic&quot;:true}, $emit() {} }">
+<header class="relative z-30 border-b border-black/10 bg-[#f6f3ea]/95 backdrop-blur-[6px] sticky top-0">
+  <div class="max-w-[1380px] mx-auto px-6 h-[68px] flex items-center justify-between gap-6">
+    <!-- Logo -->
+    <a :href="logoHref" id="nav-logo-link" class="flex items-center gap-2.5 shrink-0 group">
+      <div class="relative w-9 h-9 bg-[#0b1d2a] rounded-[10px] flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#14b8a6]/30 via-transparent to-transparent"></div>
+        <span class="text-[#f6f3ea] text-xl font-medium tracking-tight relative" style="font-family: 'Zodiak', serif;">C</span>
+        <div class="absolute w-1 h-1 bg-[#14b8a6] rounded-full bottom-1.5 right-1.5"></div>
+      </div>
+      <span class="text-xl font-medium tracking-tight" style="font-family: 'Zodiak', serif;">Claritas</span>
+    </a>
+
+    <!-- Primary nav -->
+    <nav class="hidden lg:flex items-center gap-1 text-[13.5px]">
+      <a :href="howHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'how' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">How it works</a>
+      <a :href="evidenceHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'evidence' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Evidence Engine</a>
+      <a :href="institutionsHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'institutions' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">For institutions</a>
+      <a :href="pricingHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'pricing' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Pricing</a>
+      <a :href="cmeHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'cme' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">CME credits</a>
+      <a :href="docsHref" class="px-3 py-2 rounded-md transition-all duration-200" :class="activeItem === 'docs' ? 'text-[#0d9488] font-semibold' : 'text-[#1a2c3a] hover:bg-[#0b1d2a]/5'">Docs</a>
+    </nav>
+
+    <!-- Right cluster -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <!-- Language dropdown -->
+      <div class="relative group">
+        <button class="flex items-center gap-1.5 px-2.5 h-9 rounded-md border border-[#0b1d2a]/15 text-[12.5px] font-medium hover:bg-[#0b1d2a]/5 transition-colors" aria-haspopup="true">
+          <iconify-icon icon="lucide:globe" class="text-[14px] text-[#0d9488]"></iconify-icon>
+          <span v-text="currentLang"></span>
+          <span class="text-[#0b1d2a]/30">·</span>
+          <span class="text-[#0b1d2a]/55">ع</span>
+          <iconify-icon icon="lucide:chevron-down" class="text-[13px] text-[#0b1d2a]/40"></iconify-icon>
+        </button>
+        <div class="absolute top-[calc(100%+4px)] right-0 w-56 bg-[#f6f3ea] border border-[#0b1d2a]/15 rounded-xl shadow-[0_20px_50px_-12px_rgba(11,29,42,0.22)] p-1.5 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="px-2 py-1.5 text-[10px] text-[#0b1d2a]/45 uppercase font-medium tracking-wider" style="font-family: 'JetBrains Mono', monospace;">Interface Language</div>
+          <button @click="$emit('languageChange', 'EN')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[#0b1d2a]/5 transition-colors" :class="{ 'bg-[#0b1d2a]/[0.04]': currentLang === 'EN' }">
+            <span class="flex items-center gap-2.5 text-[13px] font-medium"><span class="text-base">EN</span><span>English</span></span>
+            <iconify-icon v-if="currentLang === 'EN'" icon="lucide:check" class="text-[#0d9488] text-[14px]"></iconify-icon>
+          </button>
+          <button @click="$emit('languageChange', 'AR')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-[#0b1d2a]/5 transition-colors" :class="{ 'bg-[#0b1d2a]/[0.04]': currentLang === 'AR' }">
+            <span class="flex items-center gap-2.5 text-[13px] font-medium"><span class="text-base">ع</span><span>العربية · Arabic</span></span>
+            <iconify-icon v-if="currentLang === 'AR'" icon="lucide:check" class="text-[#0d9488] text-[14px]"></iconify-icon>
+          </button>
+          <div class="h-px bg-[#0b1d2a]/10 my-1.5"></div>
+          <div class="px-2 py-1.5 text-[10px] text-[#0b1d2a]/45 uppercase font-medium tracking-wider" style="font-family: 'JetBrains Mono', monospace;">Search Content</div>
+          <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#0b1d2a]/5 transition-colors cursor-pointer text-[12.5px]">
+            <input type="checkbox" :checked="searchEnglish" @change="$emit('filterToggle', { key: 'english', value: $event.target.checked })" class="accent-[#0b7d72] w-3.5 h-3.5">
+            <span>English corpus</span>
+          </label>
+          <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#0b1d2a]/5 transition-colors cursor-pointer text-[12.5px]">
+            <input type="checkbox" :checked="searchArabic" @change="$emit('filterToggle', { key: 'arabic', value: $event.target.checked })" class="accent-[#0b7d72] w-3.5 h-3.5">
+            <span>Arabic abstracts</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sign in -->
+      <a :href="signinHref" class="hidden md:inline-flex items-center px-3 h-9 rounded-md text-[12.5px] font-medium hover:bg-[#0b1d2a]/5 transition-colors">
+        Sign in
+      </a>
+
+      <!-- Try Free -->
+      <a :href="tryfreeHref" class="inline-flex items-center gap-1.5 px-4 h-9 rounded-md bg-[#0b7d72] text-[#f6f3ea] text-[12.5px] font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+        Try Free
+        <iconify-icon icon="lucide:arrow-right" class="text-[14px]"></iconify-icon>
+      </a>
+    </div>
+  </div>
+</header>
+</div>
+<!-- /component: Header (28fd511a-eb31-4f22-a1a7-991df42263ca) -->
+
+  <!-- ============ ONBOARDING MAIN ============ -->
+  <main style="view-transition-name: main-content" class="relative pt-10 lg:pt-14 pb-20">
+    <!-- Atmospheric -->
+    <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+    <div class="absolute inset-x-0 top-0 h-[560px] halo pointer-events-none"></div>
+
+    <div class="max-w-[1080px] mx-auto px-6 relative">
+
+      <!-- Breadcrumb / context -->
+      <div class="fade-up flex items-center justify-between mb-7">
+        <div class="flex items-center gap-2 text-[11.5px] text-ink/55">
+          <a href="#" id="breadcrumb-home" class="hover:text-teal-deep">Claritas</a>
+          <iconify-icon icon="lucide:chevron-right" class="text-[12px] text-ink/30"></iconify-icon>
+          <span class="text-ink-soft">Sign up</span>
+          <iconify-icon icon="lucide:chevron-right" class="text-[12px] text-ink/30"></iconify-icon>
+          <span class="text-teal-deep font-medium">Verify credentials</span>
+        </div>
+        <div class="hidden md:flex items-center gap-2 text-[10.5px] mono-stat text-ink/40">
+          <iconify-icon icon="lucide:lock" class="text-[11px]"></iconify-icon>
+          ENCRYPTED · TLS 1.3
+        </div>
+      </div>
+
+      <!-- Headline -->
+      <div class="fade-up delay-1 mb-9">
+        <div class="text-[10.5px] mono-stat text-teal-deep mb-3">§ 02 · PHYSICIAN VERIFICATION</div>
+        <h1 class="display text-[44px] md:text-[64px] tracking-tight max-w-[820px]">
+          Verify your licence.<br>
+          <span class="italic text-teal">Then start the trial.</span>
+        </h1>
+        <p class="serif-body text-[17px] md:text-[18px] text-ink-soft leading-[1.5] mt-4 max-w-[560px]">
+          Every Claritas account is gated by physician-only verification. We accept medical licence numbers from 22 Arab Board states, or any institutional email on the educational TLD list.
+        </p>
+      </div>
+
+      <!-- ============ PROGRESS STEPPER & CONTENT GRID ============ -->
+      <div class="grid grid-cols-12 gap-8 lg:gap-10">
+
+        <!-- LEFT: Stepper column -->
+        <aside class="col-span-12 lg:col-span-4 fade-up delay-2">
+          <div class="lg:sticky lg:top-[88px]">
+
+            <!-- Step progress label -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-[10.5px] mono-stat text-ink/55">PROGRESS</div>
+              <div class="text-[10.5px] mono-stat text-teal-deep font-semibold">STEP 02 / 05</div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="relative h-1 rounded-full bg-ink/8 overflow-hidden mb-7">
+              <div class="absolute inset-y-0 left-0 bg-teal-deep rounded-full" style="width: 40%;"></div>
+              <div class="absolute inset-y-0 left-[40%] w-[15%] bg-teal-bright/40 rounded-full"></div>
+            </div>
+
+            <!-- Steps -->
+            <ol class="space-y-2.5">
+
+              <!-- Step 01 — DONE -->
+              <li>
+                <div class="relative flex items-start gap-3 p-3 rounded-xl">
+                  <div class="shrink-0 w-8 h-8 rounded-full bg-ink text-paper flex items-center justify-center text-[11px] mono-stat font-semibold">
+                    <iconify-icon icon="lucide:check" class="text-[14px] text-teal-bright"></iconify-icon>
+                  </div>
+                  <div class="flex-1 pt-1">
+                    <div class="text-[10px] mono-stat text-ink/40 mb-0.5">STEP 01 · COMPLETED</div>
+                    <div class="text-[13.5px] text-ink-soft font-medium leading-tight">Email & credentials</div>
+                    <div class="text-[11.5px] text-ink/50 mt-0.5">amelia.sharif@gmail.com</div>
+                  </div>
+                  <button class="text-[10.5px] mono-stat text-teal-deep hover:underline pt-1.5">EDIT</button>
+                </div>
+              </li>
+
+              <!-- Step 02 — ACTIVE -->
+              <li>
+                <div class="relative flex items-start gap-3 p-3 rounded-xl bg-paper-warm border border-teal-deep/15">
+                  <div class="absolute -left-px top-0 bottom-0 w-px bg-teal-deep rounded-full"></div>
+                  <div class="shrink-0 relative w-8 h-8 rounded-full bg-teal-deep text-paper flex items-center justify-center text-[11px] mono-stat font-semibold">
+                    <span>02</span>
+                    <span class="absolute inset-0 rounded-full bg-teal-bright pulse-ring"></span>
+                  </div>
+                  <div class="flex-1 pt-1">
+                    <div class="text-[10px] mono-stat text-teal-deep mb-0.5">STEP 02 · IN PROGRESS</div>
+                    <div class="text-[13.5px] text-ink font-medium leading-tight">Physician verification</div>
+                    <div class="text-[11.5px] text-ink/55 mt-0.5">Medical licence or institutional email</div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Step 03 -->
+              <li>
+                <div class="flex items-start gap-3 p-3 rounded-xl">
+                  <div class="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink-15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">03</div>
+                  <div class="flex-1 pt-1">
+                    <div class="text-[10px] mono-stat text-ink/40 mb-0.5">STEP 03 · UPCOMING</div>
+                    <div class="text-[13.5px] text-ink/55 leading-tight">Select your plan</div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Step 04 -->
+              <li>
+                <div class="flex items-start gap-3 p-3 rounded-xl">
+                  <div class="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink-15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">04</div>
+                  <div class="flex-1 pt-1">
+                    <div class="text-[10px] mono-stat text-ink/40 mb-0.5">STEP 04 · OPTIONAL</div>
+                    <div class="text-[13.5px] text-ink/55 leading-tight">CME bundle add-on</div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Step 05 -->
+              <li>
+                <div class="flex items-start gap-3 p-3 rounded-xl">
+                  <div class="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink-15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">05</div>
+                  <div class="flex-1 pt-1">
+                    <div class="text-[10px] mono-stat text-ink/40 mb-0.5">STEP 05 · FINAL</div>
+                    <div class="text-[13.5px] text-ink/55 leading-tight">Confirm & start trial</div>
+                  </div>
+                </div>
+              </li>
+            </ol>
+
+            <!-- Side trust note -->
+            <div class="mt-7 p-4 rounded-2xl bg-paper-warm/60 border border-ink-10">
+              <div class="flex items-center gap-2.5 mb-2.5">
+                <iconify-icon icon="lucide:shield-check" class="text-[16px] text-teal-deep"></iconify-icon>
+                <div class="text-[11.5px] font-semibold text-ink">Encrypted at the credential</div>
+              </div>
+              <p class="text-[11.5px] text-ink-soft leading-[1.5]">
+                Licence numbers are hashed with AES-256 and never appear in plain text outside the verification step. We will not store your credential after validation.
+              </p>
+              <div class="mt-3 pt-3 border-t border-ink/8 grid grid-cols-3 gap-2 text-9.5px] mono-stat text-ink/45">
+                <div>HIPAA<span class="block text-[8.5px] text-ink/35 mt-0.5">ALIGNED</span></div>
+                <div>GDPR<span class="block text-[8.5px] text-ink/35 mt-0.5">ART. 9</span></div>
+                <div>ISO 27001<span class="block text-[8.5px] text-ink/35 mt-0.5">IN PROGRESS</span></div>
+              </div>
+            </div>
+
+            <!-- Help link -->
+            <a href="#" id="verification-help-link" class="mt-5 flex items-center gap-2 text-[11.5px] text-ink-soft hover:text-teal-deep">
+              <iconify-icon icon="lucide:life-buoy" class="text-[14px] text-teal"></iconify-icon>
+              Having trouble verifying? Talk to our clinical team — 24h response.
+            </a>
+          </div>
+        </aside>
+
+        <!-- RIGHT: Form content -->
+        <div class="col-span-12 lg:col-span-8 fade-up delay-3">
+
+          <!-- ============ VERIFICATION MODE PICKER ============ -->
+          <div class="bg-paper border border-ink-12 rounded-3xl p-2 shadow-[0_24px_60px_-30px_rgba(11,29,42,0.22)]">
+
+            <!-- Mode tabs -->
+            <div class="grid grid-cols-2 gap-1 mb-2">
+              <button id="mode-license" class="group relative px-4 py-3 rounded-2xl bg-ink text-paper flex items-center gap-3 text-left">
+                <div class="w-9 h-9 rounded-xl bg-teal-bright/15 border border-teal-bright/30 flex items-center justify-center shrink-0">
+                  <iconify-icon icon="lucide:badge-check" class="text-[18px] text-teal-bright"></iconify-icon>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-[13.5px] font-semibold leading-tight">Medical licence number</div>
+                  <div class="text-[10.5px] mono-stat text-paper/55 mt-0.5">RECOMMENDED · 30 SECONDS</div>
+                </div>
+              </button>
+              <button id="mode-institutional" class="group relative px-4 py-3 rounded-2xl bg-paper border border-ink-12 flex items-center gap-3 text-left hover-tint">
+                <div class="w-9 h-9 rounded-xl bg-ink/8 border border-ink/10 flex items-center justify-center shrink-0">
+                  <iconify-icon icon="lucide:building-2" class="text-[18px] text-ink-soft"></iconify-icon>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-[13.5px] font-semibold text-ink-soft leading-tight">Institutional email</div>
+                  <div class="text-[10.5px] mono-stat text-ink/45 mt-0.5">EG-MED.EDU · KSA-MED.SCH</div>
+                </div>
+              </button>
+            </div>
+
+            <!-- ============ MODE A: MEDICAL LICENCE FORM ============ -->
+            <div class="p-5 md:p-6 lg:p-7">
+
+              <div class="mb-7">
+                <h2 class="serif text-[28px] md:text-[32px] tracking-tight leading-tight">Confirm your medical credentials</h2>
+                <p class="serif-body text-[15.5px] text-ink-soft mt-3 leading-[1.5] max-w-[560px]">
+                  Enter the licence number issued by your national medical authority. We look it up against the public registries of the Egyptian Medical Syndicate and twelve other Arab Board member states.
+                </p>
+              </div>
+
+              <form class="space-y-6">
+
+                <!-- Full name -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label class="flex items-center justify-between mb-2" for="first-name">
+                      <span class="text-[11.5px] font-medium text-ink-soft">First name</span>
+                      <span class="text-[9.5px] mono-stat text-ink/40">AS ON LICENCE</span>
+                    </label>
+                    <input type="text" id="first-name" value="Amelia" class="field-input w-full h-12 px-4 rounded-xl bg-paper border border-ink-12 text-[14px] text-ink" placeholder="e.g., Amelia">
+                    <p class="text-[10.5px] mono-stat text-teal-deep mt-1.5 flex items-center gap-1.5">
+                      <iconify-icon icon="lucide:check-circle-2" class="text-[12px]"></iconify-icon>
+                      MATCHES REGISTRY — DR. AMELIA SHARIF
+                    </p>
+                  </div>
+                  <div>
+                    <label class="flex items-center justify-between mb-2" for="last-name">
+                      <span class="text-[11.5px] font-medium text-ink-soft">Family name</span>
+                    </label>
+                    <input type="text" id="last-name" value="El-Sherif" class="field-input w-full h-12 px-4 rounded-xl bg-paper border border-ink-12 text-[14px] text-ink" placeholder="e.g., El-Sherif">
+                  </div>
+                </div>
+
+                <!-- Issuing authority -->
+                <div>
+                  <label class="flex items-center justify-between mb-2" for="authority">
+                    <span class="text-[11.5px] font-medium text-ink-soft">Issuing authority</span>
+                    <button type="button" class="text-[10.5px] mono-stat text-teal-deep hover:underline flex items-center gap-1">
+                      <iconify-icon icon="lucide:info" class="text-[11px]"></iconify-icon> LIST OF REGISTRIES
+                    </button>
+                  </label>
+                  <div class="relative">
+                    <select id="authority" class="field-input w-full h-12 pl-4 pr-10 rounded-xl bg-paper border border-ink-12 text-[14px] text-ink appearance-none cursor-pointer">
+                      <option>Egyptian Medical Syndicate (نقابة الأطباء)</option>
+                      <option>Arab Board of Health Specialisations</option>
+                      <option>Saudi Commission for Health Specialties</option>
+                      <option>Jordan Medical Association</option>
+                      <option>Lebanese Order of Physicians</option>
+                    </select>
+                    <iconify-icon icon="lucide:chevron-down" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] text-ink/45 pointer-events-none"></iconify-icon>
+                  </div>
+                  <p class="text-[10.5px] mono-stat text-ink/45 mt-1.5">SELECTED REGISTRY · 84,000+ MEMBERS</p>
+                </div>
+
+                <!-- Licence number — validated -->
+                <div>
+                  <label class="flex items-center justify-between mb-2" for="license">
+                    <span class="text-[11.5px] font-medium text-ink-soft">Medical licence number</span>
+                    <span class="text-[9.5px] mono-stat text-ink/40">FORMAT: EG-MS-XXXXX-YY</span>
+                  </label>
+                  <div class="relative">
+                    <input type="text" id="license" value="EG-MS-48213-04" class="field-input is-valid w-full h-12 pl-11 pr-4 rounded-xl bg-paper border border-ink-12 text-[14px] text-ink mono font-medium tracking-wider pr-10">
+                    <iconify-icon icon="lucide:shield-check" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[16px] text-teal-deep"></iconify-icon>
+                  </div>
+                  <div class="mt-2 flex items-center justify-between">
+                    <p class="text-[11.5px] text-teal-deep flex items-center gap-1.5">
+                      <iconify-icon icon="lucide:badge-check" class="text-[14px]"></iconify-icon>
+                      Licence verified — Dr. Amelia Sharif, Cardiology subspecialty, active until 2027.
+                    </p>
+                    <button type="button" class="text-[10.5px] mono-stat text-ink/45 hover:text-teal-deep">REGISTRY ↗</button>
+                  </div>
+                </div>
+
+                <!-- Specialty -->
+                <div>
+                  <label class="flex items-center justify-between mb-2" for="specialty">
+                    <span class="text-[11.5px] font-medium text-ink-soft">Primary specialty</span>
+                    <span class="text-[9.5px] mono-stat text-ink/40">USED FOR ROUTING REVIEWS</span>
+                  </label>
+                  <div class="relative">
+                    <select id="specialty" class="field-input w-full h-12 pl-4 pr-10 rounded-xl bg-paper border border-ink-12 text-[14px] text-ink appearance-none cursor-pointer">
+                      <option>Cardiology</option>
+                      <option>Internal Medicine</option>
+                      <option>Endocrinology</option>
+                      <option>Emergency Medicine</option>
+                      <option>Pediatrics</option>
+                      <option>Other specialty</option>
+                    </select>
+                    <iconify-icon icon="lucide:chevron-down" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] text-ink/45 pointer-events-none"></iconify-icon>
+                  </div>
+                </div>
+
+                <!-- Consent -->
+                <div class="pt-2">
+                  <label class="flex items-start gap-3 cursor-pointer group">
+                    <input type="checkbox" checked class="mt-1 w-4 h-4 rounded accent-teal-deep shrink-0">
+                    <span class="text-[12px] text-ink-soft leading-[1.55]">
+                      I confirm I am a licensed physician, and I permit Claritas to query the registry above to verify my credential. Claritas will not retain the licence number after verification.
+                    </span>
+                  </label>
+                </div>
+
+                <!-- Footer: back / continue -->
+                <div class="pt-5 mt-2 border-t border-ink/8 flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div class="flex items-center gap-2 text-[10.5px] mono-stat text-ink/45">
+                    <iconify-icon icon="lucide:info" class="text-[12px]"></iconify-icon>
+                    VERIFICATION RECHECKS ANNUALLY · YOU CAN OPT-OUT ANY TIME
+                  </div>
+                  <div class="flex items-center gap-3 w-full md:w-auto">
+                    <button type="button" class="inline-flex items-center justify-center gap-1.5 h-12 px-4 rounded-[14px] border border-ink-15 text-ink text-[13.5px] font-medium hover-tint">
+                      <iconify-icon icon="lucide:arrow-left" class="text-[14px]"></iconify-icon>
+                      Back
+                    </button>
+                    <button type="button" id="continue-btn" class="btn-primary btn-ink flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-12 md:px-8 px-5 rounded-[14px] bg-ink text-paper text-[14px] font-semibold">
+                      Continue to plan selection
+                      <iconify-icon icon="lucide:arrow-right" class="text-[15px] text-teal-bright"></iconify-icon>
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <!-- ============ INLINE: PLAN PREVIEW + CME ============ -->
+              <div class="mt-12 pt-8 border-t border-ink/8">
+
+                <!-- Mini section eyebrow -->
+                <div class="flex items-center justify-between mb-5">
+                  <div class="text-[10.5px] mono-stat text-ink/55">NEXT · CHOOSE YOUR PLAN</div>
+                  <div class="text-[10.5px] mono-stat text-teal-deep">CONTINUES TO STEP 03</div>
+                </div>
+
+                <h3 class="serif text-[26px] md:text-[32px] tracking-tight leading-tight mb-4">
+                  Which plan fits <span class="italic text-teal">your practice?</span>
+                </h3>
+                <p class="text-[13.5px] text-ink-soft leading-[1.55] max-w-[560px] mb-7">
+                  Pre-select now or change later. You start with a 14-day trial on whichever tier you choose; no card required until day 12.
+                </p>
+
+                <!-- Plan cards compact -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+                  <!-- Free -->
+                  <label class="block cursor-pointer">
+                    <input type="radio" name="plan" class="plan-radio sr-only">
+                    <div class="plan-card relative bg-paper border border-ink-15 rounded-2xl p-5 transition-all">
+                      <div class="absolute top-3 right-3 w-6 h-6 rounded-full bg-ink text-paper flex items-center justify-center plan-check opacity-0 transition-all" style="transform: scale(0.6);">
+                        <iconify-icon icon="lucide:check" class="text-[14px] text-teal-bright"></iconify-icon>
+                      </div>
+                      <div class="text-[9.5px] mono-stat text-ink/45 mb-2">ALWAYS FREE</div>
+                      <div class="serif text-[22px] tracking-tight leading-tight">Free</div>
+                      <div class="flex items-baseline gap-1 mt-1.5 mb-3">
+                        <span class="serif text-[32px] leading-none tracking-tight">$0</span>
+                        <span class="text-[11px] text-ink/55">/ mo</span>
+                      </div>
+                      <ul class="space-y-1.5 text-[11.5px] text-ink-soft">
+                        <li class="flex items-start gap-1.5">
+                          <iconify-icon icon="lucide:check" class="text-[12px] text-teal mt-0.5 shrink-0"></iconify-icon>
+                          5 syntheses / month
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <iconify-icon icon="lucide:check" class="text-[12px] text-teal mt-0.5 shrink-0"></iconify-icon>
+                          TLDR + infographic
+                        </li>
+                      </ul>
+                    </div>
+                  </label>
+
+                  <!-- Pro — selected -->
+                  <label class="block cursor-pointer">
+                    <input type="radio" name="plan" checked class="plan-radio sr-only">
+                    <div class="plan-card relative bg-ink text-paper border border-ink rounded-2xl p-5 transition-all">
+                      <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 h-5 rounded-full bg-teal-bright text-ink text-[9.5px] mono-stat font-semibold inline-flex items-center">MOST CHOSEN</div>
+                      <div class="absolute top-3 right-3 w-6 h-6 rounded-full bg-teal-bright text-ink flex items-center justify-center plan-check opacity-1 transition-all">
+                        <iconify-icon icon="lucide:check" class="text-[14px]"></iconify-icon>
+                      </div>
+                      <div class="text-[9.5px] mono-stat text-paper/55 mb-2">PRACTISING MD</div>
+                      <div class="serif text-[22px] tracking-tight leading-tight text-paper">Professional</div>
+                      <div class="flex items-baseline gap-1 mt-1.5 mb-3">
+                        <span class="serif text-[32px] leading-none tracking-tight text-paper">$19</span>
+                        <span class="text-[11px] text-paper/55">/ mo</span>
+                      </div>
+                      <ul class="space-y-1.5 text-[11.5px] text-paper/85">
+                        <li class="flex items-start gap-1.5">
+                          <iconify-icon icon="lucide:check" class="text-[12px] text-teal-bright mt-0.5 shrink-0"></iconify-icon>
+                          All six agents, unlimited
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <iconify-icon icon="lucide:check" class="text-[12px] text-teal-bright mt-0.5 shrink-0"></iconify-icon>
+                          Mind map & critical appraisal
+                        </li>
+                      </ul>
+                    </div>
+                  </label>
+
+                  <!-- Research Pro -->
+                  <label class="block cursor-pointer">
+                    <input type="radio" name="plan" class="plan-radio sr-only">
+                    <div class="plan-card relative bg-paper border border-ink-15 rounded-2xl p-5 transition-all">
+                      <div class="absolute top-3 right-3 w-6 h-6 rounded-full bg-ink text-paper flex items-center justify-center plan-check opacity-0 transition-all" style="transform: scale(0.6);">
+                        <iconify-icon icon="lucide:check" class="text-[14px] text-teal-bright"></iconify-icon>
+                      </div>
+                      <div class="text-[9.5px] mono-stat text-ink/45 mb-2">FELLOW · ACADEMIC</div>
+                      <div class="serif text-[22px] tracking-tight leading-tight">Research Pro</div>
+                      <div class="flex items-baseline gap-1 mt-1.5 mb-3">
+                        <span class="serif text-[32px] leading-none tracking-tight">$39</span>
+                        <span class="text-[11px] text-ink/55">/ mo</span>
+                      </div>
+                      <ul class="space-y-1.5 text-[11.5px] text-ink-soft">
+                        <li class="flex items-start gap-1.5">
+                          <iconify-icon icon="lucide:check" class="text-[12px] text-teal mt-0.5 shrink-0"></iconify-icon>
+                          Everything in Professional
+                        </li>
+                        <li class="flex items-start gap-1.5">
+                          <iconify-icon icon="lucide:check" class="text-[12px] text-teal mt-0.5 shrink-0"></iconify-icon>
+                          PRISMA export + collaborators
+                        </li>
+                      </ul>
+                    </div>
+                  </label>
+                </div>
+
+                <!-- CME bundle toggle -->
+                <div class="mt-4 bg-paper-warm border border-ink-12 rounded-2xl p-5 flex items-start md:items-center gap-4 flex-col md:flex-row">
+                  <div class="flex items-start gap-3 flex-1">
+                    <div class="w-10 h-10 rounded-xl bg-teal-deep/12 border border-teal-deep/25 flex items-center justify-center shrink-0">
+                      <iconify-icon icon="lucide:award" class="text-[20px] text-teal-deep"></iconify-icon>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <h4 class="serif text-[18px] tracking-tight leading-tight">CME bundle</h4>
+                        <span class="px-1.5 h-5 rounded bg-teal-deep/12 text-teal-deep text-[9px] mono-stat font-semibold inline-flex items-center">ADD-ON</span>
+                        <span class="px-1.5 h-5 rounded bg-ink/8 text-ink/55 text-[9px] mono-stat inline-flex items-center">+ $9 / MO</span>
+                      </div>
+                      <p class="text-[12px] text-ink-soft leading-[1.5] max-w-[440px]">
+                        Auto-graded quizzes per paper. Track credit hours by specialty. Certificates co-branded with the Egyptian Medical Syndicate and Arab Board.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 self-end md:self-center">
+                    <span class="text-[10.5px] mono-stat text-ink/55">ADD</span>
+                    <div class="toggle-switch large on" data-toggle="cme" role="switch" aria-checked="true" tabindex="0">
+                      <div class="toggle-switch-thumb"></div>
+                    </div>
+                    <span class="text-[10.5px] mono-stat text-teal-deep font-semibold w-8">ON</span>
+                  </div>
+                </div>
+
+                <!-- ============ FINAL CONFIRMATION PANEL ============ -->
+                <div class="mt-8 p-6 md:p-7 rounded-3xl bg-ink text-paper relative overflow-hidden">
+                  <!-- Decorative -->
+                  <div class="absolute -top-20 -right-20 w-[260px] h-[260px] rounded-full bg-teal-deep/30 blur-[80px] pointer-events-none"></div>
+                  <div class="absolute inset-0 grain-overlay pointer-events-none"></div>
+
+                  <div class="relative">
+                    <div class="flex items-center gap-2 mb-4">
+                      <span class="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink"></span>
+                      <span class="text-[10.5px] mono-stat text-teal-bright">READY TO ACTIVATE</span>
+                    </div>
+
+                    <h3 class="serif text-[28px] md:text-[34px] tracking-tight leading-tight text-paper max-w-[460px]">
+                      Your trial summary.<br>
+                      <span class="italic text-teal-bright">Activate when ready.</span>
+                    </h3>
+
+                    <!-- Summary line items -->
+                    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-[11.5px]">
+                      <div>
+                        <div class="text-[9.5px] mono-stat text-paper/45 mb-1">PHYSICIAN</div>
+                        <div class="text-paper/85 font-medium leading-tight">Dr. Amelia El-Sherif</div>
+                        <div class="text-paper/45 text-[10.5px] mt-0.5">Cardiology</div>
+                      </div>
+                      <div>
+                        <div class="text-[9.5px] mono-stat text-paper/45 mb-1">PLAN</div>
+                        <div class="text-paper/85 font-medium leading-tight">Professional</div>
+                        <div class="text-paper/45 text-[10.5px] mt-0.5">$19 / mo after trial</div>
+                      </div>
+                      <div>
+                        <div class="text-[9.5px] mono-stat text-paper/45 mb-1">ADD-ON</div>
+                        <div class="text-paper/85 font-medium leading-tight">CME bundle · on</div>
+                        <div class="text-paper/45 text-[10.5px] mt-0.5">+ $9 / mo</div>
+                      </div>
+                      <div>
+                        <div class="text-[9.5px] mono-stat text-paper/45 mb-1">TOTAL AFTER TRIAL</div>
+                        <div class="serif text-paper text-[22px] leading-none tracking-tight">$28</div>
+                        <div class="text-paper/45 text-[10.5px] mt-0.5">/ mo · billed annually</div>
+                      </div>
+                    </div>
+
+                    <!-- Security assurance row -->
+                    <div class="mt-6 pt-5 border-t border-paper/10 grid grid-cols-2 md:grid-cols-4 gap-3 text-[10.5px] mono-stat text-paper/55">
+                      <span class="flex items-center gap-1.5">
+                        <iconify-icon icon="lucide:credit-card" class="text-[12px] text-teal-bright"></iconify-icon>
+                        NO CARD FOR 12 DAYS
+                      </span>
+                      <span class="flex items-center gap-1.5">
+                        <iconify-icon icon="lucide:rotate-ccw" class="text-[12px] text-teal-bright"></iconify-icon>
+                        CANCEL IN ONE CLICK
+                      </span>
+                      <span class="flex items-center gap-1.5">
+                        <iconify-icon icon="lucide:archive" class="text-[12px] text-teal-bright"></iconify-icon>
+                        KEEP SAVED PAPERS
+                      </span>
+                      <span class="flex items-center gap-1.5">
+                        <iconify-icon icon="lucide:lock" class="text-[12px] text-teal-bright"></iconify-icon>
+                        PHI · GDPR · HIPAA
+                      </span>
+                    </div>
+
+                    <!-- Start trial CTA -->
+                    <div class="mt-7 flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                      <a href="#" id="start-trial-btn" class="btn-primary inline-flex items-center justify-center gap-2 h-14 px-7 rounded-[16px] bg-teal-bright text-ink text-[15px] font-semibold w-full md:w-auto">
+                        Start 14-day Professional trial
+                        <iconify-icon icon="lucide:arrow-right" class="text-[16px]"></iconify-icon>
+                      </a>
+                      <a href="#" id="change-plan-link" class="inline-flex items-center justify-center gap-2 h-14 px-7 rounded-[16px] border border-paper/25 text-paper text-[13.5px] font-medium hover:bg-paper/10 transition-colors w-full md:w-auto">
+                        Change plan or CME
+                      </a>
+                    </div>
+
+                    <p class="mt-4 text-[10.5px] mono-stat text-paper/40">
+                      By starting the trial you agree to the <a href="#" id="confirm-terms-link" class="text-paper/70 hover:text-teal-bright underline">Physician Terms</a> and <a href="#" id="confirm-phi-link" class="text-paper/70 hover:text-teal-bright underline">PHI Policy</a>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Help strip below -->
+          <div class="mt-7 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="p-4 rounded-2xl bg-paper-warm/50 border border-ink-10">
+              <iconify-icon icon="lucide:users" class="text-[16px] text-teal-deep mb-2"></iconify-icon>
+              <div class="text-[12.5px] font-medium text-ink mb-1">Already verified elsewhere?</div>
+              <p class="text-[11.5px] text-ink-soft leading-[1.45]">SSO users from a member institution skip this step entirely.</p>
+              <a href="#" id="sso-link" class="text-[10.5px] mono-stat text-teal-deep hover:underline mt-2 inline-flex items-center gap-1">CHECK INSTITUTION ↗</a>
+            </div>
+            <div class="p-4 rounded-2xl bg-paper-warm/50 border border-ink-10">
+              <iconify-icon icon="lucide:help-circle" class="text-[16px] text-teal-deep mb-2"></iconify-icon>
+              <div class="text-[12.5px] font-medium text-ink mb-1">Licence not in the registry?</div>
+              <p class="text-[11.5px] text-ink-soft leading-[1.45]">Manual verification by our clinical team in under 24 hours.</p>
+              <a href="#" id="manual-verify-link" class="text-[10.5px] mono-stat text-teal-deep hover:underline mt-2 inline-flex items-center gap-1">REQUEST MANUAL ↗</a>
+            </div>
+            <div class="p-4 rounded-2xl bg-paper-warm/50 border border-ink-10">
+              <iconify-icon icon="lucide:shield-question" class="text-[16px] text-teal-deep mb-2"></iconify-icon>
+              <div class="text-[12.5px] font-medium text-ink mb-1">Why physician-only?</div>
+              <p class="text-[11.5px] text-ink-soft leading-[1.45]">Every validated badge is a real physician's reputation. We protect it.</p>
+              <a href="#" id="why-link" class="text-[10.5px] mono-stat text-teal-deep hover:underline mt-2 inline-flex items-center gap-1">READ MISSION ↗</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <!-- component: Footer (a1603e00-484b-4efd-b69a-c0c69c6b593c) -->
+<div v-scope="{ ...{&quot;homeHref&quot;:&quot;https://draft-715a7b82-14a9-4594-b38a-72cac1cca8b3.preview.superdesign.dev&quot;,&quot;searchHref&quot;:&quot;https://draft-b1782f20-e5ae-4998-b345-58013979ed71.preview.superdesign.dev&quot;,&quot;detailHref&quot;:&quot;https://draft-ee925d37-e6e4-42f9-b902-74de6d9226a2.preview.superdesign.dev&quot;,&quot;cmeHref&quot;:&quot;#&quot;,&quot;dashHref&quot;:&quot;https://draft-977adc9a-942f-4f82-a76b-84e3744935fa.preview.superdesign.dev&quot;,&quot;adminHref&quot;:&quot;#&quot;,&quot;mobileHref&quot;:&quot;#mobile&quot;,&quot;methodHref&quot;:&quot;#methodology&quot;,&quot;agentsHref&quot;:&quot;#agents&quot;,&quot;reviewHref&quot;:&quot;#review&quot;,&quot;gradeHref&quot;:&quot;#grade&quot;,&quot;sourcesHref&quot;:&quot;#sources&quot;,&quot;salesHref&quot;:&quot;#sales&quot;,&quot;ssoHref&quot;:&quot;#sso&quot;,&quot;billingHref&quot;:&quot;#billing&quot;,&quot;bulkHref&quot;:&quot;#bulk-api&quot;,&quot;uptimeHref&quot;:&quot;#uptime&quot;,&quot;aboutHref&quot;:&quot;#mission&quot;,&quot;teamHref&quot;:&quot;#team&quot;,&quot;careersHref&quot;:&quot;#careers&quot;,&quot;pressHref&quot;:&quot;#press&quot;,&quot;contactHref&quot;:&quot;#contact&quot;,&quot;privacyHref&quot;:&quot;#privacy&quot;,&quot;termsHref&quot;:&quot;#terms&quot;,&quot;hcpHref&quot;:&quot;#hcp-license&quot;,&quot;phiHref&quot;:&quot;#phi-policy&quot;,&quot;versionNumber&quot;:&quot;v0.9.4&quot;,&quot;showSystemStatus&quot;:true}, $emit() {} }">
+<footer class="relative py-16 md:py-20 border-t" style="background-color: #f1ece0; border-color: rgba(11, 29, 42, 0.1); text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"><div class="max-w-[1380px] mx-auto px-6"><div class="grid grid-cols-12 gap-10 md:gap-12 mb-14"><div class="col-span-12 md:col-span-4"><a :href="homeHref" id="footer-logo-link" class="flex items-center gap-2.5 mb-5"><div class="relative w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden" style="background-color: #0b1d2a;"><div class="absolute inset-0 bg-gradient-to-br from-teal-400/30 via-transparent to-transparent"></div><span class="text-paper text-xl font-medium tracking-tight relative" style="font-family: Zodiak, serif; color: #f6f3ea;">C</span><div class="absolute w-1 h-1 rounded-full bottom-1.5 right-1.5" style="background-color: #14b8a6;"></div></div><span class="text-xl font-medium tracking-tight" style="font-family: Zodiak, serif; color: #0b1d2a;">Claritas</span></a><p class="text-[15px] leading-[1.55] max-w-[300px] mb-6" style="font-family: Zodiak, serif; font-weight: 400; color: #1a2c3a;">Clinical literature, finally understood — and the physicians who read it, finally on time.</p><div class="flex gap-1.5" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;"><span class="px-2 h-7 rounded-md border inline-flex items-center" style="border-color: rgba(11, 29, 42, 0.15); color: #1a2c3a;">RTL · EN / ع</span><span class="px-2 h-7 rounded-md border inline-flex items-center gap-1" style="border-color: rgba(11, 29, 42, 0.15); color: #1a2c3a;"><iconify-icon icon="lucide:sun" class="text-[12px]"></iconify-icon><iconify-icon icon="lucide:moon" class="text-[12px]"></iconify-icon>DARK MODE</span></div></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">PRODUCT</div><ul class="space-y-2.5 text-[13px]"><li><a :href="searchHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Search & discovery</a></li><li><a :href="detailHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Paper detail view</a></li><li><a :href="cmeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">CME module</a></li><li><a :href="dashHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Physician dashboard</a></li><li><a :href="adminHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Hospital admin portal</a></li><li><a :href="mobileHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Mobile (iOS / Android)</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">EVIDENCE</div><ul class="space-y-2.5 text-[13px]"><li><a :href="methodHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Methodology</a></li><li><a :href="agentsHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">The six agents</a></li><li><a :href="reviewHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">HITL review process</a></li><li><a :href="gradeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">GRADE framework</a></li><li><a :href="sourcesHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Corpus sources (17)</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">INSTITUTIONAL</div><ul class="space-y-2.5 text-[13px]"><li><a :href="salesHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Contact sales</a></li><li><a :href="ssoHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">SSO (SAML / OIDC)</a></li><li><a :href="billingHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Billing & seats</a></li><li><a :href="bulkHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Bulk export API</a></li><li><a :href="uptimeHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Uptime & SLAs</a></li></ul></div><div class="col-span-6 md:col-span-2"><div class="text-[10px] mb-4" style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.45);">COMPANY</div><ul class="space-y-2.5 text-[13px]"><li><a :href="aboutHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Mission</a></li><li><a :href="teamHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Clinical team</a></li><li><a :href="careersHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Careers · 7 open</a></li><li><a :href="pressHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Press & papers</a></li><li><a :href="contactHref" class="hover:text-teal-700 transition-colors" style="color: #1a2c3a;">Contact</a></li></ul></div></div><div class="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-[11px]" style="border-color: rgba(11, 29, 42, 0.1); font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(11, 29, 42, 0.55);"><div class="flex flex-wrap justify-center md:justify-start items-center gap-4"><span>© 2024 CLARITAS MEDICAL, INC.</span><a :href="privacyHref" class="hover:text-teal-700 transition-colors">PRIVACY</a><a :href="termsHref" class="hover:text-teal-700 transition-colors">TERMS</a><a :href="hcpHref" class="hover:text-teal-700 transition-colors">HCP LICENSE</a><a :href="phiHref" class="hover:text-teal-700 transition-colors">PHI POLICY</a></div><div class="flex items-center gap-3"><span v-if="showSystemStatus" class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-teal-600 animate-pulse"></span>ALL SYSTEMS OPERATIONAL</span><span>·</span><span>{{ versionNumber }} · BETA</span></div></div></div></footer>
+</div>
+<!-- /component: Footer (a1603e00-484b-4efd-b69a-c0c69c6b593c) -->
+
+  <script>
+    // Toggle the CME bundle switch
+    document.querySelectorAll('.toggle-switch').forEach(el => {
+      el.addEventListener('click', () => {
+        el.classList.toggle('on');
+        el.setAttribute('aria-checked', el.classList.contains('on'));
+        const status = el.parentElement.querySelector('.text-\\[10\\.5px\\]:last-child');
+        if (status) status.textContent = el.classList.contains('on') ? 'ON' : 'OFF';
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); }
+      });
+    });
+
+    // Plan radio selection visual feedback
+    document.querySelectorAll('.plan-radio').forEach(radio => {
+      radio.addEventListener('change', () => {
+        document.querySelectorAll('.plan-card').forEach(c => {
+          if (!c.closest('label').contains(radio)) {
+            c.querySelector('.plan-check')?.classList.add('opacity-0');
+          }
+        });
+      });
+    });
+
+    // Mode tabs (visual only)
+    const modeLic = document.getElementById('mode-license');
+    const modeInst = document.getElementById('mode-institutional');
+    modeInst?.addEventListener('click', () => {
+      modeLic.classList.remove('bg-ink', 'text-paper');
+      modeLic.classList.add('bg-paper', 'border', 'border-ink-12');
+      modeInst.classList.add('bg-ink', 'text-paper');
+      modeInst.classList.remove('bg-paper', 'border', 'border-ink-12');
+    });
+  </script>
+</div>
+</body>
+</html>
