@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import TopBar from "@/components/layout/top-bar";
+import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -30,8 +33,11 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
-        {children}
+      <body className="min-h-full flex flex-col bg-paper text-ink font-sans" suppressHydrationWarning>
+        <TopBar />
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );

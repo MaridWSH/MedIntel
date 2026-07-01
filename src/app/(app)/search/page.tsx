@@ -1,7 +1,9 @@
+import SearchWorkspace from "@/components/search/SearchWorkspace";
+
 export default function SearchPage() {
   return (
     <div>
-      <h1>Search &amp; Discovery</h1>
+      <SearchWorkspace />
     </div>
   );
 }
