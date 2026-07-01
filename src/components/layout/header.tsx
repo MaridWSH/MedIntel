@@ -12,18 +12,22 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { id: "how", label: "How it works", href: "/search#how-it-works" },
-  { id: "evidence", label: "Evidence Engine", href: "/search" },
-  { id: "institutions", label: "For institutions", href: "/search#proof" },
-  { id: "pricing", label: "Pricing", href: "/search#pricing" },
-  { id: "cme", label: "CME credits", href: "/search#cme" },
-  { id: "docs", label: "Docs", href: "/search#docs" },
+  { id: "how", label: "How it works", href: "#how-it-works" },
+  { id: "evidence", label: "Evidence Engine", href: "/" },
+  { id: "institutions", label: "For institutions", href: "#proof" },
+  { id: "pricing", label: "Pricing", href: "#pricing" },
+  { id: "cme", label: "CME credits", href: "#cme" },
+  { id: "docs", label: "Docs", href: "#docs" },
 ];
 
 type Lang = "EN" | "AR";
 
-export default function Header() {
-  const [activeItem] = useState("evidence");
+interface HeaderProps {
+  /** id of NAV_ITEMS to highlight. Leave unset for app-context pages (settings, paper, etc.) where no marketing nav item applies. */
+  activeItem?: string;
+}
+
+export default function Header({ activeItem = "" }: HeaderProps) {
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<Lang>("EN");
@@ -136,7 +140,7 @@ export default function Header() {
 
           {/* Sign in */}
           <Link
-            href="/signin"
+            href="#signin"
             className="hidden md:inline-flex items-center px-3 h-9 rounded-md text-[12.5px] font-medium hover:bg-ink/5 transition-colors"
           >
             Sign in
@@ -144,7 +148,7 @@ export default function Header() {
 
           {/* Try Free */}
           <Link
-            href="/signup"
+            href="#try-free"
             className="inline-flex items-center gap-1.5 px-4 h-9 rounded-md bg-teal-deep text-paper text-[12.5px] font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
