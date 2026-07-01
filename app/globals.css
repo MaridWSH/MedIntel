@@ -1,0 +1,299 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0b1d2a;
+  --ink-soft: #1a2c3a;
+  --paper: #f6f3ea;
+  --paper-warm: #f1ece0;
+  --paper-soft: #e8e1d1;
+  --rule: #e2dccb;
+  --teal: #0d9488;
+  --teal-deep: #0b7d72;
+  --teal-bright: #14b8a6;
+  --teal-mist: #5eaaa0;
+  --amber-ink: #967338;
+  --amber-bg: #f6ecd6;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  background-color: var(--paper);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink);
+  background-color: var(--paper);
+}
+
+@layer utilities {
+  .serif {
+    font-family: 'Zodiak', 'Times New Roman', serif;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  .text-ink-mute {
+    color: #5a6b78;
+  }
+
+  .border-ink-10 {
+    border-color: rgba(11, 29, 42, 0.1);
+  }
+
+  .border-ink-15 {
+    border-color: rgba(11, 29, 42, 0.15);
+  }
+
+  .display {
+    font-family: 'Zodiak', serif;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 0.96;
+  }
+
+  .serif-body {
+    font-family: 'Zodiak', serif;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+
+  .mono-stat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .grain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.1 0 0 0 0 0.16 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .hover-tint {
+    transition:
+      background-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .hover-tint:hover {
+    background-color: rgba(11, 29, 42, 0.05);
+  }
+
+  .btn-primary {
+    transition: all 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0) 60%
+    );
+    pointer-events: none;
+  }
+
+  .btn-primary:hover {
+    background: var(--teal-deep);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px -12px rgba(11, 125, 114, 0.55);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .tab-active {
+    background-color: var(--ink);
+    color: var(--paper);
+  }
+
+  .tab-active .tab-num {
+    color: var(--teal-bright);
+  }
+
+  .tab-idle {
+    background-color: rgba(11, 29, 42, 0.04);
+    color: var(--ink-soft);
+  }
+
+  .tab-idle:hover {
+    background-color: rgba(11, 29, 42, 0.08);
+  }
+
+  .tab-idle .tab-num {
+    color: rgba(11, 29, 42, 0.4);
+  }
+}
+
+@keyframes pulse-mark {
+  0%,
+  100% {
+    opacity: 1;
+    r: 5.2;
+  }
+  50% {
+    opacity: 0.5;
+    r: 5.8;
+  }
+}
+
+.pulse-mark {
+  animation: pulse-mark 2.4s ease-in-out infinite;
+}
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-slow {
+  animation: rotate-slow 32s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes dash-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+.dash-flow {
+  animation: dash-flow 1.6s linear infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.cursor-blink {
+  animation: blink 1.4s infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.d-1 { animation-delay: 0.08s; }
+.d-2 { animation-delay: 0.16s; }
+.d-3 { animation-delay: 0.24s; }
+.d-4 { animation-delay: 0.32s; }
+.d-5 { animation-delay: 0.4s; }
+.d-6 { animation-delay: 0.48s; }
+.d-7 { animation-delay: 0.56s; }
+.d-8 { animation-delay: 0.64s; }
+
+::selection {
+  background: var(--teal-bright);
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(11, 29, 42, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(11, 29, 42, 0.3);
+}
+
+/* -----------------------------------------------------------------------
+ * Arabic / RTL typography overrides
+ *
+ * Zodiak (display serif), Inter (body sans), JetBrains Mono have no Arabic
+ * glyphs and several of the global classes apply tight or negative
+ * letter-spacing that breaks Arabic shaping. We re-bind those classes for
+ * `dir="rtl"` to Tajawal (body) and Reem Kufi (display) and reset the
+ * spacing/transform.
+ * -------------------------------------------------------------------- */
+html[dir='rtl'] body {
+  font-family: 'Tajawal', 'Segoe UI', system-ui, sans-serif;
+}
+
+html[dir='rtl'] .serif,
+html[dir='rtl'] .serif-body {
+  font-family: 'Reem Kufi', 'Noto Naskh Arabic', 'Zodiak', serif;
+  letter-spacing: 0;
+}
+
+html[dir='rtl'] .display {
+  font-family: 'Reem Kufi', 'Noto Naskh Arabic', 'Zodiak', serif;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+html[dir='rtl'] .mono-stat {
+  font-family: 'Tajawal', 'JetBrains Mono', monospace;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+}
+
+/* Italic looks broken on Arabic glyphs (browser fake-oblique).
+ * Reset where it is applied to body text. */
+html[dir='rtl'] .italic {
+  font-style: normal;
+}
