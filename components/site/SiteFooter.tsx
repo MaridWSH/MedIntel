@@ -34,12 +34,12 @@ export default function SiteFooter() {
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">PRODUCT</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Search &amp; discovery</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Paper detail view</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">CME module</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Physician dashboard</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Hospital admin portal</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Mobile (iOS / Android)</a></li>
+              <li><a href="/search" className="hover:text-teal-deep transition-colors">Search &amp; discovery</a></li>
+              <li><a href="/paper" className="hover:text-teal-deep transition-colors">Paper detail view</a></li>
+              <li><a href="/account#cme" className="hover:text-teal-deep transition-colors">CME module</a></li>
+              <li><a href="/account" className="hover:text-teal-deep transition-colors">Physician dashboard</a></li>
+              <li><a href="/hospital-admin" className="hover:text-teal-deep transition-colors">Hospital admin portal</a></li>
+              <li><a href="/mobile" className="hover:text-teal-deep transition-colors">Mobile (iOS / Android)</a></li>
             </ul>
           </div>
 
@@ -47,8 +47,8 @@ export default function SiteFooter() {
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">EVIDENCE</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Methodology</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">The six agents</a></li>
+              <li><a href="/#methodology" className="hover:text-teal-deep transition-colors">Methodology</a></li>
+              <li><a href="/#six-agents" className="hover:text-teal-deep transition-colors">The six agents</a></li>
               <li><a href="#" className="hover:text-teal-deep transition-colors">HITL review process</a></li>
               <li><a href="#" className="hover:text-teal-deep transition-colors">GRADE framework</a></li>
               <li><a href="#" className="hover:text-teal-deep transition-colors">Corpus sources (17)</a></li>
