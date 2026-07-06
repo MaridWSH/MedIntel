@@ -1,24 +1,72 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import Icon from '../../components/ui/Icon';
-import TopUtilityStrip from '../../components/site/TopUtilityStrip';
-import SiteHeader from '../../components/site/SiteHeader';
-import SiteFooter from '../../components/site/SiteFooter';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Account settings · Claritas',
-  description: 'Manage your Claritas subscription, CME credits, and preferences.',
-};
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import Icon from "@/components/ui/Icon";
+import TopUtilityStrip from "@/components/site/TopUtilityStrip";
+import SiteHeader from "@/components/site/SiteHeader";
+import SiteFooter from "@/components/site/SiteFooter";
+import { fetchCurrentUser, logoutUser } from "@/lib/api";
+
+interface User {
+  id: number;
+  email: string;
+  name: string;
+  created_at: string;
+}
 
 const NAV_ITEMS = [
-  { icon: 'lucide:credit-card', label: 'Subscription & Billing', id: 'subscription', active: true },
-  { icon: 'lucide:award', label: 'CME Credits', id: 'cme', badge: '14h' },
-  { icon: 'lucide:sliders-horizontal', label: 'Preferences', id: 'preferences' },
-  { icon: 'lucide:lock', label: 'Security & Privacy', id: 'security' },
-  { icon: 'lucide:user', label: 'Account', id: 'account' },
+  { icon: "lucide:credit-card", label: "Subscription & Billing", id: "subscription", active: true },
+  { icon: "lucide:award", label: "CME Credits", id: "cme", badge: "14h" },
+  { icon: "lucide:sliders-horizontal", label: "Preferences", id: "preferences" },
+  { icon: "lucide:lock", label: "Security & Privacy", id: "security" },
+  { icon: "lucide:user", label: "Account", id: "account" },
 ];
 
 export default function AccountPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCurrentUser()
+      .then((data) => setUser(data))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleLogout = async () => {
+    await logoutUser();
+  };
+
+  if (loading) {
+    return (
+      <>
+        <TopUtilityStrip />
+        <SiteHeader />
+        <main className="min-h-screen flex items-center justify-center">
+          <p className="text-ink-soft">Loading...</p>
+        </main>
+      </>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <TopUtilityStrip />
+        <SiteHeader />
+        <main className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Please sign in to view your account.</p>
+            <Link href="/login" className="text-teal-deep hover:underline">
+              Go to Login
+            </Link>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <TopUtilityStrip />
@@ -53,11 +101,11 @@ export default function AccountPage() {
           </div>
           <div className="flex items-center gap-2.5 px-3.5 h-10 rounded-full bg-ink/[0.04] border border-ink/10 shrink-0">
             <div className="w-7 h-7 rounded-full bg-teal-deep/20 border border-teal-deep/40 flex items-center justify-center text-[10px] font-semibold text-teal-deep serif">
-              KE
+              {user.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <div className="flex flex-col leading-none pr-2">
-              <span className="text-[11.5px] font-semibold text-ink">K. El-Sherif, MD</span>
-              <span className="text-[9px] mono-stat text-ink/50 mt-0.5">CARDIOLOGY · #EG-29384</span>
+              <span className="text-[11.5px] font-semibold text-ink">{user.name}</span>
+              <span className="text-[9px] mono-stat text-ink/50 mt-0.5">{user.email}</span>
             </div>
           </div>
         </header>
@@ -74,11 +122,11 @@ export default function AccountPage() {
                   href={`#${id}`}
                   className={`flex items-center gap-2.5 px-3 h-10 rounded-md text-[13px] font-medium whitespace-nowrap transition-colors ${
                     active
-                      ? 'bg-ink/[0.06] text-ink'
-                      : 'text-ink-soft hover:bg-ink/[0.04]'
+                      ? "bg-ink/[0.06] text-ink"
+                      : "text-ink-soft hover:bg-ink/[0.04]"
                   }`}
                 >
-                  <Icon icon={icon} className={`text-[15px] ${active ? '' : 'text-ink/50'}`} />
+                  <Icon icon={icon} className={`text-[15px] ${active ? "" : "text-ink/50"}`} />
                   {label}
                   {badge && (
                     <span className="ml-auto px-1.5 h-5 rounded text-[9px] mono-stat bg-teal-deep/12 text-teal-deep inline-flex items-center">
@@ -173,14 +221,14 @@ export default function AccountPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-5">
                     {[
-                      { value: '287', suffix: '∞', label: 'FULL SYNTHESSES', note: 'Unlimited tier' },
-                      { value: '14', suffix: 'h', label: 'CME CREDITS', note: '14h of 50h goal', suffixColor: 'text-teal' },
-                      { value: '1,204', suffix: '', label: 'SAVED PAPERS', note: '47 collections' },
+                      { value: "287", suffix: "∞", label: "FULL SYNTHESSES", note: "Unlimited tier" },
+                      { value: "14", suffix: "h", label: "CME CREDITS", note: "14h of 50h goal", suffixColor: "text-teal" },
+                      { value: "1,204", suffix: "", label: "SAVED PAPERS", note: "47 collections" },
                     ].map(({ value, suffix, label, note, suffixColor }) => (
                       <div key={label}>
                         <div className="serif text-[28px] leading-none tracking-tight">
                           {value}
-                          {suffix && <span className={`${suffixColor || 'text-ink/30'} text-[16px]`}>{suffix}</span>}
+                          {suffix && <span className={`${suffixColor || "text-ink/30"} text-[16px]`}>{suffix}</span>}
                         </div>
                         <div className="text-[9.5px] mono-stat text-ink/45 mt-1.5">{label}</div>
                         <div className="text-[11px] text-ink-soft mt-1">{note}</div>
@@ -224,7 +272,7 @@ export default function AccountPage() {
                       <span className="text-[18px] text-ink/40 mb-1">/ 50 hours</span>
                     </div>
                     <div className="relative h-2 rounded-full bg-ink/8 overflow-hidden mb-3">
-                      <div className="absolute inset-y-0 left-0 bg-teal-deep rounded-full" style={{ width: '28%' }} />
+                      <div className="absolute inset-y-0 left-0 bg-teal-deep rounded-full" style={{ width: "28%" }} />
                     </div>
                     <p className="text-[12px] text-ink-soft leading-[1.5]">
                       Earn 0.5 CME credits per paper reviewed. ACCME and Arab Board accredited.
@@ -234,9 +282,9 @@ export default function AccountPage() {
                     <div className="text-[10px] mono-stat text-ink/55 mb-3">RECENT CME ACTIVITY</div>
                     <div className="space-y-3">
                       {[
-                        { paper: 'Semaglutide & CV Outcomes', credits: 0.5, date: '2 days ago', specialty: 'Cardiology' },
-                        { paper: 'SGLT2 Inhibitors in HFpEF', credits: 0.5, date: '1 week ago', specialty: 'Cardiology' },
-                        { paper: 'Immunotherapy in NSCLC', credits: 0.5, date: '2 weeks ago', specialty: 'Oncology' },
+                        { paper: "Semaglutide & CV Outcomes", credits: 0.5, date: "2 days ago", specialty: "Cardiology" },
+                        { paper: "SGLT2 Inhibitors in HFpEF", credits: 0.5, date: "1 week ago", specialty: "Cardiology" },
+                        { paper: "Immunotherapy in NSCLC", credits: 0.5, date: "2 weeks ago", specialty: "Oncology" },
                       ].map((item) => (
                         <div key={item.paper} className="flex items-center gap-3 p-3 rounded-xl bg-paper-warm/60 border border-ink/8">
                           <div className="w-9 h-9 rounded-lg bg-teal-deep/10 border border-teal-deep/20 flex items-center justify-center shrink-0">
@@ -264,10 +312,10 @@ export default function AccountPage() {
 
               <div className="bg-paper border border-ink/12 rounded-2xl divide-y divide-ink/8">
                 {[
-                  { label: 'Interface language', value: 'English', sub: 'Switch to العربية any time' },
-                  { label: 'Search corpus', value: 'EN + AR', sub: 'English full-text and Arabic abstracts' },
-                  { label: 'Weekly digest', value: 'On', sub: 'Every Monday at 08:00 GMT+2' },
-                  { label: 'Paper format', value: 'AMA', sub: 'Citation style for exports' },
+                  { label: "Interface language", value: "English", sub: "Switch to العربية any time" },
+                  { label: "Search corpus", value: "EN + AR", sub: "English full-text and Arabic abstracts" },
+                  { label: "Weekly digest", value: "On", sub: "Every Monday at 08:00 GMT+2" },
+                  { label: "Paper format", value: "AMA", sub: "Citation style for exports" },
                 ].map(({ label, value, sub }) => (
                   <div key={label} className="flex items-center justify-between px-6 py-4">
                     <div>
@@ -307,6 +355,7 @@ export default function AccountPage() {
                     </div>
                     <span className="text-[12px] text-ink-soft">30 minutes</span>
                   </div>
+                  {/* Data export */}
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-[13px] font-medium text-ink">Data export</div>
@@ -316,6 +365,20 @@ export default function AccountPage() {
                       <Icon icon="lucide:download" className="text-[13px]" />
                       Request export
                     </button>
+                  </div>
+                  {/* Change password - NEW */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div>
+                      <div className="text-[13px] font-medium text-ink">Password</div>
+                      <div className="text-[11px] text-ink/55 mt-0.5">Change your account password</div>
+                    </div>
+                    <Link
+                      href="/reset-password"
+                      className="text-[11px] text-teal-deep font-medium hover:underline flex items-center gap-1"
+                    >
+                      <Icon icon="lucide:key-round" className="text-[13px]" />
+                      Change password
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -334,32 +397,27 @@ export default function AccountPage() {
                     <label className="text-[11px] font-medium text-ink-soft mb-2 block">Full name</label>
                     <input
                       type="text"
-                      defaultValue="Dr. K. El-Sherif"
-                      className="w-full h-11 px-4 rounded-xl bg-paper border border-ink/12 text-[13px] text-ink focus:border-teal-deep focus:outline-none transition-colors"
+                      value={user.name}
+                      readOnly
+                      className="w-full h-11 px-4 rounded-xl bg-paper-warm border border-ink/12 text-[13px] text-ink"
                     />
                   </div>
                   <div>
                     <label className="text-[11px] font-medium text-ink-soft mb-2 block">Email</label>
                     <input
                       type="email"
-                      defaultValue="k.elsherif@ainshams.edu.eg"
-                      className="w-full h-11 px-4 rounded-xl bg-paper border border-ink/12 text-[13px] text-ink focus:border-teal-deep focus:outline-none transition-colors"
+                      value={user.email}
+                      readOnly
+                      className="w-full h-11 px-4 rounded-xl bg-paper-warm border border-ink/12 text-[13px] text-ink"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-medium text-ink-soft mb-2 block">Specialty</label>
+                    <label className="text-[11px] font-medium text-ink-soft mb-2 block">Member since</label>
                     <input
                       type="text"
-                      defaultValue="Cardiology"
-                      className="w-full h-11 px-4 rounded-xl bg-paper border border-ink/12 text-[13px] text-ink focus:border-teal-deep focus:outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-ink-soft mb-2 block">Institution</label>
-                    <input
-                      type="text"
-                      defaultValue="Ain Shams University"
-                      className="w-full h-11 px-4 rounded-xl bg-paper border border-ink/12 text-[13px] text-ink focus:border-teal-deep focus:outline-none transition-colors"
+                      value={new Date(user.created_at).toLocaleDateString()}
+                      readOnly
+                      className="w-full h-11 px-4 rounded-xl bg-paper-warm border border-ink/12 text-[13px] text-ink"
                     />
                   </div>
                 </div>
@@ -368,9 +426,12 @@ export default function AccountPage() {
                 <div className="mt-8 pt-6 border-t border-ink/8">
                   <div className="text-[10px] mono-stat text-ink/40 mb-3">DANGER ZONE</div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <button className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-ink/15 text-[12px] text-ink-soft font-medium hover-tint">
+                    <button
+                      onClick={handleLogout}
+                      className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-ink/15 text-[12px] text-ink-soft font-medium hover-tint"
+                    >
                       <Icon icon="lucide:log-out" className="text-[14px]" />
-                      Sign out all devices
+                      Sign out
                     </button>
                     <button className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-red-200 text-[12px] text-red-700 font-medium hover:bg-red-50 transition-colors">
                       <Icon icon="lucide:trash-2" className="text-[14px]" />
