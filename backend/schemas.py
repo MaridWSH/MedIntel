@@ -52,7 +52,6 @@ class ForgotPasswordRequest(BaseModel):
 
 class ForgotPasswordResponse(BaseModel):
     message: str
-    reset_token: str  # In production, this would be sent via email, not returned
 
 
 class ResetPasswordRequest(BaseModel):

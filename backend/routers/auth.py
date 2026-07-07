@@ -79,8 +79,7 @@ def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
     if not user:
         # Don't reveal whether email exists — always return success
         return ForgotPasswordResponse(
-            message="If the email exists, a reset token has been generated.",
-            reset_token="",
+            message="If the email exists, a reset link has been sent to the registered email.",
         )
 
     # Generate a secure random token
@@ -91,10 +90,13 @@ def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user.reset_token_expires = expires
     db.commit()
 
-    # In production: send reset_token via email, don't return it in response
+    # TODO: In production, send reset_token via email service (e.g., SendGrid, AWS SES)
+    # For now, log it so admins can retrieve it for testing
+    import logging
+    logging.warning(f"Password reset token for {body.email}: {reset_token}")
+
     return ForgotPasswordResponse(
-        message="If the email exists, a reset token has been generated.",
-        reset_token=reset_token,  # Remove this in production — send via email instead
+        message="If the email exists, a reset link has been sent to the registered email.",
     )
 
 

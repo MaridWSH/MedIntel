@@ -145,7 +145,23 @@ def ingest_papers(
     current_user: User = Depends(get_current_user),
 ):
     """Ingest pipeline JSON results into the database. Requires auth."""
-    source_dir = Path(body.source_dir)
+    import os
+
+    # Restrict to allowed base directory to prevent path traversal
+    ALLOWED_BASE = os.path.realpath("/root/papers/pipeline_outputs/results")
+
+    if body.source_dir:
+        # If user provided a path, resolve it and verify it's within the allowed base
+        candidate = os.path.realpath(body.source_dir)
+        if not candidate.startswith(ALLOWED_BASE + os.sep) and candidate != ALLOWED_BASE:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied: source_dir must be within {ALLOWED_BASE}",
+            )
+        source_dir = Path(candidate)
+    else:
+        source_dir = Path(ALLOWED_BASE)
+
     if not source_dir.exists():
         raise HTTPException(status_code=400, detail=f"Source directory not found: {source_dir}")
 
