@@ -71,6 +71,7 @@ class LogoutResponse(BaseModel):
 
 class PaperListItem(BaseModel):
     id: str
+    title: str
     tldr: str
     study_type: str
     specialty_tags: list[str]
@@ -80,6 +81,7 @@ class PaperListItem(BaseModel):
 
 class PaperDetail(BaseModel):
     id: str
+    title: str
     tldr: str
     detailed_summary: str
     study_type: str

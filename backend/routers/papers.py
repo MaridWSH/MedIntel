@@ -38,6 +38,7 @@ def _paper_to_list_item(paper: Paper) -> PaperListItem:
     findings = _to_json(paper.key_findings) or {}
     return PaperListItem(
         id=paper.id,
+        title=paper.title or "",
         tldr=paper.tldr,
         study_type=paper.study_type,
         specialty_tags=json.loads(paper.specialty_tags) if paper.specialty_tags else [],
@@ -50,6 +51,7 @@ def _paper_to_detail(paper: Paper) -> PaperDetail:
     """Convert a Paper ORM row to a full detail response."""
     return PaperDetail(
         id=paper.id,
+        title=paper.title or "",
         tldr=paper.tldr,
         detailed_summary=paper.detailed_summary,
         study_type=paper.study_type,
@@ -190,6 +192,7 @@ def ingest_papers(
 
             paper = Paper(
                 id=paper_id,
+                title=summary.get("title", ""),
                 tldr=summary.get("tldr", ""),
                 detailed_summary=summary.get("detailed_summary", ""),
                 study_type=summary.get("study_type", ""),
