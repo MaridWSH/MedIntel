@@ -26,6 +26,7 @@ class Paper(Base):
     __tablename__ = "papers"
 
     id: Mapped[str] = mapped_column(String(50), primary_key=True)
+    title: Mapped[str] = mapped_column(Text, default="")
     tldr: Mapped[str] = mapped_column(Text, default="")
     detailed_summary: Mapped[str] = mapped_column(Text, default="")
     study_type: Mapped[str] = mapped_column(String(100), default="", index=True)

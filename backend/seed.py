@@ -64,6 +64,7 @@ def seed(source_dir: str, limit: int | None = None):
 
                 paper = Paper(
                     id=paper_id,
+                    title=summary.get("title", ""),
                     tldr=summary.get("tldr", ""),
                     detailed_summary=summary.get("detailed_summary", ""),
                     study_type=summary.get("study_type", ""),
