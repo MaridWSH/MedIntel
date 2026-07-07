@@ -124,6 +124,7 @@ GET /api/papers?page=1&per_page=20&study_type=RCT&sort=id
   "items": [
     {
       "id": "PMC10000023",
+      "title": "Rotational Grazing and Rhipicephalus microplus Control in Cattle",
       "tldr": "In this year-long field experiment in heifers...",
       "study_type": "other",
       "specialty_tags": [
@@ -154,6 +155,7 @@ GET /api/papers/PMC10000089
 ```json
 {
   "id": "PMC10000089",
+  "title": "Animal Welfare Assessment Protocols for Bulls in Artificial Insemination Centers: Requirements, Principles, and Criteria",
   "tldr": "This narrative review argues that artificial insemination center bulls need a dedicated welfare assessment protocol...",
   "detailed_summary": "Background: This paper is a narrative review addressing animal welfare assessment...",
   "study_type": "narrative_review",
@@ -228,6 +230,7 @@ GET /api/papers/search?q=welfare&page=1&per_page=20
   "items": [
     {
       "id": "PMC10000089",
+      "title": "Animal Welfare Assessment Protocols for Bulls in Artificial Insemination Centers",
       "tldr": "This narrative review argues that artificial insemination center bulls need a dedicated welfare assessment protocol...",
       "study_type": "narrative_review",
       "specialty_tags": [
@@ -481,6 +484,7 @@ Used in list and search responses:
 ```typescript
 interface PaperListItem {
   id: string;                    // PMC ID (e.g., "PMC10000089")
+  title: string;                 // Paper title
   tldr: string;                  // One-paragraph summary
   study_type: string;            // e.g., "RCT", "meta-analysis", "narrative_review"
   specialty_tags: string[];      // e.g., ["nutrition", "cardiology"]
