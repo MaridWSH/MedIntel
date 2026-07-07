@@ -30,6 +30,16 @@ yarn-error.log*
 
 # env files
 .env*
+backend/.env
+
+# python
+__pycache__/
+*.pyc
+backend/venv/
+
+# database
+*.db
+medintel.db
 
 # vercel
 .vercel
