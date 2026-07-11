@@ -1,101 +1,67 @@
 export interface Paper {
-  slug: string;
-  journal: string;
-  citation: string;
-  doi: string;
-  centers: number;
-  authors: number;
+  id: string;
   title: string;
-  authorList: string;
-  validated: boolean;
-  reviewer: {
+  tldr: string;
+  detailed_summary: string;
+  study_type: string;
+  specialty_tags: string[];
+  pico_summary: Record<string, unknown>;
+  key_findings: Record<string, unknown>;
+  mind_map: Record<string, unknown>;
+  verification: Record<string, unknown>;
+  processing_time: number;
+  has_errors: boolean;
+
+  // Legacy fields (optional) — لو الـ API بعتها أو عايز تضيفها بعدين
+  slug?: string;
+  journal?: string;
+  citation?: string;
+  doi?: string;
+  centers?: number | string;
+  authors?: number | string;
+  authorList?: string;
+  validated?: boolean;
+  stats?: { hr: string | number; ci: string; pValue: string; grade: string };
+
+  // Sidebar / UI fields (optional)
+  citations?: Record<string, string>;
+  sections?: { id: string; label: string; range: string }[];
+  excerpt?: string;
+  reviewer?: {
     name: string;
-    specialty: string;
-    institution: string;
-    years: number;
-    papers: number;
-    score: string;
-    member: string;
+    specialty?: string;
+    institution?: string;
+    years?: string;
+    papers?: string;
+    score?: string;
+    member?: string;
   };
-  stats: {
-    hr: string;
-    ci: string;
-    pValue: string;
-    grade: string;
-  };
-  tldr: {
-    summary: string;
-    picot: {
-      population: string;
-      intervention: string;
-      comparator: string;
-      outcome: string;
-    };
-    meta: {
-      synthesised: string;
-      sources: string;
-      validatedBy: string;
-      cme: string;
-    };
-  };
-  mindmap: {
-    nodes: {
-      id: string;
-      label: string;
-      sublabel: string;
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-      accent?: string;
-    }[];
-    source: {
-      ref: string;
-      quote: string;
-      cite: string;
-    };
-  };
-  infographic: {
-    headline: string;
-    placeboRate: string;
-    semaRate: string;
-    reduction: string;
-    footer: string;
-  };
-  appraisal: {
-    score: number;
-    domains: {
-      name: string;
-      score: number;
-      rob: string;
-      color: 'teal' | 'amber';
-    }[];
-    biasFlags: {
-      title: string;
-      severity: string;
-      description: string;
-      raised: boolean;
-    }[];
-    limitations: string[];
-  };
-  relevance: {
-    signal: string;
-    summary: string;
-    confidence: string;
-    specialties: string[];
-    evidenceGrade: string;
-    evidenceDescription: string;
-    practicePoints: {
-      title: string;
-      description: string;
-      type: 'positive' | 'caution';
-    }[];
-  };
-  sections: {
-    id: string;
-    label: string;
-    range: string;
-  }[];
-  excerpt: string;
-  citations: Record<string, string>;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
+export interface PaperListResponse extends PaginatedResponse<Paper> {}
+
+export interface PaperSearchResponse extends PaginatedResponse<Paper> {
+  query: string;
+}
+
+export interface PaperListParams {
+  page?: number;
+  per_page?: number;
+  study_type?: string | null;
+  specialty?: string | null;
+  sort?: 'id' | '-id';
+}
+
+export interface PaperSearchParams {
+  q: string;
+  page?: number;
+  per_page?: number;
 }
