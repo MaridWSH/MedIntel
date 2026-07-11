@@ -38,8 +38,8 @@ export default function SiteFooter() {
               <li><a href="/paper" className="hover:text-teal-deep transition-colors">Paper detail view</a></li>
               <li><a href="/account#cme" className="hover:text-teal-deep transition-colors">CME module</a></li>
               <li><a href="/account" className="hover:text-teal-deep transition-colors">Physician dashboard</a></li>
-              <li><a href="/hospital-admin" className="hover:text-teal-deep transition-colors">Hospital admin portal</a></li>
-              <li><a href="/mobile" className="hover:text-teal-deep transition-colors">Mobile (iOS / Android)</a></li>
+              <li><a href="/hospital-admin" className="hover:text-teal-deep transition-colors">Hospital admin portal</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="/mobile" className="hover:text-teal-deep transition-colors">Mobile (iOS / Android)</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
             </ul>
           </div>
 
@@ -49,21 +49,22 @@ export default function SiteFooter() {
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
               <li><a href="/#methodology" className="hover:text-teal-deep transition-colors">Methodology</a></li>
               <li><a href="/#six-agents" className="hover:text-teal-deep transition-colors">The six agents</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">HITL review process</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">GRADE framework</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Corpus sources (17)</a></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">HITL review process</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">GRADE framework</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Corpus sources (17)</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
             </ul>
           </div>
+        
 
           {/* Institutional */}
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">INSTITUTIONAL</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Contact sales</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">SSO (SAML / OIDC)</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Billing &amp; seats</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Bulk export API</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Uptime &amp; SLAs</a></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Contact sales</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">SSO (SAML / OIDC)</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Billing &amp; seats</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Bulk export API</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Uptime &amp; SLAs</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
             </ul>
           </div>
 
@@ -71,11 +72,11 @@ export default function SiteFooter() {
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">COMPANY</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Mission</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Clinical team</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Careers &middot; 7 open</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Press &amp; papers</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Contact</a></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Mission</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Clinical team</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Careers &middot; 7 open</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Press &amp; papers</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><a href="#" className="hover:text-teal-deep transition-colors">Contact</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
             </ul>
           </div>
         </div>
@@ -84,10 +85,10 @@ export default function SiteFooter() {
         <div className="pt-6 border-t border-ink/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] mono-stat text-ink/55">
           <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
             <span>&copy; 2024 CLARITAS MEDICAL, INC.</span>
-            <a href="#" className="hover:text-teal-deep transition-colors">PRIVACY</a>
-            <a href="#" className="hover:text-teal-deep transition-colors">TERMS</a>
-            <a href="#" className="hover:text-teal-deep transition-colors">HCP LICENSE</a>
-            <a href="#" className="hover:text-teal-deep transition-colors">PHI POLICY</a>
+            <a href="#" className="hover:text-teal-deep transition-colors">PRIVACY</a> <span className="text-[10px] text-teal-deep">(soon)</span>
+            <a href="#" className="hover:text-teal-deep transition-colors">TERMS</a> <span className="text-[10px] text-teal-deep">(soon)</span>
+            <a href="#" className="hover:text-teal-deep transition-colors">HCP LICENSE</a> <span className="text-[10px] text-teal-deep">(soon)</span>
+            <a href="#" className="hover:text-teal-deep transition-colors">PHI POLICY</a> <span className="text-[10px] text-teal-deep">(soon)</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">

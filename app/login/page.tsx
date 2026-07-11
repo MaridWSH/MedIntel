@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "@/components/ui/Icon";
 import TopUtilityStrip from "@/components/site/TopUtilityStrip";
 import SiteHeader from "@/components/site/SiteHeader";
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [welcome, setWelcome] = useState<{ show: boolean; name: string }>({ show: false, name: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,11 +23,15 @@ export default function LoginPage() {
 
     try {
       // API expects {email, password}
-      await loginUser(email, password);
-      window.location.href = "/account";
+      const data = await loginUser(email, password);
+      const name = data?.user?.name || data?.user?.fullName || data?.name || email.split("@")[0] || "";
+      setWelcome({ show: true, name });
+      setTimeout(() => {
+        setWelcome({ show: false, name: "" });
+        window.location.href = "/account";
+      }, 3000);
     } catch (err: any) {
       setError(err.message || "Login failed");
-    } finally {
       setLoading(false);
     }
   };
@@ -147,6 +152,29 @@ export default function LoginPage() {
                     </>
                   )}
                 </button>
+
+                {/* Welcome toast */}
+                {welcome.show && (
+                  <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2 px-4 w-full max-w-md pointer-events-none"
+                    aria-live="polite"
+                  >
+                    <div className="pointer-events-auto bg-ink text-paper px-5 py-4 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35)] border border-teal-deep/30 animate-[slideDown_0.45s_cubic-bezier(0.22,1,0.36,1)] flex items-center gap-4"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-teal-deep/20 border border-teal-deep/30 flex items-center justify-center shrink-0"
+                      >
+                        <Icon icon="lucide:sparkles" className="text-[18px] text-teal-bright" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13.5px] font-medium truncate">
+                          Welcome back, {welcome.name}!
+                        </p>
+                        <p className="text-[11px] text-paper/60">
+                          Redirecting to your account...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div className="flex items-center gap-4 py-2">
