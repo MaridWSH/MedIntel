@@ -15,13 +15,14 @@ from pathlib import Path
 # Allow running from project root
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from backend.database import Base, SessionLocal, engine
-from backend.models import Paper
+from database import Base, SessionLocal, engine
+from models import Paper
 
 DEFAULT_SOURCE = "/root/papers/pipeline_outputs/results"
 
 
 def seed(source_dir: str, limit: int | None = None):
+    """Load pipeline JSON results from source_dir into the SQLite papers table."""
     source = Path(source_dir)
     if not source.exists():
         print(f"ERROR: Source directory not found: {source}")
@@ -119,6 +120,7 @@ def seed(source_dir: str, limit: int | None = None):
 
 
 def main():
+    """Parse CLI arguments and run the seed process."""
     parser = argparse.ArgumentParser(description="Seed MedIntel papers into SQLite")
     parser.add_argument("--source", default=DEFAULT_SOURCE, help="Directory with pipeline JSON results")
     parser.add_argument("--limit", type=int, default=None, help="Only ingest N files")

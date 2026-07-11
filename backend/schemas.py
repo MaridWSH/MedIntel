@@ -9,14 +9,14 @@ from pydantic import BaseModel, EmailStr, Field
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 class UserCreate(BaseModel):
-    email: str = Field(..., min_length=3, max_length=255)
-    name: str = Field(..., min_length=1, max_length=255)
-    password: str = Field(..., min_length=6)
+    email: str = Field(..., min_length=3, max_length=255, description="User email address used for login and account recovery.")
+    name: str = Field(..., min_length=1, max_length=255, description="Display name for the user account.")
+    password: str = Field(..., min_length=6, description="Password for the new account. Must be at least 6 characters.")
 
 
 class UserLogin(BaseModel):
-    email: str
-    password: str
+    email: str = Field(..., description="Registered email address.")
+    password: str = Field(..., description="Account password.")
 
 
 class UserOut(BaseModel):
@@ -28,22 +28,25 @@ class UserOut(BaseModel):
     class Config:
         from_attributes = True
 
+    class Config:
+        from_attributes = True
+
 
 class TokenOut(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    access_token: str = Field(..., description="JWT access token for authenticated requests.")
+    token_type: str = Field("bearer", description="OAuth2 token type.")
 
 
 class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: UserOut
+    access_token: str = Field(..., description="JWT access token returned after successful login.")
+    token_type: str = Field("bearer", description="OAuth2 token type.")
+    user: UserOut = Field(..., description="Authenticated user profile data.")
 
 
 class RegisterResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: UserOut
+    access_token: str = Field(..., description="JWT access token returned after successful registration.")
+    token_type: str = Field("bearer", description="OAuth2 token type.")
+    user: UserOut = Field(..., description="Profile data for the newly registered user.")
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -109,6 +112,127 @@ class SearchResponse(BaseModel):
     per_page: int
     pages: int
     query: str
+
+
+class SemanticSearchRequest(BaseModel):
+    """Request body for semantic search."""
+
+    query: str = Field(
+        ...,
+        min_length=1,
+        description="Free-text search query",
+        example="obesity",
+    )
+    top_k: int = Field(
+        10,
+        ge=1,
+        le=100,
+        description="Number of results to return",
+        example=5,
+    )
+    filters: dict[str, Any] | None = Field(
+        None,
+        description="Optional metadata filters (e.g., {'study_type': 'RCT'})",
+        example={"study_type": "other"},
+    )
+
+
+class SemanticSearchResult(BaseModel):
+    """One paper returned by semantic search."""
+
+    id: str
+    title: str
+    tldr: str
+    study_type: str
+    specialty_tags: list[str]
+    journal: str = ""
+    doi: str = ""
+    author_list: str = ""
+    authors_count: int | None = None
+    centers_count: int | None = None
+    overall_evidence_level: Optional[str] = None
+    sample_size: Optional[str] = None
+    score: float
+
+
+class SemanticSearchResponse(BaseModel):
+    """Response from the semantic search endpoint."""
+
+    query: str
+    top_k: int
+    total: int
+    items: list[SemanticSearchResult]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "obesity",
+                "top_k": 5,
+                "total": 3,
+                "items": [
+                    {
+                        "id": "PMC10000023",
+                        "title": "Rotational Grazing Modifies Rhipicephalus microplus Infestation in Cattle in the Humid Tropics",
+                        "tldr": "In this year-long field experiment in heifers in the humid tropics, rotational grazing with a 45-day pasture rest was associated with the lowest Rhipicephalus microplus infestation, while a 30-day rest produced the highest tick burdens. The main practical finding is that 30 days of pasture rest was not enough to reduce tick infestation, but 45 days appeared beneficial under these conditions. This is clinically relevant for cattle health and farm management because it suggests a non-chemical strategy that may help reduce acaricide use and chemical residues in milk, meat, and the environment.",
+                        "study_type": "other",
+                        "specialty_tags": [
+                            "veterinary medicine",
+                            "parasitology",
+                            "livestock production",
+                            "tropical medicine",
+                        ],
+                        "journal": "Animals : an Open Access Journal from MDPI",
+                        "doi": "10.3390/ani13050915",
+                        "author_list": "Gabriel Cruz-González, Juan Manuel Pinos-Rodríguez, Miguel Ángel Alonso-Díaz, Dora Romero-Salas, Jorge Genaro Vicente-Martínez, Agustin Fernández-Salas, Jesús Jarillo-Rodríguez, Epigmenio Castillo-Gallegos",
+                        "authors_count": 8,
+                        "centers_count": 2,
+                        "overall_evidence_level": "low",
+                        "sample_size": "N=30",
+                        "score": 0.95,
+                    },
+                    {
+                        "id": "PMC10000024",
+                        "title": "Dietary Protein Requirement of Juvenile Dotted Gizzard Shad Konosirus punctatus Based on the Variation of Fish Meal",
+                        "tldr": "In an 8-week feeding trial in juvenile dotted gizzard shad, diets containing fish meal as the sole protein source supported the best overall growth and feed utilization at an estimated dietary crude protein level of 31.75–33.82%. Both low protein and high protein diets were unfavorable: low protein was associated with poorer growth and feed utilization, while excessive protein altered digestive enzyme activity and amino acid metabolism. These findings are clinically significant for aquaculture because they provide a practical target protein range for formulating feeds for juvenile Konosirus punctatus while helping avoid inefficient protein use and unnecessary nitrogen waste.",
+                        "study_type": "other",
+                        "specialty_tags": [
+                            "aquaculture",
+                            "animal nutrition",
+                            "fisheries",
+                        ],
+                        "journal": "Animals : an Open Access Journal from MDPI",
+                        "doi": "10.3390/ani13050788",
+                        "author_list": "Tao Liu, Xinzhi Weng, Jiteng Wang, Tao Han, Yuebin Wang, Xuejun Chai",
+                        "authors_count": 6,
+                        "centers_count": 4,
+                        "overall_evidence_level": "low",
+                        "sample_size": "N=300",
+                        "score": 0.92,
+                    },
+                    {
+                        "id": "PMC10000025",
+                        "title": "Transcriptome-Based Evaluation of Optimal Reference Genes for Quantitative Real-Time PCR in Yak Stomach throughout the Growth Cycle",
+                        "tldr": "This yak stomach study found that the most reliable RT-qPCR reference genes across growth were RPS15, MRPL39, and RPS23, while YWHAZ was the least stable overall. Using these three genes together gave RT-qPCR results that matched RNA-seq patterns for HMGCS2, whereas unstable reference genes could create misleading differences. The practical significance is that future yak stomach gene-expression studies should use these validated controls to get more accurate molecular data about digestion and nutrient metabolism.",
+                        "study_type": "other",
+                        "specialty_tags": [
+                            "veterinary medicine",
+                            "gastroenterology",
+                            "molecular biology",
+                            "animal science",
+                            "ruminant nutrition",
+                        ],
+                        "journal": "Animals : an Open Access Journal from MDPI",
+                        "doi": "10.3390/ani13050925",
+                        "author_list": "Qi Min, Lu Yang, Yu Wang, Yili Liu, Mingfeng Jiang",
+                        "authors_count": 5,
+                        "centers_count": 2,
+                        "overall_evidence_level": "low",
+                        "sample_size": "N=15",
+                        "score": 0.88,
+                    },
+                ],
+            }
+        }
 
 
 class IngestRequest(BaseModel):

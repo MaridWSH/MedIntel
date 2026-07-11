@@ -29,13 +29,14 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-.env*
+.env
 backend/.env
+!.env.example
 
 # python
 __pycache__/
 *.pyc
-backend/venv/
+backend/.venv/
 
 # database
 *.db

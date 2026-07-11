@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  # PostgreSQL for paper metadata
+  postgres:
+    image: postgres:16-alpine
+    container_name: medintel-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medintel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-medintel}
+      POSTGRES_DB: ${POSTGRES_DB:-medintel}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medintel} -d ${POSTGRES_DB:-medintel}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Qdrant vector database for semantic search
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: medintel-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # MedIntel FastAPI backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medintel-backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://medintel:medintel@postgres:5432/medintel}
+      MEDINTEL_QDRANT_URL: ${MEDINTEL_QDRANT_URL:-http://qdrant:6333}
+      MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers}
+      MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-BAAI/bge-m3}
+      MEDINTEL_SECRET_KEY: ${MEDINTEL_SECRET_KEY:-change-me-in-production}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    command: >
+      uvicorn main:app --host 0.0.0.0 --port 8000
+
+  # One-shot indexing job.
+  # Run manually after papers exist in PostgreSQL:
+  #   docker compose run --rm index-embeddings
+  index-embeddings:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://medintel:medintel@postgres:5432/medintel}
+      MEDINTEL_QDRANT_URL: ${MEDINTEL_QDRANT_URL:-http://qdrant:6333}
+      MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers}
+      MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-BAAI/bge-m3}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    command: >
+      python -m backend.index_embeddings --batch-size 100
+    profiles:
+      - indexing
+
+volumes:
+  postgres_data:
+  qdrant_data:
