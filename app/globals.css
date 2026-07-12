@@ -248,6 +248,28 @@ body {
 .d-5 { animation-delay: 0.4s; }
 .d-6 { animation-delay: 0.48s; }
 .d-7 { animation-delay: 0.56s; }
+
+@keyframes fadeScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 .d-8 { animation-delay: 0.64s; }
 
 ::selection {

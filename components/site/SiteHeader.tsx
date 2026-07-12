@@ -1,6 +1,54 @@
+'use client';
+
+import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { fetchCurrentUser, logoutUser } from '@/lib/api';
 import Icon from '../ui/Icon';
 
+interface HeaderUser {
+  name: string;
+  email: string;
+}
+
 export default function SiteHeader() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<HeaderUser | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    fetchCurrentUser()
+      .then((data) => setUser(data ? { name: data.name, email: data.email } : null))
+      .catch(() => setUser(null))
+      .finally(() => setChecking(false));
+  }, []);
+
+  const [currentHash, setCurrentHash] = useState('');
+
+  useEffect(() => {
+    const updateHash = () => setCurrentHash(window.location.hash);
+    updateHash();
+    window.addEventListener('hashchange', updateHash);
+    return () => window.removeEventListener('hashchange', updateHash);
+  }, []);
+
+  const isActive = (href: string) => {
+    const [base, hash] = href.split('#');
+    if (pathname !== base) return false;
+    // Account is the parent section; keep it active for every account sub-page.
+    if (base === '/account' && !hash) return true;
+    if (!hash) return !currentHash;
+    return currentHash === `#${hash}`;
+  };
+
+  const navLinkClass = (href: string) =>
+    `px-3 py-2 rounded-md transition-all duration-200 ${
+      isActive(href)
+        ? 'text-teal font-semibold'
+        : 'text-ink-soft hover:bg-ink/5'
+    }`;
+
   return (
     <header className="z-30 border-b border-black/10 bg-paper/95 backdrop-blur-[6px] sticky top-0">
       <div className="max-w-[1380px] mx-auto px-6 h-[68px] flex items-center justify-between gap-6">
@@ -16,24 +64,26 @@ export default function SiteHeader() {
 
         {/* Primary nav */}
         <nav className="hidden lg:flex items-center gap-1 text-[13.5px]">
-          <a href="/#how-it-works" className="px-3 py-2 rounded-md text-ink-soft hover:bg-ink/5 transition-all duration-200">
+          <Link href="/#how-it-works" className={navLinkClass('/#how-it-works')}>
             How it works
-          </a>
-          <a href="/search" className="px-3 py-2 rounded-md text-teal font-semibold transition-all duration-200">
+          </Link>
+          <Link href="/search" className={navLinkClass('/search')}>
             Evidence Engine
-          </a>
-          <a href="/pricing#institutional" className="px-3 py-2 rounded-md text-ink-soft hover:bg-ink/5 transition-all duration-200">
+          </Link>
+          <Link href="/pricing#institutional" className={navLinkClass('/pricing#institutional')}>
             For institutions
-          </a>
-          <a href="/pricing" className="px-3 py-2 rounded-md text-ink-soft hover:bg-ink/5 transition-all duration-200">
+          </Link>
+          <Link href="/pricing" className={navLinkClass('/pricing')}>
             Pricing
-          </a>
-          <a href="/account#cme" className="px-3 py-2 rounded-md text-ink-soft hover:bg-ink/5 transition-all duration-200">
-            CME credits
-          </a>
-          <a href="/account" className="px-3 py-2 rounded-md text-ink-soft hover:bg-ink/5 transition-all duration-200">
+          </Link>
+          {user && (
+            <Link href="/account#cme" className={navLinkClass('/account#cme')}>
+              CME credits
+            </Link>
+          )}
+          <Link href="/account" className={navLinkClass('/account')}>
             Account
-          </a>
+          </Link>
         </nav>
 
         {/* Right cluster */}
@@ -49,16 +99,34 @@ export default function SiteHeader() {
             </button>
           </div>
 
-          {/* Sign in */}
-          <a href="/login" className="hidden md:inline-flex items-center px-3 h-9 rounded-md text-[12.5px] font-medium hover:bg-ink/5 transition-colors">
-            Sign in
-          </a>
+          {!checking && !user && (
+            <>
+              {/* Sign in */}
+              <Link href="/login" className="hidden md:inline-flex items-center px-3 h-9 rounded-md text-[12.5px] font-medium hover:bg-ink/5 transition-colors">
+                Sign in
+              </Link>
 
-          {/* Try Free */}
-          <a href="/register" className="inline-flex items-center gap-1.5 px-4 h-9 rounded-md bg-teal-deep text-paper text-[12.5px] font-semibold btn-primary">
-            Try Free
-            <Icon icon="lucide:arrow-right" className="text-[14px]" />
-          </a>
+              {/* Try Free */}
+              <Link href="/register" className="inline-flex items-center gap-1.5 px-4 h-9 rounded-md bg-teal-deep text-paper text-[12.5px] font-semibold btn-primary">
+                Try Free
+                <Icon icon="lucide:arrow-right" className="text-[14px]" />
+              </Link>
+            </>
+          )}
+          {!checking && user && (
+            <button
+              onClick={() => {
+                logoutUser().then(() => {
+                  setUser(null);
+                  router.push('/');
+                });
+              }}
+              className="inline-flex items-center gap-1.5 px-4 h-9 rounded-md border border-ink/15 text-[12.5px] font-medium hover:bg-ink/5 transition-colors"
+            >
+              <Icon icon="lucide:log-out" className="text-[14px]" />
+              Sign out
+            </button>
+          )}
         </div>
       </div>
     </header>
