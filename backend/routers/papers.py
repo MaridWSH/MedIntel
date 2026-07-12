@@ -8,10 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from ..auth import get_current_user
-from ..database import get_db
-from ..models import Paper, User
-from ..schemas import (
+from auth import get_current_user
+from database import get_db
+from models import Paper, User
+from schemas import (
     IngestRequest,
     IngestResponse,
     PaperDetail,
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/papers", tags=["papers"])
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _to_json(raw: str):
-    """Parse a JSON string, returning None on failure."""
+    """Safely parse a JSON string into a Python object, returning None on failure."""
     try:
         return json.loads(raw) if raw else None
     except (json.JSONDecodeError, TypeError):
@@ -34,7 +34,7 @@ def _to_json(raw: str):
 
 
 def _paper_to_list_item(paper: Paper) -> PaperListItem:
-    """Convert a Paper ORM row to a compact list item."""
+    """Convert a Paper database row into a compact list-item response."""
     findings = _to_json(paper.key_findings) or {}
     return PaperListItem(
         id=paper.id,
@@ -48,7 +48,7 @@ def _paper_to_list_item(paper: Paper) -> PaperListItem:
 
 
 def _paper_to_detail(paper: Paper) -> PaperDetail:
-    """Convert a Paper ORM row to a full detail response."""
+    """Convert a Paper database row into a full detail response with decoded JSON fields."""
     return PaperDetail(
         id=paper.id,
         title=paper.title or "",
@@ -76,7 +76,7 @@ def list_papers(
     sort: str = Query("id", pattern="^(id|-id)$"),
     db: Session = Depends(get_db),
 ):
-    """Paginated paper listing with optional filters."""
+    """Return a paginated list of papers, optionally filtered by study type or specialty."""
     query = db.query(Paper)
 
     if study_type:
@@ -108,7 +108,7 @@ def search_papers(
     per_page: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    """Full-text search across paper tldr and detailed_summary."""
+    """Search papers by keywords in the TL;DR or detailed summary, returning paginated results."""
     pattern = f"%{q}%"
     query = db.query(Paper).filter(
         or_(
@@ -133,7 +133,7 @@ def search_papers(
 
 @router.get("/{paper_id}", response_model=PaperDetail)
 def get_paper(paper_id: str, db: Session = Depends(get_db)):
-    """Get full paper detail by PMC ID."""
+    """Return the full details for a single paper identified by its PMC ID."""
     paper = db.query(Paper).filter(Paper.id == paper_id).first()
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found")
@@ -146,7 +146,7 @@ def ingest_papers(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Ingest pipeline JSON results into the database. Requires auth."""
+    """Import pipeline JSON results into the database. Restricted to authenticated users."""
     import os
 
     # Restrict to allowed base directory to prevent path traversal
