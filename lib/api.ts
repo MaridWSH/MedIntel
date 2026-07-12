@@ -27,7 +27,6 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   });
   if (response.status === 401) {
     clearTokens();
-    window.location.href = "/login";
   }
   return response;
 }

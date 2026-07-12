@@ -116,17 +116,13 @@ export default function AccountPage() {
           <aside className="col-span-12 md:col-span-3">
             <nav className="md:sticky md:top-[88px] flex md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
               <div className="text-[10px] mono-stat text-ink/40 mb-1 px-2 hidden md:block">SECTIONS</div>
-              {NAV_ITEMS.map(({ icon, label, id, badge, active }) => (
+              {NAV_ITEMS.map(({ icon, label, id, badge }) => (
                 <a
                   key={id}
                   href={`#${id}`}
-                  className={`flex items-center gap-2.5 px-3 h-10 rounded-md text-[13px] font-medium whitespace-nowrap transition-colors ${
-                    active
-                      ? "bg-ink/[0.06] text-ink"
-                      : "text-ink-soft hover:bg-ink/[0.04]"
-                  }`}
+                  className="flex items-center gap-2.5 px-3 h-10 rounded-md text-[13px] font-medium whitespace-nowrap text-ink-soft hover:bg-ink/[0.04] transition-colors"
                 >
-                  <Icon icon={icon} className={`text-[15px] ${active ? "" : "text-ink/50"}`} />
+                  <Icon icon={icon} className="text-[15px] text-ink/50" />
                   {label}
                   {badge && (
                     <span className="ml-auto px-1.5 h-5 rounded text-[9px] mono-stat bg-teal-deep/12 text-teal-deep inline-flex items-center">
