@@ -3,7 +3,9 @@ import Icon from '../components/ui/Icon';
 import TopUtilityStrip from '../components/site/TopUtilityStrip';
 import SiteHeader from '../components/site/SiteHeader';
 import SiteFooter from '../components/site/SiteFooter';
-import { papers } from '../lib/papers';
+import type { Paper, PaperListResponse } from '../lib/papers/types';
+
+const API_BASE = 'https://med.aidashnews.tech/api';
 
 // ── Evidence Engine agent data ──────────────────────────────────────────
 const AGENTS = [
@@ -19,10 +21,70 @@ const METRICS = [
   { value: '50.4', suffix: 'M', label: 'PAPERS INDEXED · 17 SOURCES', desc: 'PubMed, Scopus, medRxiv, Cochrane, and pre-print servers in one corpus.' },
   { value: '11.8', suffix: 's', label: 'MEDIAN SYNTHESIS TIME', desc: 'From PDF upload to all six agent outputs, validated and ready to share.' },
   { value: '1,200', suffix: '+', label: 'PHYSICIAN REVIEWERS', desc: 'Board-certified. Each reviews only papers in their subspecialty.' },
-  { value: '0.04', suffix: '%', label: 'EMENDATION RATE', desc: 'Audited quarterly against the originating journals’ corrections.' },
+  { value: '0.04', suffix: '%', label: 'EMENDATION RATE', desc: "Audited quarterly against the originating journals' corrections." },
 ];
 
-export default function Home() {
+// Helper: map evidence level to grade letter
+const evidenceToGrade = (level: string | null | undefined): string => {
+  const map: Record<string, string> = {
+    'high': 'A',
+    'moderate': 'B',
+    'low': 'C',
+    'very_low': 'D',
+  };
+  return map[level || ''] || 'C';
+};
+
+// Helper: evidence level color class
+const evidenceColorClass = (level: string | null | undefined): string => {
+  const map: Record<string, string> = {
+    'high': 'bg-teal-deep/10 text-teal-deep border-teal-deep/20',
+    'moderate': 'bg-blue-100 text-blue-700 border-blue-200',
+    'low': 'bg-amber-bg text-amber-ink border-amber-ink/20',
+    'very_low': 'bg-red-100 text-red-700 border-red-200',
+  };
+  return map[level || ''] || 'bg-ink/8 text-ink-soft border-ink/10';
+};
+
+/* ── Fetch papers directly from API ── */
+async function getRecentPapers(): Promise<Paper[]> {
+  try {
+    console.log('[HOME] Fetching from API...');
+    const res = await fetch(`${API_BASE}/papers?page=1&per_page=6&sort=id`, {
+      next: { revalidate: 300 },
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('[HOME] API error:', res.status, text.slice(0, 200));
+      return [];
+    }
+
+    const data: PaperListResponse = await res.json();
+    console.log('[HOME] Got', data.items?.length, 'papers');
+    return data.items || [];
+  } catch (err) {
+    console.error('[HOME] Fetch error:', err);
+    return [];
+  }
+}
+
+export default async function Home() {
+  // Fetch papers from API for the home page
+  let recentPapers: Paper[] = [];
+  let firstPaperId = '';
+
+  try {
+    recentPapers = await getRecentPapers();
+    if (recentPapers.length > 0) {
+      firstPaperId = recentPapers[0].id;
+    }
+  } catch (err) {
+    console.error('[HOME] Error:', err);
+    recentPapers = [];
+  }
+
   return (
     <>
       <TopUtilityStrip />
@@ -113,10 +175,17 @@ export default function Home() {
                 Sign up &mdash; free for physicians
                 <Icon icon="lucide:arrow-right" className="text-[15px]" />
               </Link>
-              <Link href={`/paper/${papers[0]?.slug}`} className="inline-flex items-center justify-center gap-2 px-6 h-12 bg-paper border border-ink/15 text-ink rounded-[14px] text-[14px] font-semibold hover-tint w-full md:w-auto">
-                <Icon icon="lucide:play" className="text-[14px] text-teal" />
-                Try a paper &mdash; no signup
-              </Link>
+              {firstPaperId ? (
+                <Link href={`/paper/${firstPaperId}`} className="inline-flex items-center justify-center gap-2 px-6 h-12 bg-paper border border-ink/15 text-ink rounded-[14px] text-[14px] font-semibold hover-tint w-full md:w-auto">
+                  <Icon icon="lucide:play" className="text-[14px] text-teal" />
+                  Try a paper &mdash; no signup
+                </Link>
+              ) : (
+                <Link href="/search" className="inline-flex items-center justify-center gap-2 px-6 h-12 bg-paper border border-ink/15 text-ink rounded-[14px] text-[14px] font-semibold hover-tint w-full md:w-auto">
+                  <Icon icon="lucide:play" className="text-[14px] text-teal" />
+                  Browse papers
+                </Link>
+              )}
             </div>
 
             <div className="fade-in d-5 mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11.5px] text-ink/55">
@@ -249,7 +318,7 @@ export default function Home() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-         *  § 04 · SYNTHESISED PAPERS — Paper cards
+         *  § 04 · SYNTHESISED PAPERS — Paper cards (from API)
          * ═════════════════════════════════════════════════════════════════ */}
         <section className="py-16 md:py-20 border-t border-ink/10">
           <div className="max-w-[1380px] mx-auto px-6">
@@ -266,41 +335,57 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {papers.map((paper) => (
-                <Link
-                  key={paper.slug}
-                  href={`/paper/${paper.slug}`}
-                  className="group block rounded-2xl border border-ink/10 bg-paper hover:border-teal-deep/30 hover:shadow-[0_16px_40px_-16px_rgba(11,29,42,0.2)] transition-all duration-300 overflow-hidden"
-                >
-                  <div className="p-5 pb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="px-2 h-6 rounded-md bg-ink text-paper text-[9.5px] mono-stat font-semibold flex items-center">{paper.journal}</span>
-                      <span className="text-[10px] mono-stat text-ink/45">{paper.citation}</span>
-                      {paper.validated && (
-                        <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-teal-deep">
-                          <Icon icon="lucide:badge-check" className="text-[12px]" />
-                          VERIFIED
+            {recentPapers.length === 0 ? (
+              <div className="text-center py-12 text-ink/40 text-[14px]">
+                Loading papers from API...
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recentPapers.map((paper) => (
+                  <Link
+                    key={paper.id}
+                    href={`/paper/${paper.id}`}
+                    className="group block rounded-2xl border border-ink/10 bg-paper hover:border-teal-deep/30 hover:shadow-[0_16px_40px_-16px_rgba(11,29,42,0.2)] transition-all duration-300 overflow-hidden"
+                  >
+                    <div className="p-5 pb-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="px-2 h-6 rounded-md bg-ink text-paper text-[9.5px] mono-stat font-semibold flex items-center">
+                          {paper.study_type.toUpperCase().replace(/_/g, ' ')}
                         </span>
-                      )}
+                        <span className="text-[10px] mono-stat text-ink/45">{paper.id}</span>
+                        {!paper.has_errors && (
+                          <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-teal-deep">
+                            <Icon icon="lucide:badge-check" className="text-[12px]" />
+                            VERIFIED
+                          </span>
+                        )}
+                        {paper.has_errors && (
+                          <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-red-500">
+                            <Icon icon="lucide:alert-triangle" className="text-[12px]" />
+                            ERRORS
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="serif text-[15px] tracking-tight leading-[1.3] mb-2.5 group-hover:text-teal-deep transition-colors line-clamp-2">
+                        {paper.title}
+                      </h3>
+                      <p className="text-[12px] text-ink/60 leading-[1.5] line-clamp-2">{paper.tldr}</p>
                     </div>
-                    <h3 className="serif text-[15px] tracking-tight leading-[1.3] mb-2.5 group-hover:text-teal-deep transition-colors line-clamp-2">{paper.title}</h3>
-                    <p className="text-[12px] text-ink/60 leading-[1.5] line-clamp-2">{paper.tldr.summary}</p>
-                  </div>
-                  <div className="border-t border-ink/8 px-5 py-3 flex items-center justify-between bg-paper-warm/40">
-                    <div className="flex items-center gap-3">
-                      <span className="mono-stat text-ink/45 flex items-center gap-1">
-                        <Icon icon="lucide:activity" className="text-[11px] text-teal" />
-                        {paper.stats.hr}
-                      </span>
-                      <span className="text-ink/15">|</span>
-                      <span className="mono-stat text-ink/45">p {paper.stats.pValue}</span>
+                    <div className="border-t border-ink/8 px-5 py-3 flex items-center justify-between bg-paper-warm/40">
+                      <div className="flex items-center gap-3">
+                        <span className="mono-stat text-ink/45 flex items-center gap-1">
+                          <Icon icon="lucide:activity" className="text-[11px] text-teal" />
+                          {paper.study_type.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-ink/15">|</span>
+                        <span className="mono-stat text-ink/45">{paper.processing_time}ms</span>
+                      </div>
+                      <span className="mono-stat text-teal-deep">{paper.specialty_tags[0] || 'General'}</span>
                     </div>
-                    <span className="mono-stat text-teal-deep">GRADE {paper.stats.grade}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
