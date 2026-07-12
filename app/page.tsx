@@ -202,7 +202,7 @@ export default async function Home() {
         {/* ═══════════════════════════════════════════════════════════════════
          *  § 02 · THE EVIDENCE ENGINE — Six agents
          * ═════════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-28 border-t border-ink/10">
+        <section id="six-agents" className="relative py-20 md:py-28 border-t border-ink/10">
           <div className="max-w-[1380px] mx-auto px-6">
             <div className="grid grid-cols-12 gap-8 mb-16">
               <div className="col-span-12 md:col-span-5">
@@ -237,10 +237,10 @@ export default async function Home() {
                       <Icon icon={a.icon} className={`text-[20px] ${a.highlight ? 'text-teal-bright' : 'text-teal-bright'}`} />
                     </div>
                     {!a.highlight && <span className="text-[9.5px] mono-stat text-ink/40">AGENT {a.id}</span>}
-                  </div>
+                  </div >
                   <h3 className={`serif text-[20px] tracking-tight mb-2 ${a.highlight ? 'text-paper' : ''}`}>{a.title}</h3>
                   <p className={`text-[13px] leading-[1.55] mb-4 ${a.highlight ? 'text-paper/75' : 'text-ink-soft'}`}>{a.desc}</p>
-                  <div className={`flex items-center gap-2 text-[10.5px] mono-stat ${a.highlight ? 'text-paper/65' : 'text-ink/55'}`}>
+                  <div id="methodology" className={`flex items-center gap-2 text-[10.5px] mono-stat ${a.highlight ? 'text-paper/65' : 'text-ink/55'}`}>
                     {a.badges.map((b) => (
                       <span key={b} className={`px-2 h-6 rounded-md border inline-flex items-center ${a.highlight ? 'bg-paper/10 border-paper/15' : 'bg-ink/5 border-ink/10'}`}>{b}</span>
                     ))}

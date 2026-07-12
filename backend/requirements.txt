@@ -1,6 +1,21 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.34.0
-sqlalchemy>=2.0.0
-passlib[bcrypt]>=1.7.4
-python-jose[cryptography]>=3.3.0
-python-multipart>=0.0.18
+# MedIntel production dependencies
+# All versions are pinned for reproducible builds.
+# PyTorch CPU-only wheels are fetched from the PyTorch CPU index to avoid
+# downloading large CUDA packages.
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.13.0
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+sqlalchemy==2.0.51
+psycopg2-binary==2.9.12
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.5.0
+python-multipart==0.0.32
+numpy==2.4.6
+scipy==1.17.1
+scikit-learn==1.9.0
+sentence-transformers==5.6.0
+qdrant-client==1.18.0
+httpx==0.28.1
