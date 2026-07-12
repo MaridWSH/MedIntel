@@ -289,7 +289,7 @@ export default function SearchPage() {
                   {activeQuery && (
                     <span className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-full bg-ink text-paper text-[11px]">
                       <Icon icon="lucide:search" className="text-[10px]" />
-                      "{activeQuery}"
+                      &quot;{activeQuery}&quot;
                     </span>
                   )}
 

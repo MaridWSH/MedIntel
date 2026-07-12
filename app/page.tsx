@@ -49,7 +49,6 @@ const evidenceColorClass = (level: string | null | undefined): string => {
 /* ── Fetch papers directly from API ── */
 async function getRecentPapers(): Promise<Paper[]> {
   try {
-    console.log('[HOME] Fetching from API...');
     const res = await fetch(`${API_BASE}/papers?page=1&per_page=6&sort=id`, {
       next: { revalidate: 300 },
       headers: { 'Accept': 'application/json' },
@@ -62,7 +61,6 @@ async function getRecentPapers(): Promise<Paper[]> {
     }
 
     const data: PaperListResponse = await res.json();
-    console.log('[HOME] Got', data.items?.length, 'papers');
     return data.items || [];
   } catch (err) {
     console.error('[HOME] Fetch error:', err);
