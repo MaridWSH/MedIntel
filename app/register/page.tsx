@@ -1,35 +1,66 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import Icon from '../../components/ui/Icon';
-import TopUtilityStrip from '../../components/site/TopUtilityStrip';
-import SiteHeader from '../../components/site/SiteHeader';
-import SiteFooter from '../../components/site/SiteFooter';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Sign up · Claritas',
-  description: 'Create your Claritas physician account. 14-day free trial, no credit card required.',
-};
+import Link from "next/link";
+import { useState } from "react";
+import Icon from "@/components/ui/Icon";
+import TopUtilityStrip from "@/components/site/TopUtilityStrip";
+import SiteHeader from "@/components/site/SiteHeader";
+import SiteFooter from "@/components/site/SiteFooter";
+import { registerUser } from "@/lib/api";
 
 export default function RegisterPage() {
+  // Form state matching API schema: {email, name, password}
+  const [form, setForm] = useState({
+    email: "",
+    name: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Generic handler for all text inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.id]: e.target.value });
+  };
+
+  // Submit form to API
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      await registerUser(form);
+      setSuccess("Account created! Redirecting...");
+      setTimeout(() => (window.location.href = "/login"), 2000);
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <TopUtilityStrip />
       <SiteHeader />
       <main className="relative min-h-[calc(100vh-68px-36px)] overflow-hidden">
-        {/* Atmospheric */}
+        {/* Background grid */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.04]"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(11,29,42,1) 1px, transparent 1px), linear-gradient(90deg, rgba(11,29,42,1) 1px, transparent 1px)',
-            backgroundSize: '56px 56px',
+              "linear-gradient(rgba(11,29,42,1) 1px, transparent 1px), linear-gradient(90deg, rgba(11,29,42,1) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
           }}
         />
         <div
           className="absolute inset-x-0 top-0 h-[560px] pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse 60% 70% at 50% 35%, rgba(20,184,166,0.18) 0%, rgba(20,184,166,0.06) 40%, rgba(246,243,234,0) 70%)',
+              "radial-gradient(ellipse 60% 70% at 50% 35%, rgba(20,184,166,0.18) 0%, rgba(20,184,166,0.06) 40%, rgba(246,243,234,0) 70%)",
           }}
         />
 
@@ -37,7 +68,9 @@ export default function RegisterPage() {
           {/* Breadcrumb */}
           <div className="fade-in flex items-center justify-between mb-7">
             <div className="flex items-center gap-2 text-[11.5px] text-ink/55">
-              <Link href="/" className="hover:text-teal-deep">Claritas</Link>
+              <Link href="/" className="hover:text-teal-deep">
+                Claritas
+              </Link>
               <Icon icon="lucide:chevron-right" className="text-[12px] text-ink/30" />
               <span className="text-teal-deep font-medium">Sign up</span>
             </div>
@@ -56,19 +89,20 @@ export default function RegisterPage() {
               <span className="text-ink-soft">No credit card required.</span>
             </h1>
             <p className="serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.5] mt-4 max-w-[560px]">
-              14 days of full access to all six AI agents, every pane, and CME credits.
-              Physician verification required — we accept licences from 22 Arab Board states.
+              14 days of full access to all six AI agents, every pane, and CME credits. Physician
+              verification required — we accept licences from 22 Arab Board states.
             </p>
           </div>
 
-          {/* Grid: Stepper + Form */}
           <div className="grid grid-cols-12 gap-8 lg:gap-10">
-            {/* LEFT: Stepper */}
+            {/* LEFT: Stepper sidebar */}
             <aside className="col-span-12 lg:col-span-4 fade-in d-2">
               <div className="lg:sticky lg:top-[88px]">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-[10.5px] mono-stat text-ink/55">PROGRESS</div>
-                  <div className="text-[10.5px] mono-stat text-teal-deep font-semibold">STEP 01 / 04</div>
+                  <div className="text-[10.5px] mono-stat text-teal-deep font-semibold">
+                    STEP 01 / 04
+                  </div>
                 </div>
 
                 <div className="relative h-1 rounded-full bg-ink/8 overflow-hidden mb-7">
@@ -86,8 +120,12 @@ export default function RegisterPage() {
                         <span className="absolute inset-0 rounded-full bg-teal-bright/40 animate-ping" />
                       </div>
                       <div className="flex-1 pt-1">
-                        <div className="text-[10px] mono-stat text-teal-deep mb-0.5">STEP 01 · IN PROGRESS</div>
-                        <div className="text-[13.5px] text-ink font-medium leading-tight">Email &amp; credentials</div>
+                        <div className="text-[10px] mono-stat text-teal-deep mb-0.5">
+                          STEP 01 · IN PROGRESS
+                        </div>
+                        <div className="text-[13.5px] text-ink font-medium leading-tight">
+                          Email & credentials
+                        </div>
                         <div className="text-[11.5px] text-ink/55 mt-0.5">Create your login</div>
                       </div>
                     </div>
@@ -96,10 +134,16 @@ export default function RegisterPage() {
                   {/* Step 2 */}
                   <li>
                     <div className="flex items-start gap-3 p-3 rounded-xl">
-                      <div className="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink/15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">02</div>
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink/15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">
+                        02
+                      </div>
                       <div className="flex-1 pt-1">
-                        <div className="text-[10px] mono-stat text-ink/40 mb-0.5">STEP 02 · UPCOMING</div>
-                        <div className="text-[13.5px] text-ink/55 leading-tight">Physician verification</div>
+                        <div className="text-[10px] mono-stat text-ink/40 mb-0.5">
+                          STEP 02 · UPCOMING
+                        </div>
+                        <div className="text-[13.5px] text-ink/55 leading-tight">
+                          Physician verification
+                        </div>
                       </div>
                     </div>
                   </li>
@@ -107,10 +151,16 @@ export default function RegisterPage() {
                   {/* Step 3 */}
                   <li>
                     <div className="flex items-start gap-3 p-3 rounded-xl">
-                      <div className="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink/15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">03</div>
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink/15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">
+                        03
+                      </div>
                       <div className="flex-1 pt-1">
-                        <div className="text-[10px] mono-stat text-ink/40 mb-0.5">STEP 03 · UPCOMING</div>
-                        <div className="text-[13.5px] text-ink/55 leading-tight">Select your plan</div>
+                        <div className="text-[10px] mono-stat text-ink/40 mb-0.5">
+                          STEP 03 · UPCOMING
+                        </div>
+                        <div className="text-[13.5px] text-ink/55 leading-tight">
+                          Select your plan
+                        </div>
                       </div>
                     </div>
                   </li>
@@ -118,10 +168,16 @@ export default function RegisterPage() {
                   {/* Step 4 */}
                   <li>
                     <div className="flex items-start gap-3 p-3 rounded-xl">
-                      <div className="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink/15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">04</div>
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-paper border border-ink/15 text-ink/40 flex items-center justify-center text-[11px] mono-stat font-semibold">
+                        04
+                      </div>
                       <div className="flex-1 pt-1">
-                        <div className="text-[10px] mono-stat text-ink/40 mb-0.5">STEP 04 · FINAL</div>
-                        <div className="text-[13.5px] text-ink/55 leading-tight">Confirm &amp; start trial</div>
+                        <div className="text-[10px] mono-stat text-ink/40 mb-0.5">
+                          STEP 04 · FINAL
+                        </div>
+                        <div className="text-[13.5px] text-ink/55 leading-tight">
+                          Confirm & start trial
+                        </div>
                       </div>
                     </div>
                   </li>
@@ -134,60 +190,76 @@ export default function RegisterPage() {
                     <div className="text-[11.5px] font-semibold text-ink">Your data is safe</div>
                   </div>
                   <p className="text-[11.5px] text-ink-soft leading-[1.5]">
-                    Credentials are hashed with AES-256 and never stored in plain text. We comply with HIPAA, GDPR Art. 9, and are working towards ISO 27001.
+                    Credentials are hashed with AES-256 and never stored in plain text. We comply with
+                    HIPAA, GDPR Art. 9, and are working towards ISO 27001.
                   </p>
                   <div className="mt-3 pt-3 border-t border-ink/8 grid grid-cols-3 gap-2 text-[9.5px] mono-stat text-ink/45">
-                    <div>HIPAA<span className="block text-[8.5px] text-ink/35 mt-0.5">ALIGNED</span></div>
-                    <div>GDPR<span className="block text-[8.5px] text-ink/35 mt-0.5">ART. 9</span></div>
-                    <div>ISO 27001<span className="block text-[8.5px] text-ink/35 mt-0.5">IN PROGRESS</span></div>
+                    <div>
+                      HIPAA<span className="block text-[8.5px] text-ink/35 mt-0.5">ALIGNED</span>
+                    </div>
+                    <div>
+                      GDPR<span className="block text-[8.5px] text-ink/35 mt-0.5">ART. 9</span>
+                    </div>
+                    <div>
+                      ISO 27001
+                      <span className="block text-[8.5px] text-ink/35 mt-0.5">IN PROGRESS</span>
+                    </div>
                   </div>
                 </div>
 
-                <Link href="/login" className="mt-5 flex items-center gap-2 text-[11.5px] text-ink-soft hover:text-teal-deep">
+                <Link
+                  href="/login"
+                  className="mt-5 flex items-center gap-2 text-[11.5px] text-ink-soft hover:text-teal-deep"
+                >
                   <Icon icon="lucide:log-in" className="text-[14px] text-teal" />
                   Already have an account? Sign in instead.
                 </Link>
               </div>
             </aside>
 
-            {/* RIGHT: Form */}
+            {/* RIGHT: Registration form */}
             <div className="col-span-12 lg:col-span-8 fade-in d-3">
               <div className="bg-paper border border-ink/12 rounded-3xl p-6 md:p-8 shadow-[0_24px_60px_-30px_rgba(11,29,42,0.18)]">
                 <h2 className="serif text-[26px] md:text-[30px] tracking-tight leading-tight mb-2">
                   Create your credentials
                 </h2>
                 <p className="text-[14px] text-ink-soft leading-[1.5] mb-8 max-w-[480px]">
-                  Use your institutional email for faster verification. Personal emails require medical licence verification in Step 2.
+                  Use your institutional email for faster verification. Personal emails require
+                  medical licence verification in Step 2.
                 </p>
 
-                <form className="space-y-5">
-                  {/* Name row */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="flex items-center justify-between mb-2" htmlFor="first-name">
-                        <span className="text-[11.5px] font-medium text-ink-soft">First name</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="first-name"
-                        className="w-full h-12 px-4 rounded-xl bg-paper border border-ink/12 text-[14px] text-ink placeholder:text-ink/30 focus:border-teal-deep focus:shadow-[0_0_0_3px_rgba(13,148,136,0.12)] focus:outline-none transition-all duration-200"
-                        placeholder="e.g., Amelia"
-                      />
-                    </div>
-                    <div>
-                      <label className="flex items-center justify-between mb-2" htmlFor="last-name">
-                        <span className="text-[11.5px] font-medium text-ink-soft">Family name</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="last-name"
-                        className="w-full h-12 px-4 rounded-xl bg-paper border border-ink/12 text-[14px] text-ink placeholder:text-ink/30 focus:border-teal-deep focus:shadow-[0_0_0_3px_rgba(13,148,136,0.12)] focus:outline-none transition-all duration-200"
-                        placeholder="e.g., El-Sherif"
-                      />
-                    </div>
+                {/* Error message */}
+                {error && (
+                  <div className="mb-5 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[13px]">
+                    {error}
+                  </div>
+                )}
+
+                {/* Success message */}
+                {success && (
+                  <div className="mb-5 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-[13px]">
+                    {success}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Name field — maps to API "name" */}
+                  <div>
+                    <label className="flex items-center justify-between mb-2" htmlFor="name">
+                      <span className="text-[11.5px] font-medium text-ink-soft">Full name</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full h-12 px-4 rounded-xl bg-paper border border-ink/12 text-[14px] text-ink placeholder:text-ink/30 focus:border-teal-deep focus:shadow-[0_0_0_3px_rgba(13,148,136,0.12)] focus:outline-none transition-all duration-200"
+                      placeholder="e.g., Dr. Amelia El-Sherif"
+                    />
                   </div>
 
-                  {/* Email */}
+                  {/* Email field */}
                   <div>
                     <label className="flex items-center justify-between mb-2" htmlFor="email">
                       <span className="text-[11.5px] font-medium text-ink-soft">Email address</span>
@@ -196,6 +268,9 @@ export default function RegisterPage() {
                     <input
                       type="email"
                       id="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      required
                       className="w-full h-12 px-4 rounded-xl bg-paper border border-ink/12 text-[14px] text-ink placeholder:text-ink/30 focus:border-teal-deep focus:shadow-[0_0_0_3px_rgba(13,148,136,0.12)] focus:outline-none transition-all duration-200"
                       placeholder="dr.name@hospital.org"
                     />
@@ -204,7 +279,7 @@ export default function RegisterPage() {
                     </p>
                   </div>
 
-                  {/* Password */}
+                  {/* Password field */}
                   <div>
                     <label className="flex items-center justify-between mb-2" htmlFor="password">
                       <span className="text-[11.5px] font-medium text-ink-soft">Password</span>
@@ -213,68 +288,48 @@ export default function RegisterPage() {
                     <input
                       type="password"
                       id="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      required
+                      minLength={12}
                       className="w-full h-12 px-4 rounded-xl bg-paper border border-ink/12 text-[14px] text-ink placeholder:text-ink/30 focus:border-teal-deep focus:shadow-[0_0_0_3px_rgba(13,148,136,0.12)] focus:outline-none transition-all duration-200"
                       placeholder="••••••••••••"
                     />
-                    {/* Password strength hint */}
-                    <div className="flex items-center gap-3 mt-2">
-                      <div className="flex gap-1">
-                        <div className="w-8 h-1 rounded-full bg-ink/10" />
-                        <div className="w-8 h-1 rounded-full bg-ink/10" />
-                        <div className="w-8 h-1 rounded-full bg-ink/10" />
-                        <div className="w-8 h-1 rounded-full bg-ink/10" />
-                      </div>
-                      <span className="text-[10px] text-ink/45">Enter a password to see strength</span>
-                    </div>
                   </div>
 
-                  {/* Specialty */}
-                  <div>
-                    <label className="flex items-center justify-between mb-2" htmlFor="specialty">
-                      <span className="text-[11.5px] font-medium text-ink-soft">Primary specialty</span>
-                      <span className="text-[9.5px] mono-stat text-ink/40">USED FOR PAPER ROUTING</span>
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="specialty"
-                        className="w-full h-12 pl-4 pr-10 rounded-xl bg-paper border border-ink/12 text-[14px] text-ink appearance-none cursor-pointer focus:border-teal-deep focus:shadow-[0_0_0_3px_rgba(13,148,136,0.12)] focus:outline-none transition-all duration-200"
-                      >
-                        <option value="">Select your specialty…</option>
-                        <option>Cardiology</option>
-                        <option>Internal Medicine</option>
-                        <option>Endocrinology</option>
-                        <option>Emergency Medicine</option>
-                        <option>Pediatrics</option>
-                        <option>Neurology</option>
-                        <option>Oncology</option>
-                        <option>Pulmonology</option>
-                        <option>Gastroenterology</option>
-                        <option>Other</option>
-                      </select>
-                      <Icon icon="lucide:chevron-down" className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] text-ink/45 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* Consent */}
+                  {/* Consent checkboxes */}
                   <div className="pt-2 space-y-3">
                     <label className="flex items-start gap-3 cursor-pointer group">
-                      <input type="checkbox" className="mt-1 w-4 h-4 rounded accent-[var(--teal-deep)] shrink-0" />
+                      <input
+                        type="checkbox"
+                        required
+                        className="mt-1 w-4 h-4 rounded accent-[var(--teal-deep)] shrink-0"
+                      />
                       <span className="text-[12px] text-ink-soft leading-[1.55]">
-                        I confirm I am a licensed healthcare professional and agree to the{' '}
-                        <Link href="#" className="text-teal-deep hover:underline">Terms of Service</Link>
-                        {' '}and{' '}
-                        <Link href="#" className="text-teal-deep hover:underline">Privacy Policy</Link>.
+                        I confirm I am a licensed healthcare professional and agree to the{" "}
+                        <Link href="#" className="text-teal-deep hover:underline">
+                          Terms of Service
+                        </Link>{" "}
+                        and{" "}
+                        <Link href="#" className="text-teal-deep hover:underline">
+                          Privacy Policy
+                        </Link>
+                        .
                       </span>
                     </label>
                     <label className="flex items-start gap-3 cursor-pointer group">
-                      <input type="checkbox" className="mt-1 w-4 h-4 rounded accent-[var(--teal-deep)] shrink-0" />
+                      <input
+                        type="checkbox"
+                        className="mt-1 w-4 h-4 rounded accent-[var(--teal-deep)] shrink-0"
+                      />
                       <span className="text-[12px] text-ink-soft leading-[1.55]">
-                        Send me weekly evidence digests and product updates (optional, unsubscribe any time).
+                        Send me weekly evidence digests and product updates (optional, unsubscribe any
+                        time).
                       </span>
                     </label>
                   </div>
 
-                  {/* Footer */}
+                  {/* Form footer with submit button */}
                   <div className="pt-5 mt-2 border-t border-ink/8 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2 text-[10.5px] mono-stat text-ink/45">
                       <Icon icon="lucide:info" className="text-[12px]" />
@@ -290,10 +345,17 @@ export default function RegisterPage() {
                       </Link>
                       <button
                         type="submit"
-                        className="btn-primary flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-12 md:px-8 px-5 rounded-[14px] bg-ink text-paper text-[14px] font-semibold"
+                        disabled={loading}
+                        className="btn-primary flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-12 md:px-8 px-5 rounded-[14px] bg-ink text-paper text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Create account
-                        <Icon icon="lucide:arrow-right" className="text-[15px] text-teal-bright" />
+                        {loading ? (
+                          "Creating..."
+                        ) : (
+                          <>
+                            Create account
+                            <Icon icon="lucide:arrow-right" className="text-[15px] text-teal-bright" />
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
