@@ -77,12 +77,12 @@ export default function LoginPage() {
           <div className="grid grid-cols-12 gap-8 lg:gap-12">
             {/* LEFT: Login form */}
             <div className="col-span-12 lg:col-span-7 fade-in d-2">
-              <div className="mono-stat text-teal-deep mb-3">PHYSICIAN PORTAL</div>
+              <div className="mono-stat text-teal-deep mb-3">SIGN IN</div>
               <h1 className="display text-[40px] md:text-[52px] tracking-tight mb-4">
                 Welcome back<span className="italic text-teal">.</span>
               </h1>
               <p className="serif-body text-[16px] text-ink-soft leading-[1.5] max-w-[440px] mb-9">
-                Sign in to access your synthesised papers, CME credits, and clinical appraisals.
+                Sign in to access your synthesised papers and saved collections.
               </p>
 
               {/* Error message */}
@@ -218,11 +218,18 @@ export default function LoginPage() {
                 <div className="rounded-2xl bg-paper-warm border border-ink/10 p-6">
                   <div className="mono-stat text-ink/45 mb-4">WHAT YOU GET</div>
                   <div className="space-y-4">
+                    {/*
+                      "GRADE-appraised quality scores" and "CME credits — ACCME accredited"
+                      were both false: the score measures summary-vs-source fidelity, not
+                      study quality, and there is no CME accreditation of any kind here.
+                      ACCME is a real accrediting body; claiming its imprimatur is not a
+                      copy decision.
+                    */}
                     {[
                       { icon: "lucide:zap", label: "Six AI agents synthesise every paper in seconds" },
-                      { icon: "lucide:map", label: "Interactive mind maps linking PICOT to source text" },
-                      { icon: "lucide:scale", label: "GRADE-appraised quality scores on every study" },
-                      { icon: "lucide:graduation-cap", label: "CME credits — 0.5 hrs per paper, ACCME accredited" },
+                      { icon: "lucide:map", label: "Interactive mind maps linking findings to source text" },
+                      { icon: "lucide:scale", label: "Every summary checked against the paper it came from" },
+                      { icon: "lucide:search", label: "Semantic search across the full corpus" },
                     ].map(({ icon, label }) => (
                       <div key={label} className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-lg bg-teal-bright/10 border border-teal-bright/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -237,16 +244,19 @@ export default function LoginPage() {
                 <div className="rounded-2xl bg-paper border border-ink/10 p-5">
                   <div className="flex items-center gap-2.5 mb-3">
                     <Icon icon="lucide:shield-check" className="text-[16px] text-teal-deep" />
-                    <span className="text-[11.5px] font-semibold text-ink">Physician-only access</span>
+                    <span className="text-[11.5px] font-semibold text-ink">Account security</span>
                   </div>
-                  <p className="text-[11px] text-ink-soft leading-[1.5] mb-4">
-                    Every account is verified against national medical registries. Your data is encrypted at rest and never shared with third parties.
+                  {/*
+                    Was: "Every account is verified against national medical registries. Your data
+                    is encrypted at rest" + HIPAA/GDPR/ISO 27001 badges. Registration checks nothing
+                    beyond a valid email, the database is an unencrypted file, and we hold none of
+                    those certifications.
+                  */}
+                  <p className="text-[11px] text-ink-soft leading-[1.5] mb-3">
+                    Passwords are hashed with Argon2 and never stored in plain text, and the site is
+                    served over TLS. We are a closed beta: we hold no compliance certification, so
+                    don&rsquo;t put patient data here.
                   </p>
-                  <div className="grid grid-cols-3 gap-2 text-[9.5px] mono-stat text-ink/45">
-                    <div className="text-center">HIPAA<span className="block text-[8.5px] text-ink/35 mt-0.5">ALIGNED</span></div>
-                    <div className="text-center">GDPR<span className="block text-[8.5px] text-ink/35 mt-0.5">ART. 9</span></div>
-                    <div className="text-center">ISO 27001<span className="block text-[8.5px] text-ink/35 mt-0.5">IN PROGRESS</span></div>
-                  </div>
                 </div>
 
                 <div className="rounded-2xl bg-ink text-paper p-5">

@@ -10,10 +10,13 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'tldr', num: '01', label: 'TLDR' },
-  { id: 'mindmap', num: '02', label: 'Mind map' },
-  { id: 'infographic', num: '03', label: 'Infographic' },
-  { id: 'appraisal', num: '04', label: 'Critical appraisal' },
-  { id: 'relevance', num: '05', label: 'Clinical relevance' },
+  { id: 'fulltext', num: '02', label: 'Full text' },
+  { id: 'mindmap', num: '03', label: 'Mind map' },
+  { id: 'infographic', num: '04', label: 'Infographic' },
+  // "Critical appraisal" oversold this tab: it reports summary-vs-source
+  // fidelity, not a methodological appraisal of the study.
+  { id: 'appraisal', num: '05', label: 'Summary fidelity' },
+  { id: 'relevance', num: '06', label: 'Clinical relevance' },
 ];
 
 interface TabNavProps {

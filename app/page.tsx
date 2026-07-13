@@ -3,25 +3,35 @@ import Icon from '../components/ui/Icon';
 import TopUtilityStrip from '../components/site/TopUtilityStrip';
 import SiteHeader from '../components/site/SiteHeader';
 import SiteFooter from '../components/site/SiteFooter';
+import HeroSearch from '../components/site/HeroSearch';
 import type { Paper, PaperListResponse } from '../lib/papers/types';
 
-const API_BASE = 'https://med.aidashnews.tech/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
 
 // ── Evidence Engine agent data ──────────────────────────────────────────
 const AGENTS = [
   { id: '01', icon: 'lucide:scan-text', title: 'TLDR Synthesis', desc: 'Reads the full text, abstracts, and supplementary materials into a single PICO-structured paragraph that a doctor can absorb during rounds.', badges: ['PICO FORMAT', '≤ 60 WORDS'] },
-  { id: '02', icon: 'lucide:network', title: 'Mind Map', desc: 'Lays out findings as a zoomable, click-through knowledge graph. Every node links to the source paragraph so the chain of evidence is one tap away.', badges: ['CLICK-TO-SOURCE'] },
+  { id: '02', icon: 'lucide:network', title: 'Structured Breakdown', desc: 'Decomposes the paper into background, methods, results, limitations and implications — each point typed, so findings and caveats are told apart at a glance.', badges: ['TYPED NODES'] },
   { id: '03', icon: 'lucide:image', title: 'Infographic', desc: 'Renders a journal-grade visual summary — the kind you share with the department WhatsApp group or in a journal-club slide.', badges: ['1200 × 630'] },
-  { id: '04', icon: 'lucide:shield-alert', title: 'Critical Appraisal', desc: 'Flags bias, scores methodology, surfaces limitations. The same questions a fellow asks in journal club — answered before you ask them.', badges: ['BIAS FLAGS', 'GRADE'] },
+  { id: '04', icon: 'lucide:shield-alert', title: 'Summary Fidelity', desc: 'Re-reads our own summary against the source and flags any figure or claim it cannot trace back. It checks the summary, not the study — it is not a GRADE appraisal.', badges: ['SOURCE-CHECKED'] },
   { id: '05', icon: 'lucide:stethoscope', title: 'Clinical Relevance', desc: 'Tags by specialty and grades the practice-change signal. Tells you, plainly, whether this paper should change what you do tomorrow morning.', badges: ['PRACTICE-CHANGE'] },
-  { id: '06', icon: 'lucide:quote', title: 'Citation Export', desc: 'Every claim carries its source. Export to RIS, BibTeX, EndNote, or paste-ready citations in AMA, Vancouver, APA, or Harvard.', badges: ['RIS', 'BIBTEX', 'AMA'], highlight: true },
+  { id: '06', icon: 'lucide:quote', title: 'Citation Export', desc: 'Every summary links back to the paper it came from. Export a formatted citation, BibTeX, or RIS.', badges: ['RIS', 'BIBTEX'], highlight: true },
 ];
 
+/*
+ * Real numbers, checked against the database (see the queries in the MVP review).
+ *
+ * These previously read: "50.4M papers indexed · 17 sources" (the corpus is four
+ * orders of magnitude smaller and comes from one source), "1,200+ board-certified
+ * physician reviewers" (there are none), and a "0.04% emendation rate ... audited
+ * quarterly" (no such audit exists). Nothing goes in this block that can't be
+ * derived from the data.
+ */
 const METRICS = [
-  { value: '50.4', suffix: 'M', label: 'PAPERS INDEXED · 17 SOURCES', desc: 'PubMed, Scopus, medRxiv, Cochrane, and pre-print servers in one corpus.' },
-  { value: '11.8', suffix: 's', label: 'MEDIAN SYNTHESIS TIME', desc: 'From PDF upload to all six agent outputs, validated and ready to share.' },
-  { value: '1,200', suffix: '+', label: 'PHYSICIAN REVIEWERS', desc: 'Board-certified. Each reviews only papers in their subspecialty.' },
-  { value: '0.04', suffix: '%', label: 'EMENDATION RATE', desc: "Audited quarterly against the originating journals' corrections." },
+  { value: '3,419', suffix: '', label: 'PAPERS SUMMARISED', desc: 'Open-access articles from PubMed Central, processed end to end.' },
+  { value: '32', suffix: 's', label: 'MEDIAN SYNTHESIS TIME', desc: 'Median wall-clock time for the agent pipeline to process one paper.' },
+  { value: '85', suffix: '%', label: 'PASS FIDELITY CHECK', desc: 'Summaries whose figures and claims our verifier could trace back to the source.' },
+  { value: '6', suffix: '', label: 'SPECIALISED AGENTS', desc: 'Summary, mind map, infographic, findings, verification, and relevance.' },
 ];
 
 // Helper: map evidence level to grade letter
@@ -106,7 +116,7 @@ export default async function Home() {
                   <span className="mono-stat">Live</span>
                 </span>
                 <span className="text-ink/30">&mdash;</span>
-                <span className="text-[11.5px] text-ink-soft">Evidence Engine v0.9 &middot; 6 agents &middot; 1.2M papers processed this month</span>
+                <span className="text-[11.5px] text-ink-soft">Evidence Engine v0.9 &middot; 6 agents &middot; closed beta</span>
               </div>
             </div>
 
@@ -122,8 +132,8 @@ export default async function Home() {
             {/* Subhead */}
             <div className="fade-in d-2 mt-7 text-center max-w-[620px] mx-auto">
               <p className="serif-body text-[17px] md:text-[19px] text-ink-soft leading-[1.5]">
-                Six specialised agents read every trial, review, and case report &mdash; and return a PICO
-                summary, mind map, infographic, and clinical bottom line in under twelve seconds.
+                Six specialised agents read the paper and return a structured summary, a breakdown of the
+                findings, a shareable card, and a clinical bottom line &mdash; in about thirty seconds.
               </p>
             </div>
 
@@ -132,19 +142,7 @@ export default async function Home() {
               <div className="relative">
                 <div className="absolute -inset-1.5 bg-gradient-to-r from-teal-bright/30 via-teal-deep/20 to-teal-bright/20 blur-2xl opacity-50 rounded-[26px]" />
                 <div className="relative bg-paper border border-ink/15 rounded-[22px] shadow-[0_30px_70px_-30px_rgba(11,29,42,0.35),0_2px_8px_-4px_rgba(11,29,42,0.1)] overflow-hidden">
-                  <div className="flex items-center gap-3 pl-5 pr-3 py-3.5">
-                    <Icon icon="lucide:search" className="text-[20px] text-teal shrink-0" />
-                    <input
-                      type="text"
-                      className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-ink/35 w-full"
-                      placeholder="Search 50M+ medical papers, understood in seconds"
-                    />
-                    <span className="hidden md:flex items-center gap-1 px-2 h-7 rounded-md border border-ink/12 text-ink/55 text-[11.5px] mono-stat">⌘K</span>
-                    <Link href="/search" className="btn-primary h-10 px-5 bg-ink text-paper rounded-[12px] text-[13px] font-semibold inline-flex items-center gap-1.5">
-                      Synthesise
-                      <Icon icon="lucide:sparkles" className="text-[14px] text-teal-bright" />
-                    </Link>
-                  </div>
+                  <HeroSearch />
                   {/* Filter rail */}
                   <div className="border-t border-ink/8 px-4 py-2.5 flex items-center gap-2 text-[11.5px] bg-paper-warm/60 overflow-x-auto">
                     {['Cardiology', 'Systematic review', '2022 — 2024'].map((f) => (
@@ -213,9 +211,10 @@ export default async function Home() {
               </div>
               <div className="col-span-12 md:col-span-7 md:pt-12">
                 <p className="serif-body text-[17px] md:text-[18px] leading-[1.55] text-ink-soft max-w-[560px]">
-                  Each paper passes through a pipeline of six specialised AIs &mdash; each one a single-purpose
-                  reviewer with the focus of a third-year fellow. Their outputs are then verified by a
-                  board-certified physician before anything reaches you.
+                  Each paper passes through a pipeline of six specialised AIs, each with a single job.
+                  A seventh checks their work against the source and flags any figure or claim it
+                  cannot trace back. No clinician reviews these summaries &mdash; you are the reviewer,
+                  and the source is always one click away.
                 </p>
               </div>
             </div>
@@ -275,7 +274,8 @@ export default async function Home() {
               <Icon icon="lucide:arrow-right" className="text-ink/30 hidden md:block" />
               <div className="flex items-center gap-3 text-ink-soft">
                 <div className="w-9 h-9 rounded-lg bg-ink text-paper flex items-center justify-center text-[14px]">&#9733;</div>
-                <span className="text-[13px] font-medium">Delivered, under 12 seconds</span>
+                {/* Median pipeline time is ~32s, not "under 12 seconds". */}
+                <span className="text-[13px] font-medium">Delivered in about 30 seconds</span>
               </div>
             </div>
           </div>
@@ -286,16 +286,23 @@ export default async function Home() {
          * ═════════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-28 border-t border-ink/10 bg-paper-warm/40">
           <div className="max-w-[1380px] mx-auto px-6">
+            {/*
+              This block claimed the Egyptian Medical Syndicate and the Arab Board of
+              Health Specialisations "trust Claritas". Neither organisation has any
+              relationship with this product. Naming real accreditation bodies as
+              endorsers when they have not endorsed you is not marketing licence.
+              Replaced with what the corpus actually is.
+            */}
             <div className="text-center max-w-[760px] mx-auto mb-14">
               <div className="text-[10.5px] mono-stat text-teal-deep mb-5">§ 03 &middot; IN PRACTICE</div>
               <h2 className="display text-[36px] md:text-[52px] tracking-tight mb-5">
-                Trusted by the institutions
+                Open literature,
                 <br />
-                that train <span className="italic text-teal">tomorrow&rsquo;s doctors</span>.
+                <span className="italic text-teal">read in minutes</span>.
               </h2>
               <p className="serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.5] max-w-[620px] mx-auto">
-                From the Egyptian Medical Syndicate to the Arab Board of Health Specialisations, the
-                bodies that accredit physicians trust Claritas to keep them current.
+                Claritas is in closed beta. The corpus is open-access research from PubMed Central,
+                summarised by AI and checked against the source &mdash; not a substitute for reading it.
               </p>
             </div>
 
@@ -376,7 +383,7 @@ export default async function Home() {
                           {paper.study_type.replace(/_/g, ' ')}
                         </span>
                         <span className="text-ink/15">|</span>
-                        <span className="mono-stat text-ink/45">{paper.processing_time}ms</span>
+                        <span className="mono-stat text-ink/45">{paper.processing_time?.toFixed(1) ?? '—'}s</span>
                       </div>
                       <span className="mono-stat text-teal-deep">{paper.specialty_tags[0] || 'General'}</span>
                     </div>
@@ -405,7 +412,7 @@ export default async function Home() {
               <span className="italic text-teal-bright">already read.</span>
             </h2>
             <p className="serif-body text-[17px] md:text-[19px] text-paper/75 mt-7 max-w-[620px] mx-auto">
-              Five free papers, every month, forever. The first search takes under twelve seconds.
+              Five free papers, every month, forever.
               No credit card. No commitment. A physician built this for physicians.
             </p>
             <div className="mt-10 flex flex-col md:flex-row items-center justify-center gap-3">
@@ -419,7 +426,8 @@ export default async function Home() {
             </div>
             <div className="mt-8 flex items-center justify-center gap-2 text-[10.5px] mono-stat text-paper/55">
               <Icon icon="lucide:lock" className="text-[12px]" />
-              PHI-LICENSED &middot; GDPR &middot; HIPAA-ALIGNED &middot; SOC 2 IN PROGRESS
+              {/* Was "PHI-LICENSED · GDPR · HIPAA-ALIGNED · SOC 2 IN PROGRESS" — none of it holds. */}
+              CLOSED BETA &middot; AI-GENERATED &middot; NOT CLINICAL ADVICE
             </div>
           </div>
         </section>

@@ -44,7 +44,7 @@ export default function NotFound() {
 
           <p className="fade-in d-3 serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.55] max-w-[480px] mx-auto mb-10">
             The page you&rsquo;re looking for may have been moved, or the URL might be wrong.
-            Start from the Evidence Engine or search our 50 million indexed papers.
+            Start from the Evidence Engine, or search the papers we&rsquo;ve summarised.
           </p>
 
           <div className="fade-in d-4 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -65,15 +65,14 @@ export default function NotFound() {
           </div>
 
           {/* Trust note */}
+          {/* Was "50M+ PAPERS INDEXED · CME ACCREDITED · 1,200+ PHYSICIANS" — none of it true. */}
           <div className="fade-in d-5 mt-14 flex items-center justify-center gap-4 text-[10.5px] mono-stat text-ink/40">
             <span className="flex items-center gap-1.5">
-              <Icon icon="lucide:shield-check" className="text-[11px] text-teal" />
-              50M+ PAPERS INDEXED
+              <Icon icon="lucide:bot" className="text-[11px] text-teal" />
+              AI-SUMMARISED OPEN LITERATURE
             </span>
             <span className="text-ink/20">·</span>
-            <span>CME ACCREDITED</span>
-            <span className="text-ink/20">·</span>
-            <span>1,200+ PHYSICIANS</span>
+            <span>BETA</span>
           </div>
         </div>
       </main>

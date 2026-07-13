@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db
 from models import Paper
-from routers import auth, papers, search
+from routers import auth, papers, user
 from schemas import HealthResponse
 
 # Create all tables on startup
@@ -18,12 +18,19 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    redirect_slashes=False,  # ponytail: trailing-slash 307 breaks CORS preflight — browsers refuse redirects on OPTIONS
 )
 
-# CORS — allow frontend dev server
+# CORS — allow frontend dev server and production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "https://med.aidashnews.tech",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,7 +39,7 @@ app.add_middleware(
 # Mount routers
 app.include_router(auth.router, prefix="/api")
 app.include_router(papers.router, prefix="/api")
-app.include_router(search.router, prefix="/api")
+app.include_router(user.router, prefix="/api")
 
 
 @app.get("/api/health", response_model=HealthResponse, tags=["health"])

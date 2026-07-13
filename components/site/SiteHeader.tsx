@@ -77,9 +77,14 @@ export default function SiteHeader() {
             Pricing
           </Link>
           {user && (
-            <Link href="/account#cme" className={navLinkClass('/account#cme')}>
-              CME credits
-            </Link>
+            <>
+              <Link href="/dashboard" className={navLinkClass('/dashboard')}>
+                Dashboard
+              </Link>
+              <Link href="/search" className={navLinkClass('/search')}>
+                Search
+              </Link>
+            </>
           )}
           <Link href="/account" className={navLinkClass('/account')}>
             Account
@@ -94,7 +99,7 @@ export default function SiteHeader() {
               <Icon icon="lucide:globe" className="text-[14px] text-teal" />
               <span>EN</span>
               <span className="text-ink/30">&middot;</span>
-              <span className="text-ink/55">&Arabic;</span>
+              <span className="text-ink/55">AR</span>
               <Icon icon="lucide:chevron-down" className="text-[13px] text-ink/40" />
             </button>
           </div>

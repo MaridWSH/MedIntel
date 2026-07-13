@@ -1,214 +1,177 @@
 'use client';
 
-import { useState } from 'react';
 import Icon from '../../ui/Icon';
 import type { Paper } from '../../../lib/papers/types';
 
-interface Domain {
-  name: string;
-  score: number;
-  rob: string;
-  color: 'teal' | 'amber';
-}
+/**
+ * Summary fidelity check.
+ *
+ * IMPORTANT: `verification` is the pipeline's self-check on its OWN summary —
+ * did the extracted numbers and claims faithfully match the source paper. It is
+ * NOT a GRADE appraisal or a risk-of-bias assessment of the study itself, and it
+ * must not be presented as one. `bias_flags` are claims the verifier flagged as
+ * unsupported; `limitations` are the verifier's recommendations.
+ *
+ * Scores are on a 0..1 scale.
+ */
 
-interface BiasFlag {
-  title: string;
-  raised: boolean;
-  severity: string;
-  description: string;
+const pct = (score: number) => `${Math.round(score * 100)}%`;
+
+function gradeLabel(grade: string): string {
+  switch (grade) {
+    case 'A':
+      return 'Summary matches the source closely';
+    case 'B':
+      return 'Minor discrepancies from the source';
+    case 'C':
+      return 'Some claims could not be verified';
+    case 'D':
+      return 'Several claims could not be verified';
+    default:
+      return 'Summary did not pass verification';
+  }
 }
 
 export default function AppraisalPane({ paper }: { paper: Paper }) {
-  const verification = paper.verification || {};
+  const verification = paper.verification;
 
-  // Score from backend or fallback
-  const score = typeof verification['score'] === 'number' 
-    ? verification['score'] 
-    : typeof verification['methodology_score'] === 'number'
-    ? verification['methodology_score']
-    : null;
+  if (!verification) {
+    return (
+      <section className="space-y-4">
+        <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-10 text-center">
+          <Icon icon="lucide:shield-question" className="text-[48px] text-ink/20 mx-auto mb-4" />
+          <h3 className="serif text-[22px] tracking-tight text-ink/40 mb-2">Not verified</h3>
+          <p className="text-[14px] text-ink/40 max-w-[420px] mx-auto">
+            This paper&rsquo;s summary has not been through the verification step, so we
+            can&rsquo;t tell you how closely it tracks the source. Read the original before
+            relying on it.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
-  // Domains from backend or fallback
-  const domains: Domain[] = Array.isArray(verification['domains']) 
-    ? (verification['domains'] as Domain[])
-    : score !== null ? [
-        { name: 'RANDOMISATION', score: 8, rob: 'LOW', color: 'teal' },
-        { name: 'ALLOCATION', score: 7, rob: 'LOW', color: 'teal' },
-        { name: 'BLINDING', score: 6, rob: 'SOME', color: 'amber' },
-        { name: 'ATTRITION', score: 9, rob: 'LOW', color: 'teal' },
-      ] : [];
-
-  // Bias flags from backend or fallback
-  const biasFlags: BiasFlag[] = Array.isArray(verification['bias_flags']) 
-    ? (verification['bias_flags'] as BiasFlag[])
-    : score !== null ? [
-        { title: 'Selection Bias', raised: false, severity: 'LOW', description: 'Randomisation was adequate and allocation concealment was maintained.' },
-        { title: 'Performance Bias', raised: false, severity: 'LOW', description: 'Double-blind design minimised differential treatment.' },
-        { title: 'Detection Bias', raised: false, severity: 'LOW', description: 'Outcome assessors were blinded to group allocation.' },
-      ] : [];
-
-  // Limitations from backend or fallback
-  const limitations = Array.isArray(verification['limitations']) 
-    ? (verification['limitations'] as string[])
-    : score !== null ? [
-        'Single specialty focus limits generalisability.',
-        'Follow-up duration may be insufficient for rare events.',
-      ] : [];
-
-  // Grade from backend
-  const grade = String(verification['grade'] || '');
-  const gradeDescription = String(verification['grade_description'] || '');
-
-  // Calculate gauge position
-  const gaugeX = score !== null ? 2 + (score / 10) * 316 : 0;
-
-  // Count raised vs cleared
-  const raisedCount = biasFlags.filter(f => f.raised).length;
-  const clearedCount = biasFlags.filter(f => !f.raised).length;
+  const { score, grade, domains, bias_flags: flaggedClaims, limitations: recommendations, passed } = verification;
 
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
           <span className="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink" />
-          AGENT 04 &middot; CRITICAL APPRAISAL &middot; {paper.processing_time?.toFixed(1) || '2.1'}s
+          AGENT 04 &middot; SUMMARY FIDELITY CHECK
         </div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-ink/15 text-[10.5px] mono-stat text-ink-soft">
-          <Icon icon="lucide:layers" className="text-[12px] text-teal" />
-          GRADE WORKING GROUP
+        <div
+          className={`inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[10.5px] mono-stat font-semibold ${
+            passed ? 'bg-teal-deep text-paper' : 'bg-amber-bg border border-amber-ink/30 text-amber-ink'
+          }`}
+        >
+          <Icon icon={passed ? 'lucide:check-circle-2' : 'lucide:alert-triangle'} className="text-[12px]" />
+          {passed ? 'PASSED' : 'NEEDS REVIEW'}
         </div>
       </div>
 
-      {score !== null ? (
-        <>
-          {/* Methodology score */}
-          <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-7">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="serif text-[22px] tracking-tight">Methodology score</h3>
-              <div className="flex items-baseline gap-1">
-                <span className="serif text-[44px] leading-none text-teal-deep">{score}</span>
-                <span className="text-[14px] text-ink/40 mono">/ 10</span>
-              </div>
-            </div>
+      {/* What this number is — stated plainly, so it can't be mistaken for a GRADE rating. */}
+      <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-ink/[0.03] border border-ink/10">
+        <Icon icon="lucide:info" className="text-[15px] text-teal shrink-0 mt-0.5" />
+        <p className="text-[12.5px] text-ink-soft leading-[1.5]">
+          This measures how faithfully our AI summary reflects the source paper &mdash; not the
+          quality of the study itself. It is not a GRADE rating or a risk-of-bias assessment.
+        </p>
+      </div>
 
-            {/* Gauge */}
-            <div className="relative mb-5">
-              <svg viewBox="0 0 320 14" className="w-full">
-                <line x1="2" y1="7" x2="318" y2="7" stroke="#0b1d2a15" strokeWidth="2" strokeLinecap="round" />
-                <line x1="2" y1="7" x2={gaugeX} y2="7" stroke="#0b7d72" strokeWidth="2" strokeLinecap="round" />
-                <circle cx={gaugeX} cy="7" r="7" fill="#0b7d72" stroke="#f6f3ea" strokeWidth="2" />
-              </svg>
-              <div className="flex justify-between text-[9.5px] mono-stat text-ink/45 mt-2">
-                <span>POOR</span>
-                <span>FAIR</span>
-                <span className="text-teal-deep">GOOD {score}</span>
-                <span>ROBUST</span>
-              </div>
-            </div>
-
-            {/* Domain scores */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              {domains.map((d) => (
-                <div key={d.name} className="border border-ink/10 rounded-xl p-3.5 bg-paper">
-                  <div className="text-[9.5px] mono-stat text-ink/50 mb-1.5">{d.name}</div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[16px] font-semibold text-ink">{d.score}</span>
-                    <span className={`text-[9.5px] mono-stat ${d.color === 'teal' ? 'text-teal-deep' : 'text-amber-ink'}`}>
-                      {d.rob}
-                    </span>
-                  </div>
-                  <div className="h-1 mt-2 bg-ink/8 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${d.color === 'teal' ? 'bg-teal-deep' : 'bg-amber-ink'}`}
-                      style={{ width: `${d.score * 10}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+      {/* Accuracy score */}
+      <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-7">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="serif text-[22px] tracking-tight">Summary accuracy</h3>
+          <div className="flex items-center gap-3">
+            <span className="serif text-[44px] leading-none text-teal-deep">{pct(score)}</span>
+            <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-ink text-paper serif text-[20px]">
+              {grade}
             </div>
           </div>
+        </div>
 
-          {/* Bias flags */}
-          <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-7">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="serif text-[22px] tracking-tight">Bias flags</h3>
-              <span className="text-[10.5px] mono-stat text-amber-ink">
-                {raisedCount} RAISED &middot; {clearedCount} CLEARED
-              </span>
-            </div>
-            <div className="space-y-2.5">
-              {biasFlags.map((flag) => (
+        <div className="relative mb-2">
+          <svg viewBox="0 0 320 14" className="w-full">
+            <line x1="2" y1="7" x2="318" y2="7" stroke="#0b1d2a15" strokeWidth="2" strokeLinecap="round" />
+            <line
+              x1="2"
+              y1="7"
+              x2={2 + score * 316}
+              y2="7"
+              stroke="#0b7d72"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <circle cx={2 + score * 316} cy="7" r="7" fill="#0b7d72" stroke="#f6f3ea" strokeWidth="2" />
+          </svg>
+        </div>
+        <p className="text-[12.5px] text-ink-soft mb-5">{gradeLabel(grade)}</p>
+
+        {/* Real sub-scores from the API — no invented domains. */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {[
+            { name: 'NUMERICAL ACCURACY', value: domains.numerical, hint: 'Do the reported figures match the paper?' },
+            { name: 'FACTUAL ACCURACY', value: domains.factual, hint: 'Do the claims match the paper?' },
+          ].map((d) => (
+            <div key={d.name} className="border border-ink/10 rounded-xl p-3.5 bg-paper">
+              <div className="text-[9.5px] mono-stat text-ink/50 mb-1.5">{d.name}</div>
+              <div className="text-[18px] font-semibold text-ink mb-2">{pct(d.value)}</div>
+              <div className="h-1 bg-ink/8 rounded-full overflow-hidden">
                 <div
-                  key={flag.title}
-                  className={`flex items-start gap-3 p-3.5 rounded-xl ${
-                    flag.raised
-                      ? 'bg-amber-bg/50 border border-amber-ink/25'
-                      : 'bg-teal-deep/[0.06] border border-teal-deep/20'
-                  }`}
-                >
-                  <Icon
-                    icon={flag.raised ? 'lucide:alert-triangle' : 'lucide:check'}
-                    className={`text-[18px] mt-0.5 ${flag.raised ? 'text-amber-ink' : 'text-teal-deep'}`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[13px] font-semibold text-ink">{flag.title}</span>
-                      <span
-                        className={`text-[9.5px] mono-stat ${
-                          flag.raised ? 'text-amber-ink' : 'text-teal-deep'
-                        }`}
-                      >
-                        {flag.severity}
-                      </span>
-                    </div>
-                    <p className="text-[12.5px] text-ink-soft leading-[1.5]">{flag.description}</p>
-                  </div>
-                </div>
-              ))}
+                  className={`h-full rounded-full ${d.value >= 0.75 ? 'bg-teal-deep' : 'bg-amber-ink'}`}
+                  style={{ width: `${d.value * 100}%` }}
+                />
+              </div>
+              <div className="text-[10.5px] text-ink/45 mt-2 leading-[1.4]">{d.hint}</div>
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          {/* Limitations */}
-          <div className="bg-amber-bg/40 border border-amber-ink/30 rounded-3xl p-7">
-            <div className="flex items-center gap-2 mb-5">
-              <Icon icon="lucide:alert-octagon" className="text-[20px] text-amber-ink" />
-              <h3 className="serif text-[22px] tracking-tight text-amber-ink">Limitations</h3>
-            </div>
-            <ul className="space-y-3 text-[13px] text-ink-soft leading-[1.55]">
-              {limitations.map((lim) => {
-                const dashIdx = lim.indexOf(' \u2014 ');
-                return (
-                  <li key={lim} className="flex items-start gap-2.5">
-                    <span className="text-amber-ink mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-ink shrink-0" />
-                    <span>
-                      {dashIdx > 0 ? (
-                        <>
-                          <span className="font-medium text-ink">{lim.slice(0, dashIdx)}</span>
-                          {lim.slice(dashIdx)}
-                        </>
-                      ) : (
-                        lim
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+      {/* Claims the verifier could not support */}
+      <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-7">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="serif text-[22px] tracking-tight">Flagged claims</h3>
+          <span className="text-[10.5px] mono-stat text-ink/45">{flaggedClaims.length} FLAGGED</span>
+        </div>
+        {flaggedClaims.length > 0 ? (
+          <div className="space-y-2.5">
+            {flaggedClaims.map((claim, i) => (
+              <div
+                key={`${i}-${claim.slice(0, 24)}`}
+                className="flex items-start gap-3 p-3.5 rounded-xl bg-amber-bg/50 border border-amber-ink/25"
+              >
+                <Icon icon="lucide:alert-triangle" className="text-[18px] mt-0.5 text-amber-ink shrink-0" />
+                <p className="text-[12.5px] text-ink-soft leading-[1.5]">{claim}</p>
+              </div>
+            ))}
           </div>
-        </>
-      ) : (
-        /* No verification data from backend */
-        <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-10 text-center">
-          <Icon icon="lucide:shield-question" className="text-[48px] text-ink/20 mx-auto mb-4" />
-          <h3 className="serif text-[22px] tracking-tight text-ink/40 mb-2">No Appraisal Data</h3>
-          <p className="text-[14px] text-ink/40 max-w-[400px] mx-auto">
-            Critical appraisal data is not available for this paper. 
-            This may be because the paper is still under review or the analysis is pending.
-          </p>
-          <div className="mt-6 inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-ink/5 text-[12px] text-ink/50">
-            <Icon icon="lucide:clock" className="text-[14px]" />
-            Analysis in progress
+        ) : (
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-teal-deep/[0.06] border border-teal-deep/20">
+            <Icon icon="lucide:check" className="text-[18px] mt-0.5 text-teal-deep shrink-0" />
+            <p className="text-[12.5px] text-ink-soft leading-[1.5]">
+              The verifier did not flag any claim in this summary as unsupported by the source.
+            </p>
           </div>
+        )}
+      </div>
+
+      {/* Verifier recommendations */}
+      {recommendations.length > 0 && (
+        <div className="bg-amber-bg/40 border border-amber-ink/30 rounded-3xl p-7">
+          <div className="flex items-center gap-2 mb-5">
+            <Icon icon="lucide:alert-octagon" className="text-[20px] text-amber-ink" />
+            <h3 className="serif text-[22px] tracking-tight text-amber-ink">Reviewer notes</h3>
+          </div>
+          <ul className="space-y-3 text-[13px] text-ink-soft leading-[1.55]">
+            {recommendations.map((rec, i) => (
+              <li key={`${i}-${rec.slice(0, 24)}`} className="flex items-start gap-2.5">
+                <span className="text-amber-ink mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-ink shrink-0" />
+                <span>{rec}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </section>

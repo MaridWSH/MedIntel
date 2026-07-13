@@ -1,194 +1,165 @@
 'use client';
 
-import { useState } from 'react';
 import Icon from '../../ui/Icon';
 import type { Paper } from '../../../lib/papers/types';
 
-interface PracticePoint {
-  type: 'positive' | 'caution';
-  title: string;
-  description: string;
-}
+/**
+ * Clinical relevance.
+ *
+ * Everything here comes from `key_findings`. There are no invented fallbacks:
+ * a paper with no findings says so. `practice_points` are plain strings straight
+ * from the extractor — they are the model's claims, not vetted clinical guidance,
+ * and the disclaimer below must stay.
+ */
+
+const EVIDENCE_STYLES: Record<string, string> = {
+  high: 'bg-teal-deep text-paper',
+  moderate: 'bg-amber-bg border border-amber-ink/30 text-amber-ink',
+  low: 'bg-ink/[0.06] border border-ink/15 text-ink-soft',
+  very_low: 'bg-ink/[0.06] border border-ink/15 text-ink-soft',
+};
+
+const FINDING_TYPE_LABELS: Record<string, string> = {
+  primary_outcome: 'Primary outcome',
+  secondary_outcome: 'Secondary outcome',
+  clinical_implication: 'Clinical implication',
+  safety: 'Safety',
+};
 
 export default function RelevancePane({ paper }: { paper: Paper }) {
-  // Signal from backend or fallback
-  const signal = String(paper.key_findings?.['signal'] || '');
-  const isPracticeChanging = signal.toLowerCase().includes('practice') || signal.toLowerCase().includes('changing');
+  const kf = paper.key_findings;
+  const pico = paper.pico_summary;
+  const picoEntries = pico ? Object.entries(pico) : [];
 
-  // Summary from backend
-  const summary = paper.detailed_summary || paper.tldr || 'No clinical summary available.';
+  if (!kf || (kf.findings.length === 0 && kf.practice_points.length === 0)) {
+    return (
+      <section className="space-y-4">
+        <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-10 text-center">
+          <Icon icon="lucide:clipboard-list" className="text-[48px] text-ink/20 mx-auto mb-4" />
+          <h3 className="serif text-[22px] tracking-tight text-ink/40 mb-2">No findings extracted</h3>
+          <p className="text-[14px] text-ink/40 max-w-[420px] mx-auto">
+            We haven&rsquo;t extracted structured findings from this paper, so there is nothing
+            to report on clinical relevance. The summary and the original paper are still available.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
-  // PICO from backend
-  const pico = paper.pico_summary || {};
-  const picoEntries = Object.entries(pico);
-
-  // Grade from backend
-  const grade = String(paper.verification?.['grade'] || '');
-  const gradeDescription = String(paper.verification?.['grade_description'] || '');
-  const confidence = String(paper.verification?.['confidence'] || '');
-
-  // Practice points from backend or fallback
-  const practicePoints: PracticePoint[] = Array.isArray(paper.key_findings?.['practice_points'])
-    ? (paper.key_findings['practice_points'] as PracticePoint[])
-    : signal ? [
-        {
-          type: 'positive',
-          title: 'Consider adding to guideline',
-          description: 'The effect size is clinically meaningful and consistent across key subgroups.',
-        },
-        {
-          type: 'positive',
-          title: 'Discuss with eligible patients',
-          description: 'Patients should be informed of this option as part of shared decision-making.',
-        },
-        {
-          type: 'caution',
-          title: 'Monitor for adverse effects',
-          description: 'Close monitoring may be required depending on intervention type.',
-        },
-      ] : [];
-
-  // Specialty tags from backend
-  const specialties = paper.specialty_tags || [];
+  const evidence = (kf.overall_evidence_level || '').toLowerCase();
+  const evidenceStyle = EVIDENCE_STYLES[evidence] || EVIDENCE_STYLES.low;
 
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
           <span className="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink" />
-          AGENT 05 &middot; CLINICAL RELEVANCE &middot; {paper.processing_time?.toFixed(1) || '0.8'}s
+          AGENT 05 &middot; CLINICAL RELEVANCE
         </div>
-        <div className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full bg-teal-deep text-paper text-[10.5px] mono-stat font-semibold">
-          <Icon icon="lucide:zap" className="text-[12px] text-teal-bright" />
-          {isPracticeChanging ? 'PRACTICE-CHANGING' : signal.toUpperCase() || 'REVIEW NEEDED'}
-        </div>
+        {evidence && (
+          <div className={`inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[10.5px] mono-stat font-semibold ${evidenceStyle}`}>
+            <Icon icon="lucide:signal" className="text-[12px]" />
+            {evidence.replace('_', ' ').toUpperCase()} EVIDENCE
+          </div>
+        )}
       </div>
 
-      {signal || practicePoints.length > 0 ? (
-        <>
-          {/* Practice-change banner */}
-          <div className="relative bg-ink text-paper rounded-3xl p-7 md:p-9 overflow-hidden">
-            <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-teal-bright/25 blur-3xl pointer-events-none" />
-            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <div className="text-[10.5px] mono-stat text-teal-bright mb-3">{signal || 'CLINICAL ASSESSMENT'}</div>
-                <h3 className="serif text-[26px] md:text-[34px] tracking-tight text-paper leading-[1.05] mb-3">
-                  {isPracticeChanging ? 'Yes, this paper changes practice.' : 'Clinical relevance assessment.'}
-                </h3>
-                <p className="serif-body text-[15.5px] text-paper/75 leading-[1.55] max-w-[480px]">
-                  {summary}
-                </p>
+      {/* Headline signal */}
+      {kf.signal && (
+        <div className="relative bg-ink text-paper rounded-3xl p-7 md:p-9 overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-teal-bright/25 blur-3xl pointer-events-none" />
+          <div className="relative">
+            <div className="text-[10.5px] mono-stat text-teal-bright mb-3">HEADLINE FINDING</div>
+            <p className="serif text-[22px] md:text-[27px] tracking-tight text-paper leading-[1.3] max-w-[680px]">
+              {kf.signal}
+            </p>
+            {kf.sample_size && (
+              <div className="mt-5 inline-flex items-center gap-2 px-3 h-8 rounded-lg bg-paper/10 text-[11.5px] mono-stat text-paper/80">
+                <Icon icon="lucide:users" className="text-[13px] text-teal-bright" />
+                SAMPLE {kf.sample_size}
               </div>
-              <div className="md:col-span-1 flex flex-col gap-3 md:items-end justify-center">
-                <div className="inline-flex items-center gap-2 px-4 h-12 rounded-2xl bg-teal-bright text-ink text-[14px] font-bold">
-                  <Icon icon="lucide:zap" className="text-[18px]" />
-                  {isPracticeChanging ? 'PRACTICE-CHANGING' : signal.toUpperCase() || 'PENDING'}
-                </div>
-                <div className="text-[10.5px] mono-stat text-paper/60 text-right">{confidence || 'Assessment pending'}</div>
-              </div>
-            </div>
+            )}
           </div>
+        </div>
+      )}
 
-          {/* Specialty tags + evidence grade */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="bg-paper-warm/50 border border-ink/10 rounded-2xl p-5">
-              <div className="text-[10.5px] mono-stat text-ink/55 mb-3">SPECIALTY TAGS</div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {specialties.length > 0 ? (
-                  specialties.map((s, i) => (
-                    <span
-                      key={s}
-                      className={
-                        i === 0
-                          ? 'px-3 h-8 rounded-full bg-ink text-paper text-[12px] font-medium inline-flex items-center gap-1.5'
-                          : 'px-3 h-8 rounded-full bg-ink/[0.04] border border-ink/10 text-[12px] text-ink-soft inline-flex items-center'
-                      }
-                    >
-                      {i === 0 && <Icon icon="lucide:heart-pulse" className="text-[13px] text-teal-bright" />}
-                      {s}
+      {/* Findings, with the evidence the model actually cited */}
+      {kf.findings.length > 0 && (
+        <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-7">
+          <h3 className="serif text-[22px] tracking-tight mb-5">Extracted findings</h3>
+          <div className="space-y-3">
+            {kf.findings.map((f, i) => (
+              <div key={`${i}-${f.claim.slice(0, 24)}`} className="p-4 rounded-xl bg-paper border border-ink/10">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {f.finding_type && (
+                    <span className="text-[9.5px] mono-stat px-2 h-5 inline-flex items-center rounded bg-teal-deep/10 text-teal-deep">
+                      {(FINDING_TYPE_LABELS[f.finding_type] || f.finding_type.replace(/_/g, ' ')).toUpperCase()}
                     </span>
-                  ))
-                ) : (
-                  <span className="text-[13px] text-ink/40">No tags available</span>
+                  )}
+                  {f.evidence_strength && (
+                    <span className="text-[9.5px] mono-stat text-ink/45">
+                      {f.evidence_strength.toUpperCase()} STRENGTH
+                    </span>
+                  )}
+                  {f.limitations_noted && (
+                    <span className="text-[9.5px] mono-stat px-2 h-5 inline-flex items-center rounded bg-amber-bg text-amber-ink">
+                      LIMITATIONS NOTED
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-[14px] text-ink leading-[1.55] mb-2">{f.claim}</p>
+
+                {f.statistical_support && (
+                  <p className="text-[12px] mono-stat text-ink-soft bg-ink/[0.03] rounded-lg px-3 py-2 mb-2">
+                    {f.statistical_support}
+                  </p>
+                )}
+
+                {f.source_quote && (
+                  <blockquote className="border-l-2 border-teal/40 pl-3 text-[12.5px] text-ink/60 italic leading-[1.5]">
+                    &ldquo;{f.source_quote}&rdquo;
+                  </blockquote>
                 )}
               </div>
-            </div>
-            <div className="bg-paper-warm/50 border border-ink/10 rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-[10.5px] mono-stat text-ink/55">EVIDENCE GRADE</div>
-                <span className="text-[9.5px] mono-stat text-teal-deep">GRADE WORKING GROUP</span>
-              </div>
-              {grade ? (
-                <div className="flex items-center gap-3">
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-deep text-paper serif text-[26px] font-medium">
-                    {grade}
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[13.5px] font-semibold text-ink">High quality</div>
-                    <div className="text-[11.5px] text-ink-soft leading-[1.45]">{gradeDescription || 'Evidence quality assessment'}</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-[13px] text-ink/40">No grade available</div>
-              )}
-            </div>
+            ))}
           </div>
+        </div>
+      )}
 
-          {/* Practice points */}
-          {practicePoints.length > 0 && (
-            <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-7">
-              <h3 className="serif text-[22px] tracking-tight mb-5">What this means in clinic</h3>
-              <div className="space-y-3">
-                {practicePoints.map((pt) => (
-                  <div
-                    key={pt.title}
-                    className={`flex items-start gap-3 p-3.5 rounded-xl ${
-                      pt.type === 'positive'
-                        ? 'bg-teal-deep/[0.06] border border-teal-deep/20'
-                        : 'bg-amber-bg/50 border border-amber-ink/25'
-                    }`}
-                  >
-                    <Icon
-                      icon={pt.type === 'positive' ? 'lucide:check-circle-2' : 'lucide:alert-circle'}
-                      className={`text-[18px] mt-0.5 ${pt.type === 'positive' ? 'text-teal-deep' : 'text-amber-ink'}`}
-                    />
-                    <div>
-                      <div className="text-[13.5px] font-medium text-ink mb-1">{pt.title}</div>
-                      <div className="text-[12.5px] text-ink-soft leading-[1.5]">{pt.description}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PICO Summary if available */}
-          {picoEntries.length > 0 && (
-            <div className="bg-paper-warm/50 border border-ink/10 rounded-2xl p-5">
-              <div className="text-[10.5px] mono-stat text-ink/55 mb-3">PICO SUMMARY</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {picoEntries.map(([key, value]) => (
-                  <div key={key} className="p-3 rounded-lg bg-ink/[0.03] border border-ink/10">
-                    <span className="text-[10px] mono-stat text-teal-deep uppercase">{key}</span>
-                    <p className="text-[13px] text-ink-soft mt-1">{String(value)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        /* No relevance data from backend */
-        <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-10 text-center">
-          <Icon icon="lucide:clipboard-list" className="text-[48px] text-ink/20 mx-auto mb-4" />
-          <h3 className="serif text-[22px] tracking-tight text-ink/40 mb-2">No Clinical Relevance Data</h3>
-          <p className="text-[14px] text-ink/40 max-w-[400px] mx-auto">
-            Clinical relevance assessment is not available for this paper yet.
-            This may be because the analysis is still in progress.
+      {/* Practice points — the model's words, labelled as such */}
+      {kf.practice_points.length > 0 && (
+        <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-7">
+          <h3 className="serif text-[22px] tracking-tight mb-2">Practice points</h3>
+          <p className="text-[12px] text-ink/50 mb-5 leading-[1.5]">
+            AI-extracted from this single paper. Not clinical guidance, not peer reviewed, and not a
+            substitute for the source or for professional judgement.
           </p>
-          <div className="mt-6 inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-ink/5 text-[12px] text-ink/50">
-            <Icon icon="lucide:clock" className="text-[14px]" />
-            Analysis in progress
+          <div className="space-y-3">
+            {kf.practice_points.map((point, i) => (
+              <div
+                key={`${i}-${point.slice(0, 24)}`}
+                className="flex items-start gap-3 p-3.5 rounded-xl bg-teal-deep/[0.06] border border-teal-deep/20"
+              >
+                <Icon icon="lucide:corner-down-right" className="text-[16px] mt-0.5 text-teal-deep shrink-0" />
+                <p className="text-[13px] text-ink-soft leading-[1.55]">{point}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* PICO */}
+      {picoEntries.length > 0 && (
+        <div className="bg-paper-warm/50 border border-ink/10 rounded-2xl p-5">
+          <div className="text-[10.5px] mono-stat text-ink/55 mb-3">PICO SUMMARY</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {picoEntries.map(([key, value]) => (
+              <div key={key} className="p-3 rounded-lg bg-ink/[0.03] border border-ink/10">
+                <span className="text-[10px] mono-stat text-teal-deep uppercase">{key}</span>
+                <p className="text-[13px] text-ink-soft mt-1 leading-[1.5]">{String(value)}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

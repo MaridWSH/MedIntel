@@ -1,48 +1,84 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Icon from '../ui/Icon';
 import TabNav from './TabNav';
 import PaperSidebar from './PaperSidebar';
 import TldrPane from './panes/TldrPane';
+import FullTextPane from './panes/FullTextPane';
 import MindMapPane from './panes/MindMapPane';
 import InfographicPane from './panes/InfographicPane';
 import AppraisalPane from './panes/AppraisalPane';
 import RelevancePane from './panes/RelevancePane';
-import type { Paper } from '../../lib/papers/types';
+import { savePaper, unsavePaper, isPaperSaved } from '../../lib/api';
+import type { FullText, Paper } from '../../lib/papers/types';
 
-export default function PaperDetailView({ paper }: { paper: Paper }) {
-  const [activeTab, setActiveTab] = useState('tldr');
+interface PaperDetailViewProps {
+  paper: Paper;
+  /** Server-fetched; null when we hold no text for this paper. */
+  fullText: FullText | null;
+}
+
+export default function PaperDetailView({ paper, fullText }: PaperDetailViewProps) {
+  // The pipeline produced no summary for ~52% of papers. When that's the case the
+  // TLDR tab has nothing to show, so open on the source text instead.
+  const hasSummary = Boolean(paper.tldr?.trim() || paper.detailed_summary?.trim());
+  const sections = fullText?.available ? fullText.sections : [];
+
+  const [activeTab, setActiveTab] = useState(hasSummary ? 'tldr' : 'fulltext');
   const [saved, setSaved] = useState(false);
   const [following, setFollowing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [pendingSection, setPendingSection] = useState<string | null>(null);
 
-  // Load saved/follow states from localStorage on mount
+  // Load saved state from backend API
   useEffect(() => {
-    const savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
-    const followedTopics = JSON.parse(localStorage.getItem('followedTopics') || '[]');
-    setSaved(savedPapers.includes(paper.id));
-    setFollowing(followedTopics.some((t: any) => t.id === paper.id));
+    isPaperSaved(paper.id)
+      .then(setSaved)
+      .catch(() => setSaved(false));
   }, [paper.id]);
+
+  /**
+   * Sidebar → full-text tab → scroll to the section.
+   *
+   * The scroll runs in an effect rather than straight after setActiveTab: when
+   * the jump also switches tabs, FullTextPane hasn't mounted yet and the anchor
+   * doesn't exist. Recording the target and scrolling once the pane is committed
+   * is deterministic; scheduling a callback off the click is a race.
+   */
+  const goToSection = useCallback((sectionId: string) => {
+    setActiveTab('fulltext');
+    setPendingSection(sectionId);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'fulltext' || !pendingSection) return;
+    document
+      .getElementById(`section-${pendingSection}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setPendingSection(null);
+  }, [activeTab, pendingSection]);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   };
 
-  // 1. SAVE / BOOKMARK
-  const toggleSave = () => {
-    const savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
-    let updated;
-    if (saved) {
-      updated = savedPapers.filter((id: string) => id !== paper.id);
-      showToast('Removed from saved papers');
-    } else {
-      updated = [...savedPapers, paper.id];
-      showToast('Saved to your collection');
+  // 1. SAVE / BOOKMARK — calls backend API
+  const toggleSave = async () => {
+    try {
+      if (saved) {
+        await unsavePaper(paper.id);
+        showToast('Removed from saved papers');
+      } else {
+        await savePaper(paper.id);
+        showToast('Saved to your collection');
+      }
+      setSaved(!saved);
+    } catch (err) {
+      console.error('Failed to toggle save:', err);
+      showToast('Failed to update — please try again');
     }
-    localStorage.setItem('savedPapers', JSON.stringify(updated));
-    setSaved(!saved);
   };
 
   // 2. SHARE - Copy link to clipboard
@@ -90,7 +126,10 @@ export default function PaperDetailView({ paper }: { paper: Paper }) {
     ? Object.entries(paper.pico_summary).slice(0, 3)
     : [];
 
-  const isValidated = !paper.has_errors;
+  // `verification.passed` means the summary matched the source paper under our
+  // fidelity check. It says nothing about the study's own quality, and it is not
+  // a peer-review status — do not relabel it as either.
+  const fidelityPassed = paper.verification?.passed ?? false;
 
   return (
     <main className="relative bg-paper">
@@ -170,64 +209,112 @@ export default function PaperDetailView({ paper }: { paper: Paper }) {
             {/* Title + meta + badges */}
             <header className="pb-7 border-b border-ink/10">
               <div className="flex flex-wrap items-center gap-2 mb-4 text-[11px] mono-stat text-ink/55">
-                <span className="text-ink-soft font-semibold">{paper.study_type}</span>
-                <span className="text-ink/25">&middot;</span>
-                <span>{paper.specialty_tags?.join(', ')}</span>
-                <span className="text-ink/25">&middot;</span>
-                <span>ID {paper.id}</span>
-                <span className="text-ink/25">&middot;</span>
-                <span>{paper.processing_time?.toFixed(2)}s processing</span>
+                {paper.study_type && (
+                  <>
+                    <span className="text-ink-soft font-semibold">{paper.study_type}</span>
+                    <span className="text-ink/25">&middot;</span>
+                  </>
+                )}
+                {paper.specialty_tags?.length > 0 && (
+                  <>
+                    <span>{paper.specialty_tags.join(', ')}</span>
+                    <span className="text-ink/25">&middot;</span>
+                  </>
+                )}
+                <span>{paper.id}</span>
               </div>
 
               <h1 className="display text-[34px] md:text-[44px] tracking-[-0.02em] max-w-[760px] mb-3">
                 {paper.title}
               </h1>
 
-              <p className="text-[13px] text-ink/60 italic mb-5">
-                {paper.detailed_summary?.slice(0, 120)}...
+              {/* Real provenance, rather than a truncated slice of the summary. */}
+              <p className="text-[13px] text-ink/60 mb-5 max-w-[720px] leading-[1.5]">
+                {paper.journal && <span className="italic">{paper.journal}</span>}
+                {paper.journal && paper.authors_count > 0 && <span className="text-ink/30"> &middot; </span>}
+                {paper.authors_count > 0 && (
+                  <span>
+                    {paper.authors_count} author{paper.authors_count === 1 ? '' : 's'}
+                    {paper.centers_count > 0 && `, ${paper.centers_count} centre${paper.centers_count === 1 ? '' : 's'}`}
+                  </span>
+                )}
               </p>
 
               <div className="flex flex-wrap items-center gap-2">
-                {isValidated && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink text-paper">
-                    <span className="w-1.5 h-1.5 rounded-full bg-teal-bright" />
-                    <span className="text-[10.5px] mono-stat font-semibold tracking-wider">VALIDATED</span>
-                    <Icon icon="lucide:badge-check" className="text-[13px] text-teal-bright" />
+                {/*
+                  AI-generated is the single most important thing a clinician can know
+                  about this page. It leads, and it is not dressed up as a credential.
+                */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink text-paper">
+                  <Icon icon="lucide:bot" className="text-[13px] text-teal-bright" />
+                  <span className="text-[10.5px] mono-stat font-semibold tracking-wider">AI SUMMARY</span>
+                </div>
+
+                {paper.verification && (
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${
+                      fidelityPassed
+                        ? 'border-teal-deep/30 bg-teal-deep/[0.07]'
+                        : 'border-amber-ink/30 bg-amber-bg/60'
+                    }`}
+                    title="How closely our summary matches the source paper. Not a quality rating of the study."
+                  >
+                    <Icon
+                      icon={fidelityPassed ? 'lucide:shield-check' : 'lucide:shield-alert'}
+                      className={`text-[12px] ${fidelityPassed ? 'text-teal-deep' : 'text-amber-ink'}`}
+                    />
+                    <span
+                      className={`text-[10.5px] mono-stat font-medium ${
+                        fidelityPassed ? 'text-teal-deep' : 'text-amber-ink'
+                      }`}
+                    >
+                      FIDELITY {Math.round(paper.verification.score * 100)}%
+                    </span>
                   </div>
                 )}
 
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-ink/15 bg-paper-warm/60">
-                  <Icon icon="lucide:user-round-check" className="text-[12px] text-teal" />
-                  <span className="text-[11px] text-ink-soft font-medium">{paper.study_type}</span>
-                </div>
-
-                <div className="w-px h-6 bg-ink/12 mx-1" />
+                {picoEntries.length > 0 && <div className="w-px h-6 bg-ink/12 mx-1" />}
 
                 {picoEntries.map(([key, value]) => (
                   <div
                     key={key}
-                    className="inline-flex items-center gap-1 px-2.5 h-7 rounded-md bg-ink/8 border border-ink/10"
+                    className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-ink/[0.05] border border-ink/10 max-w-[220px]"
                   >
-                    <span className="text-[10.5px] mono-stat text-ink/55">
+                    <span className="text-[10.5px] mono-stat text-ink/55 shrink-0">
                       {key.toUpperCase()}
                     </span>
-                    <span className="text-[12px] mono-stat font-medium text-ink-soft truncate max-w-[120px]">
-                      {String(value).slice(0, 15)}
+                    <span className="text-[12px] font-medium text-ink-soft truncate">
+                      {String(value)}
                     </span>
                   </div>
                 ))}
-
-                <div className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-amber-bg border border-amber-ink/20">
-                  <Icon icon="lucide:check-circle-2" className="text-[12px] text-amber-ink" />
-                  <span className="text-[10.5px] mono-stat text-amber-ink">PEER REVIEWED</span>
-                </div>
               </div>
+
+              {/* Standing disclaimer — this is a medical product. */}
+              {hasSummary ? (
+                <div className="mt-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-amber-bg/40 border border-amber-ink/25">
+                  <Icon icon="lucide:alert-triangle" className="text-[15px] text-amber-ink shrink-0 mt-0.5" />
+                  <p className="text-[12.5px] text-ink-soft leading-[1.5]">
+                    This summary was generated by AI from a single paper. It has not been reviewed by a
+                    clinician and is not clinical advice. Verify against the source before acting on it.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-ink/[0.04] border border-ink/12">
+                  <Icon icon="lucide:info" className="text-[15px] text-teal shrink-0 mt-0.5" />
+                  <p className="text-[12.5px] text-ink-soft leading-[1.5]">
+                    We haven&rsquo;t summarised this paper &mdash; our pipeline didn&rsquo;t complete on it.
+                    The full text is below, and the AI tabs are empty by design rather than by accident.
+                  </p>
+                </div>
+              )}
             </header>
 
             <TabNav active={activeTab} onChange={setActiveTab} />
 
             <div className="mt-7">
               {activeTab === 'tldr' && <TldrPane paper={paper} />}
+              {activeTab === 'fulltext' && <FullTextPane paper={paper} sections={sections} />}
               {activeTab === 'mindmap' && <MindMapPane paper={paper} />}
               {activeTab === 'infographic' && <InfographicPane paper={paper} />}
               {activeTab === 'appraisal' && <AppraisalPane paper={paper} />}
@@ -235,7 +322,7 @@ export default function PaperDetailView({ paper }: { paper: Paper }) {
             </div>
           </div>
 
-          <PaperSidebar paper={paper} />
+          <PaperSidebar paper={paper} sections={sections} onSectionClick={goToSection} />
         </div>
       </div>
     </main>

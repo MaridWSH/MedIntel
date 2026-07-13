@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://med.aidashnews.tech/";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
 
 // Token storage
 export const setAccessToken = (token: string) => {
@@ -21,7 +21,18 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+
+  /*
+   * Join with exactly one slash. Every caller passed a bare path ("auth/me"),
+   * and API_BASE_URL ends in "/api" with no trailing slash, so this used to
+   * build ".../apiauth/me" — a 404. That silently broke save/unsave, is-saved,
+   * saved-papers, dashboard stats, logout and auth/me. Normalising here rather
+   * than fixing six call sites means a missing slash can't reintroduce it.
+   */
+  const base = API_BASE_URL.replace(/\/$/, '');
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  const response = await fetch(`${base}${path}`, {
     ...options,
     headers,
   });
@@ -33,7 +44,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
 // Login
 export async function loginUser(email: string, password: string) {
-  const res = await fetch(`${API_BASE_URL}api/auth/login`, {
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -61,7 +72,7 @@ export async function registerUser(userData: {
   name: string;
   password: string;
 }) {
-  const res = await fetch(`${API_BASE_URL}api/auth/register`, {
+  const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(userData),
@@ -85,13 +96,13 @@ export async function registerUser(userData: {
 
 // Get current user
 export async function fetchCurrentUser() {
-  const res = await apiFetch("api/auth/me");
+  const res = await apiFetch("auth/me");
   if (!res.ok) return null;
   return res.json();
 }
 
 export async function forgotPassword(email: string) {
-  const res = await fetch(`${API_BASE_URL}api/auth/forgot-password`, {
+  const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -114,7 +125,7 @@ export async function forgotPassword(email: string) {
 }
 
 export async function resetPassword(resetToken: string, newPassword: string) {
-  const res = await fetch(`${API_BASE_URL}api/auth/reset-password`, {
+  const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reset_token: resetToken, new_password: newPassword }),
@@ -138,7 +149,47 @@ export async function resetPassword(resetToken: string, newPassword: string) {
 
 // Logout
 export async function logoutUser() {
-  await apiFetch("api/auth/logout", { method: "POST" });
+  await apiFetch("auth/logout", { method: "POST" });
   clearTokens();
   window.location.href = "/login";
 }
+
+// ── Saved Papers ──────────────────────────────────────────────────────────────
+
+export async function savePaper(paperId: string) {
+  const res = await apiFetch(`user/papers/${paperId}/save`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to save paper");
+  return res.json();
+}
+
+export async function unsavePaper(paperId: string) {
+  const res = await apiFetch(`user/papers/${paperId}/save`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to unsave paper");
+  return res.json();
+}
+
+export async function isPaperSaved(paperId: string): Promise<boolean> {
+  const res = await apiFetch(`user/papers/${paperId}/is-saved`);
+  if (!res.ok) return false;
+  const data = await res.json();
+  return data.is_saved;
+}
+
+export async function listSavedPapers() {
+  const res = await apiFetch("user/saved-papers");
+  if (!res.ok) throw new Error("Failed to list saved papers");
+  return res.json();
+}
+
+export async function getDashboardStats() {
+  const res = await apiFetch("user/dashboard/stats");
+  if (!res.ok) throw new Error("Failed to get dashboard stats");
+  return res.json();
+}
+
+/*
+ * semanticSearch() / keywordSearch() lived here and called /search and
+ * /keyword-search. Neither endpoint has ever existed — both 404'd on every call.
+ * Semantic search now runs inside GET /api/papers/search (see searchPapers in
+ * lib/papers), which does vector search with a keyword fallback server-side.
+ */
