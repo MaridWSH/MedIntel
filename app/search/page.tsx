@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -55,11 +55,93 @@ export default function SearchPage() {
   const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
   const [sort, setSort] = useState<'id' | '-id'>('id');
 
-  // Active search query (what was actually submitted)
+  // Active search query (what was actually submitted) — SEMANTIC SEARCH
   const [activeQuery, setActiveQuery] = useState('');
 
-  // ── Load papers ───────────────────────────────────────────────────
+  // ── Keyword Search State (Client-side filtering on title only) ────
+  const [keywordQuery, setKeywordQuery] = useState('');
+  const [keywordLoading, setKeywordLoading] = useState(false);
+  const [allItemsLoaded, setAllItemsLoaded] = useState(false);
+  const [allItems, setAllItems] = useState<Paper[]>([]);
+
+  // Inline search next to sort dropdown
+  const [inlineSearchOpen, setInlineSearchOpen] = useState(false);
+  const [inlineQuery, setInlineQuery] = useState('');
+
+  // ── TOTAL PAPERS FROM API (like TopUtilityStrip) ───────────────────
+  const [totalPapers, setTotalPapers] = useState<number>(0);
+  const [totalPapersLoading, setTotalPapersLoading] = useState(true);
+
+  // Fetch total papers count from API on mount
+  useEffect(() => {
+    async function fetchTotalPapers() {
+      try {
+        const response = await listPapers({ page: 1, per_page: 1 });
+        setTotalPapers(response.total);
+      } catch (err) {
+        console.error('Failed to fetch total papers count:', err);
+        setTotalPapers(50418727);
+      } finally {
+        setTotalPapersLoading(false);
+      }
+    }
+    fetchTotalPapers();
+  }, []);
+
+  // ── Load ALL papers for keyword search ─────────────────────────────
+  const loadAllPapers = useCallback(async () => {
+    if (allItemsLoaded) return;
+
+    setKeywordLoading(true);
+    setError(null);
+
+    try {
+      const all: Paper[] = [];
+      let currentPage = 1;
+      let lastTotalPages = 1;
+
+      // نجيب لحد 70 صفحة = 7000 paper (adjust حسب الـ API limit)
+      do {
+        const response = await listPapers({
+          page: currentPage,
+          per_page: 100, // API max is 100
+          sort: 'id',
+        });
+
+        all.push(...response.items);
+        lastTotalPages = response.pages;
+        currentPage++;
+
+        // Stop conditions
+        if (currentPage > lastTotalPages) break;
+        if (currentPage > 70) break; // ← safety limit
+      } while (true);
+
+      setAllItems(all);
+      setAllItemsLoaded(true);
+      setItems(all);
+      setTotal(all.length);
+      setTotalPages(1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load all papers');
+    } finally {
+      setKeywordLoading(false);
+    }
+  }, [allItemsLoaded]);
+
+  // ── Load papers (SEMANTIC or LIST) ────────────────────────────────
   const loadPapers = useCallback(async () => {
+    // لو فيه keyword query ولسه ماجبناش كل الـ papers
+    if (keywordQuery.trim() && !allItemsLoaded) {
+      await loadAllPapers();
+      return;
+    }
+
+    // لو فيه keyword query وكل الـ papers جاهزين → مش محتاج نعمل حاجة
+    if (keywordQuery.trim() && allItemsLoaded) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -67,14 +149,14 @@ export default function SearchPage() {
       let response;
 
       if (activeQuery.trim()) {
-        // Search mode
+    
         response = await searchPapers({
           q: activeQuery,
           page,
           per_page: perPage,
         });
       } else {
-        // List mode with filters
+       
         response = await listPapers({
           page,
           per_page: perPage,
@@ -95,7 +177,7 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, sort]);
+  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, sort, keywordQuery, allItemsLoaded, loadAllPapers]);
 
   // Load on mount and when dependencies change
   useEffect(() => {
@@ -104,21 +186,52 @@ export default function SearchPage() {
 
   // ── Handlers ──────────────────────────────────────────────────────
 
-  // Submit search
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setActiveQuery(searchInput);
     setPage(1);
+    // Clear keyword search when semantic is active
+    setKeywordQuery('');
     // Clear filters when searching
     setSelectedSpecialties([]);
     setSelectedStudyTypes([]);
   }
 
-  // Clear search
+  // Clear semantic search
   function handleClearSearch() {
     setSearchInput('');
     setActiveQuery('');
     setPage(1);
+  }
+
+  // Toggle inline search input next to sort
+  function toggleInlineSearch() {
+    setInlineSearchOpen((prev) => !prev);
+    if (inlineSearchOpen) {
+      setInlineQuery('');
+    }
+  }
+
+  // Submit KEYWORD search (Client-side filter on title)
+  function handleInlineSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const q = inlineQuery.trim();
+    if (!q) return;
+
+    setKeywordQuery(q);
+    setInlineSearchOpen(false);
+    setInlineQuery('');
+
+    if (!allItemsLoaded) {
+      loadAllPapers();
+    }
+  }
+
+  // Close inline search without searching
+  function handleCloseInlineSearch() {
+    setInlineSearchOpen(false);
+    setInlineQuery('');
+    setKeywordQuery('');
   }
 
   // Toggle specialty filter
@@ -128,7 +241,8 @@ export default function SearchPage() {
         ? prev.filter((s) => s !== specialty)
         : [...prev, specialty]
     );
-    setActiveQuery(''); // Clear search when filtering
+    setActiveQuery('');
+    setKeywordQuery('');
     setPage(1);
   }
 
@@ -139,7 +253,8 @@ export default function SearchPage() {
         ? prev.filter((s) => s !== studyType)
         : [...prev, studyType]
     );
-    setActiveQuery(''); // Clear search when filtering
+    setActiveQuery('');
+    setKeywordQuery('');
     setPage(1);
   }
 
@@ -162,20 +277,79 @@ export default function SearchPage() {
     setSort('id');
     setActiveQuery('');
     setSearchInput('');
+    setKeywordQuery('');
+    setInlineQuery('');
+    setInlineSearchOpen(false);
     setPage(1);
     setPerPage(20);
+    // Reset all items loaded state
+    setAllItemsLoaded(false);
+    setAllItems([]);
   }
+
+  // ── Client-side Keyword Filter ────────────────────────────────────
+  // بيفلتر الـ allItems على الـ title بس
+  const filteredItems = useCallback(() => {
+    if (!keywordQuery.trim()) return items;
+    if (!allItemsLoaded) return [];
+
+    const queryLower = keywordQuery.toLowerCase();
+    const queryWords = queryLower.split(/\\s+/).filter(w => w.length > 0);
+
+    return allItems.filter((paper) => {
+      const titleLower = paper.title.toLowerCase();
+      // كل كلمة في الـ query لازم تكون موجودة في الـ title
+      return queryWords.every((word) => titleLower.includes(word));
+    });
+  }, [items, allItems, allItemsLoaded, keywordQuery]);
+
+  const displayItems = keywordQuery.trim() ? filteredItems() : items;
+  const isKeywordMode = keywordQuery.trim() !== '';
+  const displayTotal = displayItems.length;
+
+  // ── Determine which number to show in header ──────────────────────
+  // If search is active (semantic or keyword), show search results count
+  // Otherwise show total papers from API
+  const isSearchActive = activeQuery.trim() !== '' || keywordQuery.trim() !== '';
+  const headerCount = isSearchActive ? displayTotal : totalPapers;
+  const headerCountLoading = isSearchActive ? loading || keywordLoading : totalPapersLoading;
 
   // ── Helpers ───────────────────────────────────────────────────────
   const hasActiveFilters =
     selectedSpecialties.length > 0 ||
     selectedStudyTypes.length > 0 ||
-    activeQuery !== '';
+    activeQuery !== '' ||
+    keywordQuery !== '';
 
   function formatStudyType(type: string): string {
     return type
       .replace(/_/g, ' ')
-      .replace(/\b\w/g, (l) => l.toUpperCase());
+      .replace(/\\b\\w/g, (l) => l.toUpperCase());
+  }
+
+  // ── Pagination range helper (uses API pages) ───────────────────────
+  function getPaginationRange(currentPage: number, totalPages: number) {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+
+    if (currentPage >= totalPages - 3) {
+      return [
+        1,
+        '...',
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    }
+
+    return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
   }
 
   return (
@@ -288,8 +462,14 @@ export default function SearchPage() {
                   ))}
                   {activeQuery && (
                     <span className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-full bg-ink text-paper text-[11px]">
+                      <Icon icon="lucide:sparkles" className="text-[10px]" />
+                      {activeQuery}
+                    </span>
+                  )}
+                  {keywordQuery && (
+                    <span className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-full bg-teal-deep text-paper text-[11px]">
                       <Icon icon="lucide:search" className="text-[10px]" />
-                      "{activeQuery}"
+                      Keyword: {keywordQuery}
                     </span>
                   )}
 
@@ -302,8 +482,14 @@ export default function SearchPage() {
 
                   <div className="ml-auto shrink-0 flex items-center gap-2 pl-3 border-l border-ink/10 text-ink/55">
                     <span className="mono-stat text-ink/45">N</span>
-                    <span className="font-semibold text-ink-soft">{total.toLocaleString()}</span>
-                    <span>papers synthesised</span>
+                    {headerCountLoading ? (
+                      <span className="inline-block w-12 h-3 bg-ink/10 rounded animate-pulse" />
+                    ) : (
+                      <>
+                        <span className="font-semibold text-ink-soft">{headerCount.toLocaleString()}</span>
+                        <span>papers synthesised</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -448,22 +634,74 @@ export default function SearchPage() {
           {/* RIGHT: Results */}
           <div className="col-span-12 lg:col-span-9 fade-in d-3">
             {/* Results header */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
               <div className="flex items-center gap-3">
                 <h2 className="serif text-[18px] tracking-tight">
-                  {activeQuery ? `Search: "${activeQuery}"` : 'Synthesised papers'}
+                  {isKeywordMode
+                    ? `Keyword: "${keywordQuery}"`
+                    : activeQuery
+                    ? `Search: "${activeQuery}"`
+                    : 'Synthesised papers'}
                   <span className="italic text-teal">.</span>
                 </h2>
                 <span className="mono-stat text-ink/45 px-2 h-6 rounded-md bg-ink/5 flex items-center">
-                  {total} RESULTS
+                  {displayTotal} RESULTS
                 </span>
+                {isKeywordMode && (
+                  <span className="px-2 h-6 rounded-md bg-teal-deep/10 border border-teal-deep/20 text-teal-deep text-[10px] mono-stat flex items-center">
+                    <Icon icon="lucide:search" className="text-[10px] mr-1" />
+                    TITLE FILTER
+                  </span>
+                )}
+                {activeQuery && !isKeywordMode && (
+                  <span className="px-2 h-6 rounded-md bg-ink/10 border border-ink/20 text-ink-soft text-[10px] mono-stat flex items-center">
+                    <Icon icon="lucide:sparkles" className="text-[10px] mr-1" />
+                    SEMANTIC
+                  </span>
+                )}
               </div>
+
               <div className="flex items-center gap-2 text-[11.5px]">
+                {inlineSearchOpen ? (
+                  <form
+                    onSubmit={handleInlineSearch}
+                    className="flex items-center gap-2 h-8 pl-2.5 pr-1.5 rounded-lg bg-paper border border-ink/12 focus-within:border-teal-deep transition-colors"
+                  >
+                    <Icon icon="lucide:search" className="text-[13px] text-teal" />
+                    <input
+                      autoFocus
+                      type="text"
+                      value={inlineQuery}
+                      onChange={(e) => setInlineQuery(e.target.value)}
+                      placeholder="Filter by title..."
+                      className="bg-transparent outline-none text-[12px] text-ink-soft placeholder:text-ink/35 w-32 md:w-44"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCloseInlineSearch}
+                      className="text-ink/40 hover:text-ink/70 p-0.5"
+                    >
+                      <Icon icon="lucide:x" className="text-[12px]" />
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={toggleInlineSearch}
+                    className="flex items-center justify-center w-8 h-8 rounded-lg border border-ink/12 bg-paper text-ink/55 hover:text-teal hover:border-teal-deep/30 transition"
+                    aria-label="Filter by title"
+                    title="Filter current results by title"
+                  >
+                    <Icon icon="lucide:search" className="text-[13px]" />
+                  </button>
+                )}
+
                 <span className="mono-stat text-ink/45">SORT</span>
                 <select
                   value={sort}
                   onChange={(e) => handleSortChange(e.target.value as 'id' | '-id')}
                   className="h-8 pl-2.5 pr-8 rounded-lg bg-paper border border-ink/12 text-[11.5px] text-ink-soft appearance-none cursor-pointer focus:border-teal-deep focus:outline-none"
+                  disabled={isKeywordMode}
                 >
                   {SORT_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -473,10 +711,12 @@ export default function SearchPage() {
             </div>
 
             {/* Loading */}
-            {loading && (
+            {(loading || keywordLoading) && (
               <div className="text-center py-12">
                 <div className="animate-spin inline-block w-8 h-8 border-4 border-teal border-t-transparent rounded-full mb-2" />
-                <p className="text-ink/45 text-[13px]">Loading papers from API...</p>
+                <p className="text-ink/45 text-[13px]">
+                  {keywordLoading ? 'Loading all papers for keyword search...' : 'Loading papers...'}
+                </p>
               </div>
             )}
 
@@ -498,13 +738,15 @@ export default function SearchPage() {
             )}
 
             {/* Results list */}
-            {!loading && (
+            {!loading && !keywordLoading && (
               <div className="space-y-4">
-                {items.length === 0 && !error && (
+                {displayItems.length === 0 && (
                   <div className="text-center py-12 text-ink/40">
                     <Icon icon="lucide:search-x" className="text-[32px] mx-auto mb-3" />
                     <p className="text-[14px]">
-                      {activeQuery
+                      {isKeywordMode
+                        ? `No papers found with "${keywordQuery}" in the title`
+                        : activeQuery
                         ? `No papers found for "${activeQuery}"`
                         : 'No papers found with the selected filters.'}
                     </p>
@@ -517,7 +759,7 @@ export default function SearchPage() {
                   </div>
                 )}
 
-                {items.map((paper) => (
+                {displayItems.map((paper) => (
                   <Link
                     key={paper.id}
                     href={`/paper/${paper.id}`}
@@ -577,8 +819,8 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Pagination */}
-            {!loading && totalPages > 1 && (
+            {/* Pagination — hidden in keyword mode */}
+            {!loading && !keywordLoading && !isKeywordMode && totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-8">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -588,12 +830,15 @@ export default function SearchPage() {
                   ← Previous
                 </button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = i + 1;
-                    return (
+                  {getPaginationRange(page, totalPages).map((pageNum, idx) =>
+                    pageNum === '...' ? (
+                      <span key={`ellipsis-${idx}`} className="text-ink/30 px-1">
+                        ...
+                      </span>
+                    ) : (
                       <button
                         key={pageNum}
-                        onClick={() => setPage(pageNum)}
+                        onClick={() => setPage(pageNum as number)}
                         className={`w-9 h-9 rounded-lg text-[12px] font-medium transition ${
                           page === pageNum
                             ? 'bg-ink text-paper'
@@ -602,22 +847,7 @@ export default function SearchPage() {
                       >
                         {pageNum}
                       </button>
-                    );
-                  })}
-                  {totalPages > 5 && (
-                    <>
-                      <span className="text-ink/30 px-1">...</span>
-                      <button
-                        onClick={() => setPage(totalPages)}
-                        className={`w-9 h-9 rounded-lg text-[12px] font-medium transition ${
-                          page === totalPages
-                            ? 'bg-ink text-paper'
-                            : 'text-ink-soft hover:bg-ink/[0.04]'
-                        }`}
-                      >
-                        {totalPages}
-                      </button>
-                    </>
+                    )
                   )}
                 </div>
                 <button
@@ -630,16 +860,12 @@ export default function SearchPage() {
               </div>
             )}
 
+
             {/* Empty state hint */}
-            {!loading && items.length > 0 && (
+            {!loading && !keywordLoading && displayItems.length > 0 && (
               <div className="mt-10 p-6 rounded-2xl border border-dashed border-ink/12 bg-paper-warm/30 text-center">
                 <Icon icon="lucide:database" className="text-[24px] text-ink/20 mb-2" />
-                <p className="text-[13px] text-ink-soft mb-1">
-                  Showing {items.length} of {total} papers from the API.
-                </p>
-                <p className="text-[11px] text-ink/45">
-                  Use the search bar above to find specific topics, or add filters to narrow results.
-                </p>
+                
               </div>
             )}
           </div>
