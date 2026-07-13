@@ -15,13 +15,12 @@ export default async function PapersListPage() {
         <h1 className="text-3xl font-bold mb-8">All Papers ({papers.length})</h1>
         <div className="grid gap-4">
           {papers.map((paper) => (
-            <Link
-              key={paper.id}
-              href={`/paper/${paper.id}`}
+            <Link 
+              key={paper.id} 
+              href={`/paper/${paper.slug || paper.id}`}
               className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <h3 className="font-semibold">{paper.title}</h3>
-              <p className="text-sm text-gray-500">{paper.id}</p>
+              {paper.title}
             </Link>
           ))}
         </div>
