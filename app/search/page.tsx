@@ -53,6 +53,7 @@ export default function SearchPage() {
   // Filters
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
+  const [selectedEvidenceGrades, setSelectedEvidenceGrades] = useState<string[]>([]);
   const [sort, setSort] = useState<'id' | '-id'>('id');
 
   // Active search query (what was actually submitted)
@@ -64,25 +65,21 @@ export default function SearchPage() {
     setError(null);
 
     try {
-      let response;
-
-      if (activeQuery.trim()) {
-        // Search mode
-        response = await searchPapers({
-          q: activeQuery,
-          page,
-          per_page: perPage,
-        });
-      } else {
-        // List mode with filters
-        response = await listPapers({
-          page,
-          per_page: perPage,
-          study_type: selectedStudyTypes.length > 0 ? selectedStudyTypes[0] : null,
-          specialty: selectedSpecialties.length > 0 ? selectedSpecialties[0] : null,
-          sort,
-        });
-      }
+      /*
+       * One search path. /api/papers/search is semantic-first and falls back to
+       * keyword matching server-side, so there is nothing for the client to pick
+       * between. The old semantic/keyword toggles called endpoints that did not
+       * exist (they 404'd on every use).
+       */
+      const response = activeQuery.trim()
+        ? await searchPapers({ q: activeQuery, page, per_page: perPage })
+        : await listPapers({
+            page,
+            per_page: perPage,
+            study_type: selectedStudyTypes.length > 0 ? selectedStudyTypes[0] : null,
+            specialty: selectedSpecialties.length > 0 ? selectedSpecialties[0] : null,
+            sort,
+          });
 
       setItems(response.items);
       setTotalPages(response.pages);
@@ -143,6 +140,17 @@ export default function SearchPage() {
     setPage(1);
   }
 
+  // Toggle evidence grade filter
+  function toggleEvidenceGrade(grade: string) {
+    setSelectedEvidenceGrades((prev) =>
+      prev.includes(grade)
+        ? prev.filter((g) => g !== grade)
+        : [...prev, grade]
+    );
+    setActiveQuery(''); // Clear search when filtering
+    setPage(1);
+  }
+
   // Change sort
   function handleSortChange(newSort: 'id' | '-id') {
     setSort(newSort);
@@ -159,6 +167,7 @@ export default function SearchPage() {
   function handleResetAll() {
     setSelectedSpecialties([]);
     setSelectedStudyTypes([]);
+    setSelectedEvidenceGrades([]);
     setSort('id');
     setActiveQuery('');
     setSearchInput('');
@@ -170,7 +179,16 @@ export default function SearchPage() {
   const hasActiveFilters =
     selectedSpecialties.length > 0 ||
     selectedStudyTypes.length > 0 ||
+    selectedEvidenceGrades.length > 0 ||
     activeQuery !== '';
+
+  // Client-side evidence grade filter (API doesn't support it)
+  const filteredItems = selectedEvidenceGrades.length > 0
+    ? items.filter((paper) => {
+        const grade = paper.overall_evidence_level;
+        return grade && selectedEvidenceGrades.includes(grade);
+      })
+    : items;
 
   function formatStudyType(type: string): string {
     return type
@@ -217,15 +235,9 @@ export default function SearchPage() {
                 </h1>
               </div>
 
-              <div className="fade-in d-1 hidden md:flex items-center gap-2 text-[10.5px] mono-stat text-ink/50">
-                <span className="flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-ink/15 bg-paper">
-                  <Icon icon="lucide:zap" className="text-[11px] text-teal" />
-                  HYBRID SEARCH
-                </span>
-                <span className="flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-ink/15 bg-paper">
-                  <Icon icon="lucide:globe" className="text-[11px] text-teal" />
-                  EN + AR CORPUS
-                </span>
+              <div className="fade-in d-1 hidden md:flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-teal-deep/25 bg-teal-deep/[0.07] text-[10.5px] mono-stat text-teal-deep">
+                <Icon icon="lucide:brain" className="text-[11px]" />
+                SEMANTIC SEARCH
               </div>
             </div>
 
@@ -406,11 +418,24 @@ export default function SearchPage() {
                 </div>
                 <div className="px-3 pb-4 pt-1">
                   <ul className="space-y-0.5">
-                    {['A — High', 'B — Moderate', 'C — Low', 'D — Very low'].map((g) => (
-                      <li key={g}>
+                    {[
+                      { label: 'A — High', value: 'high' },
+                      { label: 'B — Moderate', value: 'moderate' },
+                      { label: 'C — Low', value: 'low' },
+                      { label: 'D — Very low', value: 'very_low' },
+                    ].map((g) => (
+                      <li key={g.value}>
                         <label className="flex items-center gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
-                          <input type="checkbox" className="accent-[var(--teal-deep)] w-3.5 h-3.5" disabled />
-                          <span className="text-ink-soft opacity-50">{g}</span>
+                          <input
+                            type="checkbox"
+                            checked={selectedEvidenceGrades.includes(g.value)}
+                            onChange={() => toggleEvidenceGrade(g.value)}
+                            className="accent-[var(--teal-deep)] w-3.5 h-3.5"
+                          />
+                          <span className="text-ink-soft">{g.label}</span>
+                          {selectedEvidenceGrades.includes(g.value) && (
+                            <span className="ml-auto text-[10px] text-teal-deep mono-stat">ACTIVE</span>
+                          )}
                         </label>
                       </li>
                     ))}
@@ -500,24 +525,24 @@ export default function SearchPage() {
             {/* Results list */}
             {!loading && (
               <div className="space-y-4">
-                {items.length === 0 && !error && (
-                  <div className="text-center py-12 text-ink/40">
-                    <Icon icon="lucide:search-x" className="text-[32px] mx-auto mb-3" />
-                    <p className="text-[14px]">
-                      {activeQuery
-                        ? `No papers found for "${activeQuery}"`
-                        : 'No papers found with the selected filters.'}
-                    </p>
-                    <button
-                      onClick={handleResetAll}
-                      className="mt-3 text-[12px] text-teal-deep hover:underline"
-                    >
-                      Clear all filters
-                    </button>
-                  </div>
-                )}
+                {filteredItems.length === 0 && !error && (
+                      <div className="text-center py-12 text-ink/40">
+                        <Icon icon="lucide:search-x" className="text-[32px] mx-auto mb-3" />
+                        <p className="text-[14px]">
+                          {activeQuery
+                            ? `No papers found for "${activeQuery}"`
+                            : 'No papers found with the selected filters.'}
+                        </p>
+                        <button
+                          onClick={handleResetAll}
+                          className="mt-3 text-[12px] text-teal-deep hover:underline"
+                        >
+                          Clear all filters
+                        </button>
+                      </div>
+                    )}
 
-                {items.map((paper) => (
+                {filteredItems.map((paper) => (
                   <Link
                     key={paper.id}
                     href={`/paper/${paper.id}`}
@@ -531,19 +556,17 @@ export default function SearchPage() {
                         </span>
                         <span className="text-[10px] mono-stat text-ink/45">{paper.id}</span>
                         <span className="text-ink/15">·</span>
-                        <span className="text-[10.5px] text-ink/55">{paper.processing_time}ms processing</span>
+                        <span className="text-[10.5px] text-ink/55">{paper.processing_time?.toFixed(1) ?? '—'}s processing</span>
                         {paper.has_errors && (
                           <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-red-500">
                             <Icon icon="lucide:alert-triangle" className="text-[12px]" />
                             PROCESSING ERRORS
                           </span>
                         )}
-                        {!paper.has_errors && (
-                          <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-teal-deep">
-                            <Icon icon="lucide:badge-check" className="text-[12px]" />
-                            VERIFIED
-                          </span>
-                        )}
+                        <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-ink/40">
+                          <Icon icon="lucide:bot" className="text-[12px]" />
+                          AI SUMMARY
+                        </span>
                       </div>
 
                       {/* Title */}
@@ -577,7 +600,6 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Pagination */}
             {!loading && totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-8">
                 <button
@@ -631,11 +653,11 @@ export default function SearchPage() {
             )}
 
             {/* Empty state hint */}
-            {!loading && items.length > 0 && (
+            {!loading && filteredItems.length > 0 && (
               <div className="mt-10 p-6 rounded-2xl border border-dashed border-ink/12 bg-paper-warm/30 text-center">
                 <Icon icon="lucide:database" className="text-[24px] text-ink/20 mb-2" />
                 <p className="text-[13px] text-ink-soft mb-1">
-                  Showing {items.length} of {total} papers from the API.
+                  Showing {filteredItems.length} of {total} papers from the API.
                 </p>
                 <p className="text-[11px] text-ink/45">
                   Use the search bar above to find specific topics, or add filters to narrow results.

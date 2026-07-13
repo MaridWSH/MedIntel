@@ -9,6 +9,7 @@ import MindMapPane from './panes/MindMapPane';
 import InfographicPane from './panes/InfographicPane';
 import AppraisalPane from './panes/AppraisalPane';
 import RelevancePane from './panes/RelevancePane';
+import { savePaper, unsavePaper, isPaperSaved } from '../../lib/api';
 import type { Paper } from '../../lib/papers/types';
 
 export default function PaperDetailView({ paper }: { paper: Paper }) {
@@ -17,12 +18,11 @@ export default function PaperDetailView({ paper }: { paper: Paper }) {
   const [following, setFollowing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Load saved/follow states from localStorage on mount
+  // Load saved state from backend API
   useEffect(() => {
-    const savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
-    const followedTopics = JSON.parse(localStorage.getItem('followedTopics') || '[]');
-    setSaved(savedPapers.includes(paper.id));
-    setFollowing(followedTopics.some((t: any) => t.id === paper.id));
+    isPaperSaved(paper.id)
+      .then(setSaved)
+      .catch(() => setSaved(false));
   }, [paper.id]);
 
   const showToast = (msg: string) => {
@@ -30,19 +30,21 @@ export default function PaperDetailView({ paper }: { paper: Paper }) {
     setTimeout(() => setToast(null), 2500);
   };
 
-  // 1. SAVE / BOOKMARK
-  const toggleSave = () => {
-    const savedPapers = JSON.parse(localStorage.getItem('savedPapers') || '[]');
-    let updated;
-    if (saved) {
-      updated = savedPapers.filter((id: string) => id !== paper.id);
-      showToast('Removed from saved papers');
-    } else {
-      updated = [...savedPapers, paper.id];
-      showToast('Saved to your collection');
+  // 1. SAVE / BOOKMARK — calls backend API
+  const toggleSave = async () => {
+    try {
+      if (saved) {
+        await unsavePaper(paper.id);
+        showToast('Removed from saved papers');
+      } else {
+        await savePaper(paper.id);
+        showToast('Saved to your collection');
+      }
+      setSaved(!saved);
+    } catch (err) {
+      console.error('Failed to toggle save:', err);
+      showToast('Failed to update — please try again');
     }
-    localStorage.setItem('savedPapers', JSON.stringify(updated));
-    setSaved(!saved);
   };
 
   // 2. SHARE - Copy link to clipboard
@@ -90,7 +92,10 @@ export default function PaperDetailView({ paper }: { paper: Paper }) {
     ? Object.entries(paper.pico_summary).slice(0, 3)
     : [];
 
-  const isValidated = !paper.has_errors;
+  // `verification.passed` means the summary matched the source paper under our
+  // fidelity check. It says nothing about the study's own quality, and it is not
+  // a peer-review status — do not relabel it as either.
+  const fidelityPassed = paper.verification?.passed ?? false;
 
   return (
     <main className="relative bg-paper">
@@ -170,57 +175,94 @@ export default function PaperDetailView({ paper }: { paper: Paper }) {
             {/* Title + meta + badges */}
             <header className="pb-7 border-b border-ink/10">
               <div className="flex flex-wrap items-center gap-2 mb-4 text-[11px] mono-stat text-ink/55">
-                <span className="text-ink-soft font-semibold">{paper.study_type}</span>
-                <span className="text-ink/25">&middot;</span>
-                <span>{paper.specialty_tags?.join(', ')}</span>
-                <span className="text-ink/25">&middot;</span>
-                <span>ID {paper.id}</span>
-                <span className="text-ink/25">&middot;</span>
-                <span>{paper.processing_time?.toFixed(2)}s processing</span>
+                {paper.study_type && (
+                  <>
+                    <span className="text-ink-soft font-semibold">{paper.study_type}</span>
+                    <span className="text-ink/25">&middot;</span>
+                  </>
+                )}
+                {paper.specialty_tags?.length > 0 && (
+                  <>
+                    <span>{paper.specialty_tags.join(', ')}</span>
+                    <span className="text-ink/25">&middot;</span>
+                  </>
+                )}
+                <span>{paper.id}</span>
               </div>
 
               <h1 className="display text-[34px] md:text-[44px] tracking-[-0.02em] max-w-[760px] mb-3">
                 {paper.title}
               </h1>
 
-              <p className="text-[13px] text-ink/60 italic mb-5">
-                {paper.detailed_summary?.slice(0, 120)}...
+              {/* Real provenance, rather than a truncated slice of the summary. */}
+              <p className="text-[13px] text-ink/60 mb-5 max-w-[720px] leading-[1.5]">
+                {paper.journal && <span className="italic">{paper.journal}</span>}
+                {paper.journal && paper.authors_count > 0 && <span className="text-ink/30"> &middot; </span>}
+                {paper.authors_count > 0 && (
+                  <span>
+                    {paper.authors_count} author{paper.authors_count === 1 ? '' : 's'}
+                    {paper.centers_count > 0 && `, ${paper.centers_count} centre${paper.centers_count === 1 ? '' : 's'}`}
+                  </span>
+                )}
               </p>
 
               <div className="flex flex-wrap items-center gap-2">
-                {isValidated && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink text-paper">
-                    <span className="w-1.5 h-1.5 rounded-full bg-teal-bright" />
-                    <span className="text-[10.5px] mono-stat font-semibold tracking-wider">VALIDATED</span>
-                    <Icon icon="lucide:badge-check" className="text-[13px] text-teal-bright" />
+                {/*
+                  AI-generated is the single most important thing a clinician can know
+                  about this page. It leads, and it is not dressed up as a credential.
+                */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ink text-paper">
+                  <Icon icon="lucide:bot" className="text-[13px] text-teal-bright" />
+                  <span className="text-[10.5px] mono-stat font-semibold tracking-wider">AI SUMMARY</span>
+                </div>
+
+                {paper.verification && (
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${
+                      fidelityPassed
+                        ? 'border-teal-deep/30 bg-teal-deep/[0.07]'
+                        : 'border-amber-ink/30 bg-amber-bg/60'
+                    }`}
+                    title="How closely our summary matches the source paper. Not a quality rating of the study."
+                  >
+                    <Icon
+                      icon={fidelityPassed ? 'lucide:shield-check' : 'lucide:shield-alert'}
+                      className={`text-[12px] ${fidelityPassed ? 'text-teal-deep' : 'text-amber-ink'}`}
+                    />
+                    <span
+                      className={`text-[10.5px] mono-stat font-medium ${
+                        fidelityPassed ? 'text-teal-deep' : 'text-amber-ink'
+                      }`}
+                    >
+                      FIDELITY {Math.round(paper.verification.score * 100)}%
+                    </span>
                   </div>
                 )}
 
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-ink/15 bg-paper-warm/60">
-                  <Icon icon="lucide:user-round-check" className="text-[12px] text-teal" />
-                  <span className="text-[11px] text-ink-soft font-medium">{paper.study_type}</span>
-                </div>
-
-                <div className="w-px h-6 bg-ink/12 mx-1" />
+                {picoEntries.length > 0 && <div className="w-px h-6 bg-ink/12 mx-1" />}
 
                 {picoEntries.map(([key, value]) => (
                   <div
                     key={key}
-                    className="inline-flex items-center gap-1 px-2.5 h-7 rounded-md bg-ink/8 border border-ink/10"
+                    className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-ink/[0.05] border border-ink/10 max-w-[220px]"
                   >
-                    <span className="text-[10.5px] mono-stat text-ink/55">
+                    <span className="text-[10.5px] mono-stat text-ink/55 shrink-0">
                       {key.toUpperCase()}
                     </span>
-                    <span className="text-[12px] mono-stat font-medium text-ink-soft truncate max-w-[120px]">
-                      {String(value).slice(0, 15)}
+                    <span className="text-[12px] font-medium text-ink-soft truncate">
+                      {String(value)}
                     </span>
                   </div>
                 ))}
+              </div>
 
-                <div className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-amber-bg border border-amber-ink/20">
-                  <Icon icon="lucide:check-circle-2" className="text-[12px] text-amber-ink" />
-                  <span className="text-[10.5px] mono-stat text-amber-ink">PEER REVIEWED</span>
-                </div>
+              {/* Standing disclaimer — this is a medical product. */}
+              <div className="mt-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-amber-bg/40 border border-amber-ink/25">
+                <Icon icon="lucide:alert-triangle" className="text-[15px] text-amber-ink shrink-0 mt-0.5" />
+                <p className="text-[12.5px] text-ink-soft leading-[1.5]">
+                  This summary was generated by AI from a single paper. It has not been reviewed by a
+                  clinician and is not clinical advice. Verify against the source before acting on it.
+                </p>
               </div>
             </header>
 

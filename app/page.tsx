@@ -3,9 +3,10 @@ import Icon from '../components/ui/Icon';
 import TopUtilityStrip from '../components/site/TopUtilityStrip';
 import SiteHeader from '../components/site/SiteHeader';
 import SiteFooter from '../components/site/SiteFooter';
+import HeroSearch from '../components/site/HeroSearch';
 import type { Paper, PaperListResponse } from '../lib/papers/types';
 
-const API_BASE = 'https://med.aidashnews.tech/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
 
 // ── Evidence Engine agent data ──────────────────────────────────────────
 const AGENTS = [
@@ -132,19 +133,7 @@ export default async function Home() {
               <div className="relative">
                 <div className="absolute -inset-1.5 bg-gradient-to-r from-teal-bright/30 via-teal-deep/20 to-teal-bright/20 blur-2xl opacity-50 rounded-[26px]" />
                 <div className="relative bg-paper border border-ink/15 rounded-[22px] shadow-[0_30px_70px_-30px_rgba(11,29,42,0.35),0_2px_8px_-4px_rgba(11,29,42,0.1)] overflow-hidden">
-                  <div className="flex items-center gap-3 pl-5 pr-3 py-3.5">
-                    <Icon icon="lucide:search" className="text-[20px] text-teal shrink-0" />
-                    <input
-                      type="text"
-                      className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-ink/35 w-full"
-                      placeholder="Search 50M+ medical papers, understood in seconds"
-                    />
-                    <span className="hidden md:flex items-center gap-1 px-2 h-7 rounded-md border border-ink/12 text-ink/55 text-[11.5px] mono-stat">⌘K</span>
-                    <Link href="/search" className="btn-primary h-10 px-5 bg-ink text-paper rounded-[12px] text-[13px] font-semibold inline-flex items-center gap-1.5">
-                      Synthesise
-                      <Icon icon="lucide:sparkles" className="text-[14px] text-teal-bright" />
-                    </Link>
-                  </div>
+                  <HeroSearch />
                   {/* Filter rail */}
                   <div className="border-t border-ink/8 px-4 py-2.5 flex items-center gap-2 text-[11.5px] bg-paper-warm/60 overflow-x-auto">
                     {['Cardiology', 'Systematic review', '2022 — 2024'].map((f) => (
@@ -376,7 +365,7 @@ export default async function Home() {
                           {paper.study_type.replace(/_/g, ' ')}
                         </span>
                         <span className="text-ink/15">|</span>
-                        <span className="mono-stat text-ink/45">{paper.processing_time}ms</span>
+                        <span className="mono-stat text-ink/45">{paper.processing_time?.toFixed(1) ?? '—'}s</span>
                       </div>
                       <span className="mono-stat text-teal-deep">{paper.specialty_tags[0] || 'General'}</span>
                     </div>

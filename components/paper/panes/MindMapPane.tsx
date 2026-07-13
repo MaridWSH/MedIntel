@@ -24,9 +24,14 @@ interface MindMapChild {
   children?: MindMapChild[];
 }
 
+/**
+ * Matches the API: mind_map is {nodes, source}. This used to be declared as
+ * {root, children}, so `mindMapData.children` was always undefined and the map
+ * rendered empty for every paper.
+ */
 interface MindMapData {
-  root: string;
-  children: MindMapChild[];
+  source: string;
+  nodes: MindMapChild[];
 }
 
 export default function MindMapPane({ paper }: { paper: Paper }) {
@@ -41,10 +46,10 @@ export default function MindMapPane({ paper }: { paper: Paper }) {
 
   // Convert backend mind_map to visual nodes
   const generateNodes = (): MindMapNode[] => {
-    if (!mindMapData?.children) return [];
+    if (!mindMapData?.nodes) return [];
 
     const nodes: MindMapNode[] = [];
-    const categories = mindMapData.children;
+    const categories = mindMapData.nodes;
 
     if (layoutMode === 'radial') {
       const centerX = 450;
@@ -114,16 +119,13 @@ export default function MindMapPane({ paper }: { paper: Paper }) {
   const nodes = generateNodes();
   const hasRealData = nodes.length > 0;
 
-  const fallbackNodes: MindMapNode[] = [
-    { id: 'pop', label: 'POPULATION', sublabel: 'T2DM + CVD risk', x: 80, y: 95, w: 170, h: 50, accent: 'teal', source: 'Adults with type 2 diabetes and established cardiovascular disease.', fullText: 'Population: Adults with T2DM and CVD risk factors.' },
-    { id: 'int', label: 'INTERVENTION', sublabel: 'Semaglutide 2.4 mg', x: 80, y: 270, w: 170, h: 50, accent: 'teal', source: 'Once-weekly subcutaneous semaglutide 2.4 mg.', fullText: 'Intervention: Semaglutide 2.4 mg once weekly.' },
-    { id: 'res', label: 'RESULTS', sublabel: 'HR 0.79 (P<0.001)', x: 660, y: 80, w: 170, h: 50, accent: 'amber', source: '21% reduction in major adverse cardiovascular events.', fullText: 'Results: HR 0.79 (95% CI 0.72-0.87), P<0.001.' },
-    { id: 'out', label: 'OUTCOME', sublabel: '3-pt MACE reduction', x: 660, y: 270, w: 170, h: 50, accent: 'teal', source: 'Cardiovascular death, nonfatal myocardial infarction, or nonfatal stroke.', fullText: 'Outcome: 3-point MACE (CV death, nonfatal MI, nonfatal stroke).' },
-    { id: 'des', label: 'DESIGN', sublabel: 'RCT, double-blind', x: 80, y: 445, w: 170, h: 50, accent: 'teal', source: 'Multicenter, randomized, double-blind, placebo-controlled trial.', fullText: 'Design: Multicenter RCT, double-blind, placebo-controlled.' },
-    { id: 'saf', label: 'SAFETY', sublabel: 'GI events, gallbladder', x: 660, y: 445, w: 170, h: 50, accent: 'amber', source: 'Gastrointestinal events and gallbladder-related disorders.', fullText: 'Safety: GI events, gallbladder disorders, acute pancreatitis.' },
-  ];
-
-  const displayNodes = hasRealData ? nodes : fallbackNodes;
+  /*
+   * There is deliberately no placeholder mind map. This used to fall back to a
+   * hardcoded semaglutide/MACE trial (HR 0.79, 21% MACE reduction) whenever a
+   * paper had no mind_map — inventing trial results and attaching them to
+   * whatever paper the reader was looking at. If we have no map, we say so.
+   */
+  const displayNodes = nodes;
 
   // Source from backend or fallback
   const source = {
@@ -282,10 +284,21 @@ export default function MindMapPane({ paper }: { paper: Paper }) {
 
   return (
     <section className="space-y-4">
+      {!hasRealData ? (
+        <div className="bg-paper-warm/50 border border-ink/10 rounded-3xl p-10 text-center">
+          <Icon icon="lucide:git-fork" className="text-[48px] text-ink/20 mx-auto mb-4" />
+          <h3 className="serif text-[22px] tracking-tight text-ink/40 mb-2">No mind map</h3>
+          <p className="text-[14px] text-ink/40 max-w-[420px] mx-auto">
+            A knowledge graph hasn&rsquo;t been generated for this paper. The summary and findings
+            are still available on the other tabs.
+          </p>
+        </div>
+      ) : (
+      <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55">
           <span className="w-1.5 h-1.5 rounded-full bg-teal-bright cursor-blink" />
-          AGENT 02 &middot; INTERACTIVE KNOWLEDGE GRAPH &middot; {paper.processing_time?.toFixed(1) || '1.6'}s
+          AGENT 02 &middot; INTERACTIVE KNOWLEDGE GRAPH
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -370,7 +383,7 @@ export default function MindMapPane({ paper }: { paper: Paper }) {
               CORE FINDING
             </text>
             <text x="450" y="312" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="16" fontWeight="700" fill="#14b8a6">
-              {mindMapData?.root?.slice(0, 25) || 'STUDY'}
+              {mindMapData?.source?.slice(0, 25) || 'STUDY'}
             </text>
             <text x="450" y="330" textAnchor="middle" fontFamily="Inter" fontSize="9" fill="#f6f3ea" opacity="0.6">
               {paper.study_type?.toUpperCase()}
@@ -462,13 +475,9 @@ export default function MindMapPane({ paper }: { paper: Paper }) {
           </button>
         </div>
         <div className="absolute bottom-4 right-4 inline-flex items-center gap-2 px-3 h-9 rounded-xl bg-paper/10 backdrop-blur-md border border-paper/15 text-[10px] mono-stat text-paper/70">
-          <span>{displayNodes.length} NODES &middot; {mindMapData?.children?.length || 6} BRANCHES</span>
+          <span>{displayNodes.length} NODES &middot; {mindMapData?.nodes?.length || 0} BRANCHES</span>
           <span className="text-paper/30">&middot;</span>
           <span className="text-teal-bright">CLICK NODE &rarr; SOURCE</span>
-        </div>
-        <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 h-9 rounded-xl bg-paper/10 backdrop-blur-md border border-paper/15 text-[10.5px] mono-stat text-paper/70 font-medium">
-          <span>REACT FLOW</span>
-          <span className="text-paper/30">&middot;</span>
         </div>
       </div>
 
@@ -578,6 +587,8 @@ export default function MindMapPane({ paper }: { paper: Paper }) {
           EMBED
         </button>
       </div>
+      </>
+      )}
     </section>
   );
 }

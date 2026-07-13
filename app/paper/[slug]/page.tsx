@@ -5,7 +5,7 @@ import SiteFooter from '../../../components/site/SiteFooter';
 import PaperDetailView from '../../../components/paper/PaperDetailView';
 import type { Paper } from '../../../lib/papers/types';
 
-const API_BASE = 'https://med.aidashnews.tech/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
 
 /* ── Fetch paper by ID ── */
 async function getPaperById(id: string): Promise<Paper | null> {

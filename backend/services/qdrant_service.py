@@ -305,13 +305,15 @@ def search_similar(
     vector = np.asarray(query_vector, dtype=np.float32).tolist()
 
     try:
-        search_results = client.search(
+        # client.search() was removed in qdrant-client 1.12+; query_points() is the
+        # replacement and returns the hits under .points.
+        response = client.query_points(
             collection_name=QDRANT_COLLECTION_NAME,
-            query_vector=vector,
+            query=vector,
             limit=top_k,
             with_payload=True,
         )
-        return [_search_result_from_record(record) for record in search_results]
+        return [_search_result_from_record(record) for record in response.points]
     except Exception as exc:
         logger.exception("Qdrant semantic search failed")
         raise RuntimeError(f"Qdrant search failed: {exc}") from exc
@@ -347,14 +349,14 @@ def search_with_filter(
     filter_object = rest.Filter(must=conditions) if conditions else None
 
     try:
-        search_results = client.search(
+        response = client.query_points(
             collection_name=QDRANT_COLLECTION_NAME,
-            query_vector=vector,
+            query=vector,
             query_filter=filter_object,
             limit=top_k,
             with_payload=True,
         )
-        return [_search_result_from_record(record) for record in search_results]
+        return [_search_result_from_record(record) for record in response.points]
     except Exception as exc:
         logger.exception("Qdrant filtered search failed")
         raise RuntimeError(f"Qdrant filtered search failed: {exc}") from exc

@@ -157,10 +157,76 @@ def forgot_password(body: ForgotPasswordRequest, request: Request, db: Session =
     user.reset_token_expires = expires
     db.commit()
 
-    # TODO: In production, send reset_token via email service (e.g., SendGrid, AWS SES)
-    # For now, log it so admins can retrieve it for testing
+    # Send reset email (or log token if SMTP not configured)
+    import os
     import logging
-    logging.warning(f"Password reset token for {body.email}: {reset_token}")
+
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_pass = os.getenv("SMTP_PASSWORD")
+    from_email = os.getenv("FROM_EMAIL", "noreply@med.aidashnews.tech")
+
+    if smtp_host and smtp_user and smtp_pass:
+        # Send email via SMTP
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+
+        reset_url = f"https://med.aidashnews.tech/reset-password?token={reset_token}"
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Password Reset Request"
+        msg["From"] = from_email
+        msg["To"] = body.email
+
+        text = f"""
+Hello {user.name or 'User'},
+
+You requested a password reset for your MedIntel account.
+
+Click the link below to reset your password:
+{reset_url}
+
+This link will expire in 1 hour.
+
+If you did not request this reset, please ignore this email.
+
+— MedIntel Team
+        """
+
+        html = f"""
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2 style="color: #0b7d72;">Password Reset Request</h2>
+    <p>Hello {user.name or 'User'},</p>
+    <p>You requested a password reset for your MedIntel account.</p>
+    <p><a href="{reset_url}" style="display: inline-block; padding: 12px 24px; background-color: #0b7d72; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">Reset Password</a></p>
+    <p style="font-size: 14px; color: #666;">This link will expire in 1 hour.</p>
+    <p style="font-size: 14px; color: #666;">If you did not request this reset, please ignore this email.</p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+    <p style="font-size: 12px; color: #999;">— MedIntel Team</p>
+</body>
+</html>
+        """
+
+        msg.attach(MIMEText(text, "plain"))
+        msg.attach(MIMEText(html, "html"))
+
+        try:
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(from_email, body.email, msg.as_string())
+            logging.info(f"Password reset email sent to {body.email}")
+        except Exception as e:
+            logging.error(f"Failed to send password reset email: {e}")
+            # Fall back to logging the token
+            logging.warning(f"Password reset token for {body.email}: {reset_token}")
+    else:
+        # SMTP not configured — log token for development/testing
+        logging.warning(f"Password reset token for {body.email}: {reset_token}")
+        logging.info("Set SMTP_HOST, SMTP_USER, SMTP_PASSWORD env vars to enable email delivery")
 
     return ForgotPasswordResponse(
         message="If the email exists, a reset link has been sent to the registered email.",

@@ -20,7 +20,7 @@ export default function SiteFooter() {
             </p>
             <div className="flex gap-1.5 mono-stat">
               <span className="px-2 h-7 rounded-md border border-ink/15 inline-flex items-center text-ink-soft">
-                RTL &middot; EN / &Arabic;
+                RTL &middot; EN / AR
               </span>
               <span className="px-2 h-7 rounded-md border border-ink/15 inline-flex items-center gap-1 text-ink-soft">
                 <Icon icon="lucide:sun" className="text-[12px]" />
@@ -84,7 +84,7 @@ export default function SiteFooter() {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-ink/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] mono-stat text-ink/55">
           <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
-            <span>&copy; 2024 CLARITAS MEDICAL, INC.</span>
+            <span>&copy; 2026 CLARITAS MEDICAL, INC.</span>
             <a href="#" className="hover:text-teal-deep transition-colors">PRIVACY</a> <span className="text-[10px] text-teal-deep">(soon)</span>
             <a href="#" className="hover:text-teal-deep transition-colors">TERMS</a> <span className="text-[10px] text-teal-deep">(soon)</span>
             <a href="#" className="hover:text-teal-deep transition-colors">HCP LICENSE</a> <span className="text-[10px] text-teal-deep">(soon)</span>

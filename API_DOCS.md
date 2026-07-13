@@ -249,6 +249,160 @@ GET /api/papers/search?q=welfare&page=1&per_page=20
 }
 ```
 
+---
+
+## Advanced Search (Semantic & Keyword)
+
+In addition to the standard text search, MedIntel provides two advanced search endpoints powered by Qdrant vector database and sentence-transformers.
+
+**Base URL:** `https://med.aidashnews.tech`
+
+### Semantic Search
+
+AI-powered search that understands meaning and context. Finds papers with semantically related concepts, even if the exact words don't match.
+
+**How it works:** Converts your query into a 384-dimensional embedding vector using the `all-MiniLM-L6-v2` model, then finds papers with the most similar embeddings using cosine similarity.
+
+```http
+GET /search?query=vitamin+D+deficiency+health+effects&limit=10
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | string | — | **Required.** Search query |
+| `limit` | int | 10 | Maximum number of results (1–100) |
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": "396",
+    "pmcid": "PMC10000185",
+    "title": "Health-Promoting Ingredients in Goat's Milk and Fermented Goat's Milk Drinks",
+    "abstract": "Goat's milk has beneficial effects on health condition maintenance...",
+    "authors": "",
+    "journal": "Animals : an Open Access Journal from MDPI",
+    "score": 0.5390879
+  }
+]
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Internal ID |
+| `pmcid` | string | PubMed Central ID |
+| `title` | string | Paper title |
+| `abstract` | string | Paper abstract |
+| `authors` | string | Comma-separated author names |
+| `journal` | string | Journal name |
+| `score` | float | Semantic similarity score (0–1, higher = more relevant) |
+
+**Example:**
+```bash
+curl "https://med.aidashnews.tech/search?query=obesity+treatment+methods&limit=5"
+```
+
+This will find papers about:
+- "weight management interventions"
+- "bariatric surgery outcomes"
+- "anti-obesity medications"
+
+Even though those exact words weren't in the query, they're semantically related.
+
+### Keyword Search
+
+Traditional exact-text search. Finds papers containing the exact query terms in title, abstract, authors, or journal fields.
+
+**How it works:** Tokenizes the query and searches for exact word matches across paper metadata. Scores papers by term frequency.
+
+```http
+GET /keyword-search?query=vitamin+D+deficiency&limit=10
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | string | — | **Required.** Search query |
+| `limit` | int | 10 | Maximum number of results (1–100) |
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": "PMC11490461",
+    "pmcid": "PMC11490461",
+    "title": "Micronutrient intake and status in young vegans, lacto-ovo-vegetarians, pescatarians, flexitarians, and omnivores",
+    "abstract": "PurposeWhether youth who follow plant-based diets...",
+    "authors": "Synne Groufh-Jacobsen, Christel Larsson, Claire Margerison",
+    "journal": "European Journal of Nutrition",
+    "score": 0.3
+  }
+]
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | PubMed Central ID |
+| `pmcid` | string | PubMed Central ID |
+| `title` | string | Paper title |
+| `abstract` | string | Paper abstract |
+| `authors` | string | Comma-separated author names |
+| `journal` | string | Journal name |
+| `score` | float | Relevance score (0–1, based on term matches) |
+
+**Example:**
+```bash
+curl "https://med.aidashnews.tech/keyword-search?query=vitamin+D&limit=5"
+```
+
+This will only find papers containing the exact words "vitamin" AND "D".
+
+### When to Use Which?
+
+| Use Case | Recommended Search |
+|----------|-------------------|
+| Finding papers on a topic/concept | **Semantic Search** |
+| Finding papers with specific terms (drug names, gene symbols) | **Keyword Search** |
+| Exploratory research | **Semantic Search** |
+| Exact phrase matching | **Keyword Search** |
+| Broad recall | **Semantic Search** |
+| High precision | **Keyword Search** |
+
+### Comparison Example
+
+**Query:** "heart attack treatment"
+
+**Semantic Search** finds:
+- "myocardial infarction therapy"
+- "acute coronary syndrome management"
+- "cardiac event intervention"
+
+**Keyword Search** finds:
+- Only papers containing "heart" AND "attack" AND "treatment"
+
+### Implementation Details
+
+- **Vector Database:** Qdrant v1.18.2 running on Docker
+- **Embedding Model:** `all-MiniLM-L6-v2` (384 dimensions)
+- **Similarity Metric:** Cosine similarity
+- **Indexed Papers:** 1,000+ papers (500 nutrition + 500 ophthalmology)
+- **Service:** FastAPI running on port 8081
+- **Collection:** `papers_semantic`
+
+To index more papers:
+```bash
+cd /root/papers
+source venv/bin/activate
+python index_papers.py --limit 1000 --start-from 1000
+```
+
 ### Ingest Papers (Admin)
 
 Trigger ingestion of pipeline JSON results into the database. Requires authentication.

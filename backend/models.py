@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
@@ -37,3 +37,26 @@ class Paper(Base):
     verification: Mapped[str] = mapped_column(Text, default="null")       # JSON string
     processing_time: Mapped[float] = mapped_column(Float, default=0.0)
     has_errors: Mapped[bool] = mapped_column(Boolean, default=False)
+    # ponytail: metadata from XML fallback — journal, centers, authors, doi
+    journal: Mapped[str] = mapped_column(Text, default="")
+    doi: Mapped[str] = mapped_column(String(255), default="", index=True)
+    author_list: Mapped[str] = mapped_column(Text, default="")            # comma-separated author names
+    authors_count: Mapped[int] = mapped_column(Integer, default=0)
+    centers: Mapped[str] = mapped_column(Text, default="")                # JSON array of affiliation strings
+    centers_count: Mapped[int] = mapped_column(Integer, default=0)
+    # ponytail: XML-parsed fields — citation, sections, excerpt (abstract), reviewer
+    citation: Mapped[str] = mapped_column(Text, default="")
+    sections: Mapped[str] = mapped_column(Text, default="[]")             # JSON array of section titles
+    excerpt: Mapped[str] = mapped_column(Text, default="")                # abstract text
+    reviewer: Mapped[str] = mapped_column(Text, default="")               # editor/reviewer names
+
+
+class SavedPaper(Base):
+    __tablename__ = "saved_papers"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    paper_id: Mapped[str] = mapped_column(String(50), ForeignKey("papers.id"), nullable=False, index=True)
+    saved_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
