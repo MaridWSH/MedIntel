@@ -12,7 +12,7 @@ export default async function PapersListPage() {
       <TopUtilityStrip />
       <SiteHeader />
       <main className="relative max-w-[1380px] mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold mb-8">All Papers</h1>
+        <h1 className="text-3xl font-bold mb-8">All Papers ({papers.length})</h1>
         <div className="grid gap-4">
           {papers.map((paper) => (
             <Link 

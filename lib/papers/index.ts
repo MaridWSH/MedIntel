@@ -39,7 +39,7 @@ export async function listPapers(params: PaperListParams = {}) {
   return fetchAPI<PaperListResponse>(`${BASE_API}/papers${qs}`);
 }
 
-/** GET /api/papers/search — Search papers by query */
+/** GET /api/papers/search — Semantic search papers by query */
 export async function searchPapers(params: PaperSearchParams) {
   const qs = buildQueryString({
     q: params.q,
@@ -66,3 +66,4 @@ export async function getAllPapers(): Promise<Paper[]> {
   }
   return allItems;
 }
+
