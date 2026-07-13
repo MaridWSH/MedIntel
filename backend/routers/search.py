@@ -1,103 +1,43 @@
-"""Semantic search router for MedIntel.
-
-Exposes the semantic search pipeline as a FastAPI endpoint.
-"""
+"""Search router — single hybrid search endpoint at POST /api/search."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+import logging
 
-from auth import get_current_user
-from models import User
-from api.dependencies import get_semantic_search_service
-from schemas import (
-    SemanticSearchRequest,
-    SemanticSearchResponse,
-    SemanticSearchResult,
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from api.dependencies import get_hybrid_search_service
+from database import get_db
+from schemas import HybridSearchRequest, HybridSearchResponse
+from services.hybrid_search_service import HybridSearchService
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/search", tags=["search"])
+
+
+@router.post(
+    "",
+    response_model=HybridSearchResponse,
+    summary="Hybrid (semantic + keyword) search across papers",
+    description=(
+        "Combines BGE-M3 semantic search on Qdrant with PostgreSQL full-text "
+        "search (websearch_to_tsquery + ts_rank_cd), merges results with "
+        "Reciprocal Rank Fusion, applies filters, sorts, and returns one "
+        "paginated page."
+    ),
 )
-from services.semantic_search_service import SemanticSearchService
-
-router = APIRouter(prefix="/search", tags=["semantic-search"])
-
-
-@router.post("", response_model=SemanticSearchResponse)
-def semantic_search(
-    request: SemanticSearchRequest,
-    current_user: User = Security(get_current_user),
-    service: SemanticSearchService = Depends(get_semantic_search_service),
+def hybrid_search(
+    request: HybridSearchRequest,
+    service: HybridSearchService = Depends(get_hybrid_search_service),
 ):
-    """Search papers semantically using BGE-M3 embeddings and Qdrant.
-
-    This endpoint embeds only the query; paper embeddings are pre-computed
-    during indexing.
-    """
+    """Execute a hybrid search and return one page of results."""
     try:
-        results = service.search(
-            query=request.query,
-            top_k=request.top_k,
-            filters=request.filters,
-        )
+        return service.search(request)
     except Exception as exc:
-        # Logged by the service layer; return a generic error to the caller.
+        logger.exception("Hybrid search failed")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Semantic search unavailable: {exc}",
+            detail=f"Search failed: {exc}",
         ) from exc
-
-    items = [
-        SemanticSearchResult(
-            id=result.paper.id,
-            title=result.paper.title or "",
-            tldr=result.paper.tldr or "",
-            study_type=result.paper.study_type or "",
-            specialty_tags=(
-                __parse_tags(result.paper.specialty_tags)
-                if result.paper.specialty_tags
-                else []
-            ),
-            journal=getattr(result.paper, "journal", ""),
-            doi=getattr(result.paper, "doi", ""),
-            author_list=getattr(result.paper, "author_list", ""),
-            authors_count=getattr(result.paper, "authors_count", None),
-            centers_count=getattr(result.paper, "centers_count", None),
-            overall_evidence_level=(
-                __parse_findings(result.paper.key_findings).get("overall_evidence_level")
-            ),
-            sample_size=__parse_findings(result.paper.key_findings).get("sample_size"),
-            score=result.score,
-        )
-        for result in results
-    ]
-
-    return SemanticSearchResponse(
-        query=request.query,
-        top_k=request.top_k,
-        total=len(items),
-        items=items,
-    )
-
-
-def __parse_tags(raw: str) -> list[str]:
-    """Parse a JSON-encoded specialty_tags string into a list of strings."""
-    import json
-
-    try:
-        tags = json.loads(raw)
-        if isinstance(tags, list):
-            return [str(tag) for tag in tags]
-    except (json.JSONDecodeError, TypeError):
-        pass
-    return []
-
-
-def __parse_findings(raw: str) -> dict[str, str]:
-    """Parse the JSON-encoded key findings object from a Paper row."""
-    import json
-
-    try:
-        data = json.loads(raw)
-        if isinstance(data, dict):
-            return {str(k): str(v) for k, v in data.items() if v is not None}
-    except (json.JSONDecodeError, TypeError):
-        pass
-    return {}

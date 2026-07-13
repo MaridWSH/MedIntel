@@ -10,8 +10,21 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from argparse import ArgumentParser
+from pathlib import Path
 from typing import Any
+
+# Allow running from project root
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+# Load environment variables from .env before importing app modules.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ImportError:
+    pass
 
 import httpx
 from sqlalchemy.orm import Session
@@ -73,12 +86,15 @@ def upsert_paper(db: Session, item: dict[str, Any]) -> None:
         paper.verification = json.dumps(item.get("verification")) if item.get("verification") else paper.verification
 
 
-def fetch_all_papers(base_url: str, per_page: int = 20) -> list[dict[str, Any]]:
+def fetch_all_papers(base_url: str, per_page: int = 20, limit: int | None = None) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     page = 1
 
     with httpx.Client(timeout=30.0) as client:
         while True:
+            if limit is not None and len(results) >= limit:
+                break
+
             response = client.get(
                 base_url,
                 params={"page": page, "per_page": per_page, "sort": "id"},
@@ -88,6 +104,10 @@ def fetch_all_papers(base_url: str, per_page: int = 20) -> list[dict[str, Any]]:
             items = payload.get("items") or []
             if not items:
                 break
+
+            if limit is not None:
+                remaining = limit - len(results)
+                items = items[:remaining]
 
             results.extend(items)
             if len(items) < per_page:
@@ -102,12 +122,13 @@ def main() -> None:
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help="Remote paper list endpoint URL")
     parser.add_argument("--per-page", type=int, default=20, help="Page size for remote pagination")
     parser.add_argument("--commit-batch", type=int, default=100, help="DB commit batch size")
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of papers to fetch (default: all)")
     args = parser.parse_args()
 
     Base.metadata.create_all(bind=engine)
 
     print(f"Fetching papers from: {args.base_url}")
-    items = fetch_all_papers(args.base_url, per_page=args.per_page)
+    items = fetch_all_papers(args.base_url, per_page=args.per_page, limit=args.limit)
     print(f"Fetched {len(items)} items")
 
     db = SessionLocal()

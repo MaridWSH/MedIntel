@@ -7,11 +7,16 @@ service layer stays persistence-agnostic and testable.
 
 from __future__ import annotations
 
+import logging
+import time
 from typing import Iterable, Protocol
 
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from models import Paper
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -32,6 +37,17 @@ class PaperRepository(Protocol):
         limit: int | None = None,
     ) -> Iterable[Paper]:
         """Iterate over all papers in ID order."""
+        ...
+
+    def keyword_search(
+        self,
+        query: str,
+        top_k: int = 100,
+    ) -> list[tuple[Paper, float]]:
+        """PostgreSQL full-text search ranked by ts_rank_cd.
+
+        Returns a list of (paper, keyword_score) tuples sorted by descending score.
+        """
         ...
 
 
@@ -56,9 +72,13 @@ class SQLAlchemyPaperRepository:
         if not paper_ids:
             return []
 
+        t_start = time.perf_counter()
         papers = self._db.query(Paper).filter(Paper.id.in_(paper_ids)).all()
         paper_by_id = {p.id: p for p in papers}
-        return [paper_by_id[pid] for pid in paper_ids if pid in paper_by_id]
+        ordered = [paper_by_id[pid] for pid in paper_ids if pid in paper_by_id]
+        t_elapsed = time.perf_counter() - t_start
+        logger.info("DB get_by_ids: requested=%d, returned=%d, time=%.3fs", len(paper_ids), len(ordered), t_elapsed)
+        return ordered
 
     def get_all(
         self,
@@ -81,3 +101,34 @@ class SQLAlchemyPaperRepository:
             query = query.yield_per(batch_size)
 
         yield from query
+
+    def keyword_search(
+        self,
+        query: str,
+        top_k: int = 100,
+    ) -> list[tuple[Paper, float]]:
+        """PostgreSQL full-text search over title, tldr, abstract, keywords, and specialty_tags.
+
+        Uses websearch_to_tsquery() and ts_rank_cd() for ranking. The GIN index on
+        `search_vector` makes this fast at scale.
+        """
+        t_start = time.perf_counter()
+        ts_query = func.websearch_to_tsquery("english", query)
+        rank = func.ts_rank_cd(Paper.search_vector, ts_query, 32).label("keyword_score")
+
+        results = (
+            self._db.query(Paper, rank)
+            .filter(Paper.search_vector.op("@@")(ts_query))
+            .order_by(rank.desc())
+            .limit(top_k)
+            .all()
+        )
+        t_elapsed = time.perf_counter() - t_start
+        logger.info(
+            "DB keyword_search: query=%r, top_k=%d, results=%d, time=%.3fs",
+            query,
+            top_k,
+            len(results),
+            t_elapsed,
+        )
+        return [(paper, float(score)) for paper, score in results]

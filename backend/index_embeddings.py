@@ -20,6 +20,14 @@ from pathlib import Path
 # Allow running from project root
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# Load environment variables from .env before importing app modules.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ImportError:
+    pass
+
 from database import Base, SessionLocal, engine
 from models import Paper
 from services.qdrant_service import (

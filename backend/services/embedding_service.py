@@ -19,6 +19,7 @@ import json
 import logging
 import os
 import re
+import time
 from typing import List, Protocol, runtime_checkable
 
 import numpy as np
@@ -146,9 +147,11 @@ class SentenceTransformerEmbeddingService:
         if self._model is None:
             from sentence_transformers import SentenceTransformer
 
+            t_start = time.perf_counter()
             logger.info("Loading embedding model: %s", self.model_name)
             self._model = SentenceTransformer(self.model_name)
-            logger.info("Embedding model loaded: %s", self.model_name)
+            t_elapsed = time.perf_counter() - t_start
+            logger.info("Embedding model loaded: %s in %.3fs", self.model_name, t_elapsed)
         return self._model
 
     def encode_texts(
@@ -237,7 +240,9 @@ class SentenceTransformerEmbeddingService:
             A 1D numpy array of shape (dimension,).
         """
         try:
+            t_start = time.perf_counter()
             model = self._load_model()
+            t_load = time.perf_counter()
             cleaned = normalize_text(query)
             instructed = f"{self.query_instruction}{cleaned}"
             embedding = model.encode(
@@ -245,6 +250,13 @@ class SentenceTransformerEmbeddingService:
                 show_progress_bar=False,
                 convert_to_numpy=True,
                 normalize_embeddings=normalize,
+            )
+            t_done = time.perf_counter()
+            logger.info(
+                "encode_query timing: load_model=%.3fs, encode=%.3fs, total=%.3fs",
+                t_load - t_start,
+                t_done - t_load,
+                t_done - t_start,
             )
             return np.asarray(embedding, dtype=np.float32)
         except Exception as exc:
@@ -301,6 +313,15 @@ class SentenceTransformerEmbeddingService:
             papers,
             batch_size,
         )
+
+    def warm_up(self) -> None:
+        """Load the embedding model into memory immediately.
+
+        The model is normally loaded lazily on the first encode call. This
+        method lets the application preload it during startup so the first
+        search request is not delayed by model initialization.
+        """
+        self._load_model()
 
 
 # ---------------------------------------------------------------------------

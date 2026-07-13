@@ -1,14 +1,6 @@
-"""FastAPI dependency injection providers for the semantic search module.
-
-These functions wire together the embedding service, vector repository, paper
-repository, and semantic search service so routes receive ready-to-use
-instances without hard-coding concrete implementations.
-"""
+"""FastAPI dependency injection providers for search."""
 
 from __future__ import annotations
-
-from fastapi import Depends
-from sqlalchemy.orm import Session
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
@@ -17,8 +9,8 @@ from database import get_db
 from repositories.paper_repository import SQLAlchemyPaperRepository
 from repositories.vector_repository import QdrantVectorRepository
 from services.embedding_service import get_embedding_service
+from services.hybrid_search_service import HybridSearchService
 from services.qdrant_service import get_qdrant_client
-from services.semantic_search_service import SemanticSearchService
 
 
 # ---------------------------------------------------------------------------
@@ -45,14 +37,15 @@ def get_vector_repository():
 # ---------------------------------------------------------------------------
 
 
-def get_semantic_search_service(
+def get_hybrid_search_service(
+    db: Session = Depends(get_db),
     paper_repository=Depends(get_paper_repository),
     vector_repository=Depends(get_vector_repository),
 ):
-    """Return a configured SemanticSearchService for the current request."""
-    embedding_service = get_embedding_service()
-    return SemanticSearchService(
-        embedding_service=embedding_service,
-        vector_repository=vector_repository,
+    """Return a configured HybridSearchService for the current request."""
+    return HybridSearchService(
+        db=db,
         paper_repository=paper_repository,
+        vector_repository=vector_repository,
+        embedding_service=get_embedding_service(),
     )

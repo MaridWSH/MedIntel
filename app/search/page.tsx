@@ -6,8 +6,13 @@ import Icon from '../../components/ui/Icon';
 import TopUtilityStrip from '../../components/site/TopUtilityStrip';
 import SiteHeader from '../../components/site/SiteHeader';
 import SiteFooter from '../../components/site/SiteFooter';
-import { listPapers, searchPapers } from '../../lib/papers';
-import type { Paper } from '../../lib/papers/types';
+import { hybridSearch, listPapers } from '../../lib/papers';
+import type {
+  HybridSearchFilters,
+  HybridSearchItem,
+  Paper,
+  SortOption,
+} from '../../lib/papers/types';
 
 const SPECIALTIES = [
   'Cardiology',
@@ -29,10 +34,37 @@ const STUDY_TYPES = [
   'other',
 ];
 
-const SORT_OPTIONS = [
-  { value: 'id', label: 'Most recent' },
-  { value: '-id', label: 'Oldest first' },
+const EVIDENCE_LEVELS = ['high', 'moderate', 'low', 'very_low'];
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'relevance', label: 'Relevance' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'highest_evidence', label: 'Highest evidence' },
+  { value: 'title', label: 'Title (A–Z)' },
 ];
+
+function hybridItemToPaper(item: HybridSearchItem): Paper {
+  return {
+    id: item.paper_id,
+    title: item.title,
+    tldr: item.tldr,
+    detailed_summary: '',
+    study_type: item.study_type,
+    specialty_tags: item.specialty_tags,
+    pico_summary: {},
+    key_findings: {},
+    mind_map: {},
+    verification: {},
+    processing_time: item.processing_time,
+    has_errors: item.has_errors,
+    publication_year: item.publication_year,
+    journal: item.journal,
+    language: item.language,
+    author_list: item.author_list,
+    evidence_level: item.evidence_level,
+  };
+}
 
 export default function SearchPage() {
   // ── State ─────────────────────────────────────────────────────────
@@ -41,8 +73,8 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Search & filters
-  const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [activeQuery, setActiveQuery] = useState('');
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -53,40 +85,65 @@ export default function SearchPage() {
   // Filters
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
-  const [sort, setSort] = useState<'id' | '-id'>('id');
+  const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([]);
+  const [yearFrom, setYearFrom] = useState<string>('');
+  const [yearTo, setYearTo] = useState<string>('');
+  const [sort, setSort] = useState<SortOption>('relevance');
 
-  // Active search query (what was actually submitted)
-  const [activeQuery, setActiveQuery] = useState('');
+  const hasQuery = activeQuery.trim().length > 0;
+  const hasFilters =
+    selectedSpecialties.length > 0 ||
+    selectedStudyTypes.length > 0 ||
+    selectedEvidenceLevels.length > 0 ||
+    yearFrom !== '' ||
+    yearTo !== '';
+  const hasAnyInput = hasQuery || hasFilters;
 
   // ── Load papers ───────────────────────────────────────────────────
+  const buildFilters = useCallback((): HybridSearchFilters | undefined => {
+    if (!hasFilters) return undefined;
+    const filters: HybridSearchFilters = {};
+    if (selectedSpecialties.length > 0) filters.specialties = selectedSpecialties;
+    if (selectedStudyTypes.length > 0) filters.study_types = selectedStudyTypes;
+    if (selectedEvidenceLevels.length > 0) filters.evidence_levels = selectedEvidenceLevels;
+    if (yearFrom !== '' || yearTo !== '') {
+      const fromNum = Number(yearFrom);
+      const toNum = Number(yearTo);
+      filters.years = {
+        from: Number.isFinite(fromNum) && yearFrom !== '' ? fromNum : undefined,
+        to: Number.isFinite(toNum) && yearTo !== '' ? toNum : undefined,
+      };
+    }
+    return filters;
+  }, [hasFilters, selectedSpecialties, selectedStudyTypes, selectedEvidenceLevels, yearFrom, yearTo]);
+
   const loadPapers = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      let response;
-
-      if (activeQuery.trim()) {
-        // Search mode
-        response = await searchPapers({
-          q: activeQuery,
+      if (hasAnyInput) {
+        const response = await hybridSearch({
+          query: activeQuery,
           page,
-          per_page: perPage,
+          page_size: perPage,
+          sort,
+          filters: buildFilters(),
         });
+        setItems(response.items.map(hybridItemToPaper));
+        setTotal(response.total);
+        setTotalPages(Math.max(1, Math.ceil(response.total / perPage)));
       } else {
-        // List mode with filters
-        response = await listPapers({
+        const response = await listPapers({
           page,
           per_page: perPage,
           study_type: selectedStudyTypes.length > 0 ? selectedStudyTypes[0] : null,
           specialty: selectedSpecialties.length > 0 ? selectedSpecialties[0] : null,
-          sort,
         });
+        setItems(response.items);
+        setTotal(response.total);
+        setTotalPages(response.pages);
       }
-
-      setItems(response.items);
-      setTotalPages(response.pages);
-      setTotal(response.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load papers');
       setItems([]);
@@ -95,7 +152,16 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, sort]);
+  }, [
+    activeQuery,
+    hasAnyInput,
+    page,
+    perPage,
+    selectedSpecialties,
+    selectedStudyTypes,
+    sort,
+    buildFilters,
+  ]);
 
   // Load on mount and when dependencies change
   useEffect(() => {
@@ -109,9 +175,6 @@ export default function SearchPage() {
     e.preventDefault();
     setActiveQuery(searchInput);
     setPage(1);
-    // Clear filters when searching
-    setSelectedSpecialties([]);
-    setSelectedStudyTypes([]);
   }
 
   // Clear search
@@ -128,7 +191,6 @@ export default function SearchPage() {
         ? prev.filter((s) => s !== specialty)
         : [...prev, specialty]
     );
-    setActiveQuery(''); // Clear search when filtering
     setPage(1);
   }
 
@@ -139,12 +201,25 @@ export default function SearchPage() {
         ? prev.filter((s) => s !== studyType)
         : [...prev, studyType]
     );
-    setActiveQuery(''); // Clear search when filtering
+    setPage(1);
+  }
+
+  // Toggle evidence level filter
+  function toggleEvidenceLevel(level: string) {
+    setSelectedEvidenceLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+    );
+    setPage(1);
+  }
+
+  function handleYearChange(which: 'from' | 'to', value: string) {
+    if (which === 'from') setYearFrom(value);
+    else setYearTo(value);
     setPage(1);
   }
 
   // Change sort
-  function handleSortChange(newSort: 'id' | '-id') {
+  function handleSortChange(newSort: SortOption) {
     setSort(newSort);
     setPage(1);
   }
@@ -159,7 +234,10 @@ export default function SearchPage() {
   function handleResetAll() {
     setSelectedSpecialties([]);
     setSelectedStudyTypes([]);
-    setSort('id');
+    setSelectedEvidenceLevels([]);
+    setYearFrom('');
+    setYearTo('');
+    setSort('relevance');
     setActiveQuery('');
     setSearchInput('');
     setPage(1);
@@ -170,12 +248,19 @@ export default function SearchPage() {
   const hasActiveFilters =
     selectedSpecialties.length > 0 ||
     selectedStudyTypes.length > 0 ||
+    selectedEvidenceLevels.length > 0 ||
+    yearFrom !== '' ||
+    yearTo !== '' ||
     activeQuery !== '';
 
   function formatStudyType(type: string): string {
     return type
       .replace(/_/g, ' ')
       .replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+
+  function formatEvidenceLevel(level: string): string {
+    return level.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   }
 
   return (
@@ -462,7 +547,7 @@ export default function SearchPage() {
                 <span className="mono-stat text-ink/45">SORT</span>
                 <select
                   value={sort}
-                  onChange={(e) => handleSortChange(e.target.value as 'id' | '-id')}
+                  onChange={(e) => handleSortChange(e.target.value as SortOption)}
                   className="h-8 pl-2.5 pr-8 rounded-lg bg-paper border border-ink/12 text-[11.5px] text-ink-soft appearance-none cursor-pointer focus:border-teal-deep focus:outline-none"
                 >
                   {SORT_OPTIONS.map((o) => (

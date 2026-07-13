@@ -1,6 +1,6 @@
 # MedIntel API Documentation
 
-**Base URL:** `https://med.aidashnews.tech/api`
+**Base URL:** `https://med.aidashnews.tech/api` (production) / `http://localhost:8000/api` (local development)
 
 **Version:** 0.1.0
 
@@ -9,6 +9,13 @@
 ## Overview
 
 The MedIntel API provides access to 5,865+ processed clinical research papers. Papers are extracted from PubMed Central (PMC) and enriched via an LLM pipeline that generates summaries, key findings, mind maps, and verification scores.
+
+Search is powered by a **hybrid retrieval system**:
+- **Semantic search**: Qdrant vector store with BAAI/bge-m3 embeddings.
+- **Keyword search**: PostgreSQL Full Text Search (`tsvector`, `websearch_to_tsquery`, `ts_rank_cd`) with a GIN index.
+- **Ranking**: Reciprocal Rank Fusion (RRF) over parallel semantic and keyword results.
+- **Filtering**: Applied after retrieval; OR within a field, AND across fields.
+- **Sorting & Pagination**: Relevance, newest, oldest, highest evidence, title; with `page` and `page_size`.
 
 **Interactive docs (Swagger UI):** https://med.aidashnews.tech/docs
 
@@ -208,7 +215,7 @@ GET /api/papers/PMC10000089
 
 ### Search Papers
 
-Full-text search across paper summaries.
+Full-text search across paper summaries (legacy keyword search). For hybrid semantic + keyword search, use `POST /api/search`.
 
 ```http
 GET /api/papers/search?q=welfare&page=1&per_page=20
@@ -245,6 +252,115 @@ GET /api/papers/search?q=welfare&page=1&per_page=20
   "query": "welfare"
 }
 ```
+
+---
+
+## Hybrid Search
+
+### Search Papers (Hybrid)
+
+**Endpoint:** `POST /api/search`
+
+Combines **semantic search** (Qdrant + BGE-M3 embeddings) and **keyword search** (PostgreSQL Full Text Search with `websearch_to_tsquery` and `ts_rank_cd`) in parallel. Results are merged, deduplicated, ranked with **Reciprocal Rank Fusion**, filtered, sorted, and paginated.
+
+Filters are applied **after** hybrid retrieval. Within one filter field values are combined with `OR`. Across different filter fields they are combined with `AND`.
+
+**Browse without a query:** `query` is optional. If `query` is empty or omitted **and** at least one filter is provided, the endpoint skips semantic and keyword search and returns papers that match the filters only. With no query and no filters the request is rejected with HTTP 422.
+
+```http
+POST /api/search
+Content-Type: application/json
+
+{
+  "query": "nutrition in obesity",
+  "page": 1,
+  "page_size": 20,
+  "sort": "relevance",
+  "filters": {
+    "specialties": ["Nutrition", "Endocrinology"],
+    "study_types": ["RCT"],
+    "evidence_levels": ["high"],
+    "years": {
+      "from": 2020,
+      "to": 2025
+    }
+  }
+}
+```
+
+**Filter-only request:**
+```http
+POST /api/search
+Content-Type: application/json
+
+{
+  "query": "",
+  "page": 1,
+  "page_size": 20,
+  "sort": "newest",
+  "filters": {
+    "study_types": ["RCT"],
+    "evidence_levels": ["high"]
+  }
+}
+```
+
+**Body Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | string | `null` | **Optional.** Free-text search query. When omitted, only filters are applied. |
+| `page` | int | 1 | Page number (≥1) |
+| `page_size` | int | 20 | Items per page (1–100) |
+| `sort` | string | `"relevance"` | Sort strategy: `relevance`, `newest`, `oldest`, `highest_evidence`, `title` |
+| `filters` | object | `null` | Optional filters applied after retrieval |
+| `filters.specialties` | string[] | `null` | OR filter by specialty tag |
+| `filters.study_types` | string[] | `null` | OR filter by study type |
+| `filters.evidence_levels` | string[] | `null` | OR filter by evidence level (`high`, `moderate`, `low`, `very_low`) |
+| `filters.journals` | string[] | `null` | OR filter by journal name |
+| `filters.languages` | string[] | `null` | OR filter by language code |
+| `filters.authors` | string[] | `null` | OR filter by author substring |
+| `filters.years` | object | `null` | Inclusive publication year range: `{ "from": 2020, "to": 2025 }` |
+| `semantic_weight` | float | `0.7` | Weight of semantic vs keyword in RRF (0.0–1.0) |
+| `rrf_k` | int | `60` | Reciprocal Rank Fusion constant |
+
+**Response (200 OK):**
+
+```json
+{
+  "query": "nutrition in obesity",
+  "page": 1,
+  "page_size": 20,
+  "total": 342,
+  "filters": {
+    "specialties": ["Nutrition"]
+  },
+  "items": [
+    {
+      "paper_id": "PMC123",
+      "title": "...",
+      "tldr": "...",
+      "study_type": "RCT",
+      "specialty_tags": ["Nutrition", "Endocrinology"],
+      "publication_year": 2023,
+      "journal": "Journal of Nutrition",
+      "language": "en",
+      "author_list": "Smith J, Doe A",
+      "evidence_level": "high",
+      "processing_time": 45.2,
+      "has_errors": false,
+      "semantic_score": 0.84,
+      "keyword_score": 0.72,
+      "final_score": 0.89
+    }
+  ]
+}
+```
+
+**Notes:**
+- `semantic_score` and `keyword_score` are the raw scores from each retrieval system. `final_score` is the Reciprocal Rank Fusion score used for ranking.
+- When `sort` is `"relevance"`, results are ordered by `final_score` descending.
+- When `sort` is `"highest_evidence"`, results are ordered by evidence level (high → very low) then `final_score`.
 
 ### Ingest Papers (Admin)
 
@@ -360,7 +476,7 @@ export default async function PapersPage({
 }
 ```
 
-**Search papers:**
+**Search papers (hybrid):**
 ```typescript
 // app/search/page.tsx
 export default async function SearchPage({
@@ -373,8 +489,12 @@ export default async function SearchPage({
 
   if (query) {
     const res = await fetch(
-      `https://med.aidashnews.tech/api/papers/search?q=${encodeURIComponent(query)}`,
-      { next: { revalidate: 60 } }
+      `${API_BASE}/search`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, page: 1, page_size: 20, sort: 'relevance' }),
+      }
     );
     data = await res.json();
   }
@@ -388,8 +508,8 @@ export default async function SearchPage({
         <div>
           <p>{data.total} results for "{data.query}"</p>
           {data.items.map((paper) => (
-            <article key={paper.id}>
-              <h2>{paper.id}</h2>
+            <article key={paper.paper_id}>
+              <h2>{paper.paper_id}</h2>
               <p>{paper.tldr}</p>
             </article>
           ))}
@@ -398,6 +518,25 @@ export default async function SearchPage({
     </div>
   );
 }
+```
+
+**Search with filters:**
+```typescript
+export async function hybridSearch(query: string, filters = {}) {
+  const res = await fetch(`${API_BASE}/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, page: 1, page_size: 20, sort: 'relevance', filters }),
+  });
+  if (!res.ok) throw new Error('Search failed');
+  return res.json();
+}
+
+// Example: RCTs about diabetes from 2020+
+const results = await hybridSearch('diabetes', {
+  study_types: ['RCT'],
+  years: { from: 2020, to: 2025 },
+});
 ```
 
 ### React (Client-Side with Auth)
@@ -449,8 +588,19 @@ curl "https://med.aidashnews.tech/api/papers?page=1&per_page=10"
 # Filter by study type
 curl "https://med.aidashnews.tech/api/papers?study_type=RCT&per_page=5"
 
-# Search
-curl "https://med.aidashnews.tech/api/papers/search?q=diabetes&per_page=5"
+# Hybrid search (semantic + keyword)
+curl -X POST https://med.aidashnews.tech/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "diabetes",
+    "page": 1,
+    "page_size": 5,
+    "sort": "relevance",
+    "filters": {
+      "study_types": ["RCT"],
+      "years": {"from": 2020, "to": 2025}
+    }
+  }'
 
 # Get paper detail
 curl "https://med.aidashnews.tech/api/papers/PMC10000089"
@@ -556,7 +706,7 @@ interface Verification {
 
 ## Rate Limiting
 
-Currently no rate limiting. For production use, consider implementing rate limiting at the Cloudflare level or via nginx.
+Currently no rate limiting on search endpoints. Auth endpoints (`/api/auth/*`) enforce in-memory per-IP rate limits via `enforce_rate_limit` (5 requests per 60 seconds for register/login/forgot-password). For production use, consider implementing additional rate limiting at the Cloudflare level or via nginx.
 
 ---
 
@@ -583,7 +733,9 @@ app.add_middleware(
 ## Deployment Notes
 
 - **Backend:** FastAPI running as systemd service (`medintel-backend.service`) on port 8001
-- **Database:** SQLite at `/root/MedIntel/backend/medintel.db`
+- **Database:** PostgreSQL at `localhost:5432` (Docker container, database `medintel`)
+- **Vector Store:** Qdrant at `http://localhost:6333` (Docker container)
+- **Full Text Search:** PostgreSQL `tsvector` on `papers.search_vector` with a GIN index, maintained by a database trigger.
 - **Reverse Proxy:** Docker nginx (`kwamelrent_nginx`) proxies `med.aidashnews.tech` to port 8001
 - **SSL:** Terminated at Cloudflare edge (domain is proxied through Cloudflare)
 - **Papers:** 5,865 papers ingested from `/root/papers/pipeline_outputs/results/`

@@ -11,13 +11,10 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from typing import Any, Protocol
-
-import numpy as np
-
 from services.qdrant_service import (
     PaperEmbeddingPayload,
     SemanticSearchResult,
+    SCORE_THRESHOLD,
     count_papers,
     delete_papers,
     ensure_collection,
@@ -43,7 +40,8 @@ class VectorRepository(Protocol):
     def search(
         self,
         query_vector: np.ndarray,
-        top_k: int = 10,
+        top_k: int = 5,
+        score_threshold: float | None = None,
         filters: dict[str, Any] | None = None,
     ) -> list[SemanticSearchResult]:
         """Search vectors by similarity, optionally filtered by metadata."""
@@ -77,7 +75,8 @@ class QdrantVectorRepository:
     def search(
         self,
         query_vector: np.ndarray,
-        top_k: int = 10,
+        top_k: int = 5,
+        score_threshold: float | None = None,
         filters: dict[str, Any] | None = None,
     ) -> list[SemanticSearchResult]:
         """Search Qdrant for vectors similar to the query vector.
@@ -85,16 +84,30 @@ class QdrantVectorRepository:
         Args:
             query_vector: Dense query embedding.
             top_k: Maximum number of results to return.
+            score_threshold: Minimum cosine similarity score. Defaults to the
+                value configured via MEDINTEL_SEARCH_SCORE_THRESHOLD.
             filters: Optional metadata filters (e.g., {"study_type": "RCT"}).
 
         Returns:
             List of SemanticSearchResult sorted by descending similarity score.
         """
+        if score_threshold is None:
+            score_threshold = SCORE_THRESHOLD
+
         if filters:
             return search_with_filter(
-                query_vector, filters, top_k=top_k, client=self._client
+                query_vector,
+                filters,
+                top_k=top_k,
+                score_threshold=score_threshold,
+                client=self._client,
             )
-        return search_similar(query_vector, top_k=top_k, client=self._client)
+        return search_similar(
+            query_vector,
+            top_k=top_k,
+            score_threshold=score_threshold,
+            client=self._client,
+        )
 
     def delete(self, paper_ids: list[str]) -> None:
         """Delete vectors by paper ID."""

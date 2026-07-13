@@ -42,7 +42,9 @@ backend/.venv/
 *.db
 medintel.db
 
-# vercel
+# logs
+logs/
+backend/logs/
 .vercel
 
 # typescript

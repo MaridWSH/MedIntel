@@ -1,9 +1,17 @@
-import { Paper, PaperListResponse, PaperSearchResponse, PaperListParams, PaperSearchParams } from './types';
+import { apiFetch } from '../api';
+import type {
+  HybridSearchRequest,
+  HybridSearchResponse,
+  Paper,
+  PaperListResponse,
+  PaperListParams,
+} from './types';
 
-const BASE_API = 'https://med.aidashnews.tech/api';
+const BASE_API = 'http://localhost:8000/api';
 
 async function fetchAPI<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
@@ -27,7 +35,7 @@ function buildQueryString(params: Record<string, unknown>): string {
   return qs ? `?${qs}` : '';
 }
 
-/** GET /api/papers — List all papers (paginated) */
+/** GET /api/papers — List all papers (paginated). */
 export async function listPapers(params: PaperListParams = {}) {
   const qs = buildQueryString({
     page: params.page ?? 1,
@@ -39,22 +47,35 @@ export async function listPapers(params: PaperListParams = {}) {
   return fetchAPI<PaperListResponse>(`${BASE_API}/papers${qs}`);
 }
 
-/** GET /api/papers/search — Search papers by query */
-export async function searchPapers(params: PaperSearchParams) {
-  const qs = buildQueryString({
-    q: params.q,
-    page: params.page ?? 1,
-    per_page: params.per_page ?? 20,
-  });
-  return fetchAPI<PaperSearchResponse>(`${BASE_API}/papers/search${qs}`);
-}
-
-/** GET /api/papers/{paper_id} — Get single paper details */
+/** GET /api/papers/{paper_id} — Get single paper details. */
 export async function getPaperById(paperId: string) {
   return fetchAPI<Paper>(`${BASE_API}/papers/${encodeURIComponent(paperId)}`);
 }
 
-/** Helper: auto-paginate and get ALL papers */
+/**
+ * POST /api/search — Hybrid (semantic + keyword) search.
+ *
+ * Combines BGE-M3 semantic search with PostgreSQL full-text search, ranks via
+ * Reciprocal Rank Fusion, applies filters, sorts, and returns one paginated page.
+ */
+export async function hybridSearch(request: HybridSearchRequest): Promise<HybridSearchResponse> {
+  const response = await apiFetch('api/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => '');
+    throw new Error(
+      `API Error ${response.status}: ${response.statusText}${errorBody ? ` — ${errorBody}` : ''}`,
+    );
+  }
+
+  return response.json();
+}
+
+/** Helper: auto-paginate and get ALL papers. */
 export async function getAllPapers(): Promise<Paper[]> {
   const firstPage = await listPapers({ page: 1, per_page: 100 });
   if (firstPage.pages <= 1) return firstPage.items;

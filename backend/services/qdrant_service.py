@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 import uuid
 from dataclasses import dataclass
 from typing import Any, List
@@ -34,6 +35,7 @@ QDRANT_URL = os.environ.get("MEDINTEL_QDRANT_URL", "http://localhost:6333")
 QDRANT_API_KEY = os.environ.get("MEDINTEL_QDRANT_API_KEY", None)
 QDRANT_COLLECTION_NAME = os.environ.get("MEDINTEL_QDRANT_COLLECTION", "papers")
 EMBEDDING_DIMENSION = int(os.environ.get("MEDINTEL_EMBEDDING_DIMENSION", "1024"))
+SCORE_THRESHOLD = float(os.environ.get("MEDINTEL_SEARCH_SCORE_THRESHOLD", "0.65"))
 
 # Deterministic UUID namespace for paper IDs.
 # Using UUIDv5 means the same paper_id always maps to the same UUID.
@@ -297,7 +299,8 @@ def _search_result_from_record(record) -> SemanticSearchResult:
 
 def search_similar(
     query_vector: np.ndarray,
-    top_k: int = 10,
+    top_k: int = 5,
+    score_threshold: float | None = None,
     client: QdrantClient | None = None,
 ) -> list[SemanticSearchResult]:
     """Search Qdrant for papers semantically similar to the query vector."""
@@ -305,13 +308,23 @@ def search_similar(
     vector = np.asarray(query_vector, dtype=np.float32).tolist()
 
     try:
-        search_results = client.search(
+        t_start = time.perf_counter()
+        response = client.query_points(
             collection_name=QDRANT_COLLECTION_NAME,
-            query_vector=vector,
+            query=vector,
             limit=top_k,
             with_payload=True,
         )
-        return [_search_result_from_record(record) for record in search_results]
+        results = [_search_result_from_record(record) for record in response.points]
+        t_elapsed = time.perf_counter() - t_start
+        logger.info(
+            "Qdrant search_similar: top_k=%d, raw_results=%d, scores=%s, time=%.3fs",
+            top_k,
+            len(results),
+            [round(r.score, 4) for r in results],
+            t_elapsed,
+        )
+        return results
     except Exception as exc:
         logger.exception("Qdrant semantic search failed")
         raise RuntimeError(f"Qdrant search failed: {exc}") from exc
@@ -320,7 +333,8 @@ def search_similar(
 def search_with_filter(
     query_vector: np.ndarray,
     filters: dict[str, Any],
-    top_k: int = 10,
+    top_k: int = 5,
+    score_threshold: float | None = None,
     client: QdrantClient | None = None,
 ) -> list[SemanticSearchResult]:
     """Search Qdrant with metadata filters.
@@ -347,14 +361,25 @@ def search_with_filter(
     filter_object = rest.Filter(must=conditions) if conditions else None
 
     try:
-        search_results = client.search(
+        t_start = time.perf_counter()
+        response = client.query_points(
             collection_name=QDRANT_COLLECTION_NAME,
-            query_vector=vector,
+            query=vector,
             query_filter=filter_object,
             limit=top_k,
             with_payload=True,
         )
-        return [_search_result_from_record(record) for record in search_results]
+        results = [_search_result_from_record(record) for record in response.points]
+        t_elapsed = time.perf_counter() - t_start
+        logger.info(
+            "Qdrant search_with_filter: top_k=%d, filters=%s, raw_results=%d, scores=%s, time=%.3fs",
+            top_k,
+            filters,
+            len(results),
+            [round(r.score, 4) for r in results],
+            t_elapsed,
+        )
+        return results
     except Exception as exc:
         logger.exception("Qdrant filtered search failed")
         raise RuntimeError(f"Qdrant filtered search failed: {exc}") from exc

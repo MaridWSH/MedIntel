@@ -17,10 +17,9 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from dataclasses import dataclass
 from typing import Any
-
-from sqlalchemy.orm import Session
 
 from sqlalchemy.orm import Session
 
@@ -28,6 +27,7 @@ from models import Paper
 from repositories.paper_repository import PaperRepository, SQLAlchemyPaperRepository
 from repositories.vector_repository import VectorRepository
 from services.embedding_service import EmbeddingService, encode_papers, get_embedding_service
+from services.qdrant_service import SCORE_THRESHOLD
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,8 @@ class SemanticSearchService:
     def search(
         self,
         query: str,
-        top_k: int = 10,
+        top_k: int = 5,
+        score_threshold: float | None = None,
         filters: dict[str, Any] | None = None,
     ) -> list[SemanticSearchResult]:
         """Run the full semantic search pipeline and return ranked Paper rows.
@@ -112,31 +113,62 @@ class SemanticSearchService:
         Args:
             query: Raw user query string.
             top_k: Maximum number of results to return.
+            score_threshold: Minimum cosine similarity score. Defaults to the
+                value configured via MEDINTEL_SEARCH_SCORE_THRESHOLD.
             filters: Optional metadata filters (e.g., {"study_type": "RCT"}).
 
         Returns:
             A list of SemanticSearchResult sorted by descending similarity score.
         """
+        t_start = time.perf_counter()
+
         normalized = normalize_query(query)
+        t_normalize = time.perf_counter()
         if not normalized:
+            logger.info("Search: empty query after normalization")
             return []
 
         query_vector = self._embedding_service.encode_query(normalized)
+        t_embed = time.perf_counter()
+
         vector_results = self._vector_repository.search(
             query_vector,
             top_k=top_k,
+            score_threshold=score_threshold,
             filters=filters,
         )
+        t_qdrant = time.perf_counter()
 
-        if not vector_results:
+        # Log raw scores before threshold filtering so we can calibrate the threshold.
+        if vector_results:
+            logger.info(
+                "Raw Qdrant scores before filtering: %s",
+                [(r.paper_id, round(r.score, 4)) for r in vector_results],
+            )
+
+        threshold = score_threshold if score_threshold is not None else SCORE_THRESHOLD
+        filtered_results = [r for r in vector_results if r.score >= threshold]
+
+        if not filtered_results:
+            logger.info(
+                "Search: normalize=%.3fs, embed=%.3fs, qdrant=%.3fs, total=%.3fs | "
+                "no results above threshold %.3f",
+                t_normalize - t_start,
+                t_embed - t_normalize,
+                t_qdrant - t_embed,
+                t_qdrant - t_start,
+                threshold,
+            )
             return []
 
-        paper_ids = [r.paper_id for r in vector_results]
+        paper_ids = [r.paper_id for r in filtered_results]
         papers = self._paper_repository.get_by_ids(paper_ids)
+        t_db = time.perf_counter()
+
         paper_by_id = {p.id: p for p in papers}
 
         ranked: list[SemanticSearchResult] = []
-        for result in vector_results:
+        for result in filtered_results:
             paper = paper_by_id.get(result.paper_id)
             if paper is None:
                 logger.warning(
@@ -146,12 +178,29 @@ class SemanticSearchService:
                 continue
             ranked.append(SemanticSearchResult(paper=paper, score=result.score))
 
+        t_total = time.perf_counter()
+        logger.info(
+            "Search timing: normalize=%.3fs, embed=%.3fs, qdrant=%.3fs, db=%.3fs, "
+            "build=%.3fs, threshold=%.3f, raw=%d, filtered=%d, total=%.3fs, results=%d",
+            t_normalize - t_start,
+            t_embed - t_normalize,
+            t_qdrant - t_embed,
+            t_db - t_qdrant,
+            t_total - t_db,
+            threshold,
+            len(vector_results),
+            len(filtered_results),
+            t_total - t_start,
+            len(ranked),
+        )
+
         return ranked
 
     async def search_async(
         self,
         query: str,
-        top_k: int = 10,
+        top_k: int = 5,
+        score_threshold: float | None = None,
         filters: dict[str, Any] | None = None,
     ) -> list[SemanticSearchResult]:
         """Async version of search.
@@ -168,18 +217,28 @@ class SemanticSearchService:
         vector_results = self._vector_repository.search(
             query_vector,
             top_k=top_k,
+            score_threshold=score_threshold,
             filters=filters,
         )
 
-        if not vector_results:
+        if vector_results:
+            logger.info(
+                "Raw Qdrant scores before filtering: %s",
+                [(r.paper_id, round(r.score, 4)) for r in vector_results],
+            )
+
+        threshold = score_threshold if score_threshold is not None else SCORE_THRESHOLD
+        filtered_results = [r for r in vector_results if r.score >= threshold]
+
+        if not filtered_results:
             return []
 
-        paper_ids = [r.paper_id for r in vector_results]
+        paper_ids = [r.paper_id for r in filtered_results]
         papers = self._paper_repository.get_by_ids(paper_ids)
         paper_by_id = {p.id: p for p in papers}
 
         ranked: list[SemanticSearchResult] = []
-        for result in vector_results:
+        for result in filtered_results:
             paper = paper_by_id.get(result.paper_id)
             if paper is None:
                 logger.warning(

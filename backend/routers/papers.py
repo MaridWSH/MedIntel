@@ -1,6 +1,7 @@
 """Papers router — list, detail, search, ingest."""
 
 import json
+import logging
 import math
 from pathlib import Path
 
@@ -19,6 +20,9 @@ from schemas import (
     PaperListResponse,
     SearchResponse,
 )
+from services.fts_service import populate_search_vector_for_paper
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/papers", tags=["papers"])
 
@@ -195,6 +199,8 @@ def ingest_papers(
                 title=summary.get("title", ""),
                 tldr=summary.get("tldr", ""),
                 detailed_summary=summary.get("detailed_summary", ""),
+                abstract=summary.get("abstract", ""),
+                keywords=summary.get("keywords", ""),
                 study_type=summary.get("study_type", ""),
                 specialty_tags=json.dumps(summary.get("specialty_tags", [])),
                 pico_summary=json.dumps(summary.get("pico_summary")) if summary.get("pico_summary") else "null",
@@ -203,11 +209,22 @@ def ingest_papers(
                 verification=json.dumps(verification_raw) if verification_raw else "null",
                 processing_time=data.get("processing_time_seconds", 0.0) or 0.0,
                 has_errors=bool(data.get("errors")),
+                # Backfill production queryable columns
+                publication_year=summary.get("publication_year"),
+                journal=(summary.get("journal") or "")[:512],
+                language=summary.get("language") or "en",
+                author_list=summary.get("author_list", ""),
+                authors_count=summary.get("authors_count"),
+                centers_count=summary.get("centers_count"),
+                doi=summary.get("doi", ""),
+                evidence_level=(summary.get("evidence_level") or "").lower(),
             )
+            populate_search_vector_for_paper(paper)
             db.add(paper)
             ingested += 1
 
         except Exception:
+            logger.exception("Failed to ingest paper from %s", f)
             errors += 1
 
     db.commit()
