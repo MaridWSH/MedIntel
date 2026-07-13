@@ -44,7 +44,7 @@ export default function NotFound() {
 
           <p className="fade-in d-3 serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.55] max-w-[480px] mx-auto mb-10">
             The page you&rsquo;re looking for may have been moved, or the URL might be wrong.
-            Start from the Evidence Engine or search our 50 million indexed papers.
+            Start from the Evidence Engine, or search the papers we&rsquo;ve summarised.
           </p>
 
           <div className="fade-in d-4 flex flex-col sm:flex-row items-center justify-center gap-3">

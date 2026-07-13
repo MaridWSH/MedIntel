@@ -18,6 +18,8 @@ from models import Paper, User
 from schemas import (
     BackfillRequest,
     BackfillResponse,
+    FacetsResponse,
+    FacetValue,
     FullTextResponse,
     FullTextSection,
     IngestRequest,
@@ -522,6 +524,9 @@ def list_papers(
     per_page: int = Query(20, ge=1, le=100),
     study_type: str | None = None,
     specialty: str | None = None,
+    evidence_level: str | None = Query(
+        None, pattern="^(high|moderate|low|very_low)$"
+    ),
     sort: str = Query("id", pattern="^(id|-id)$"),
     summarised_only: bool = Query(
         True,
@@ -544,8 +549,27 @@ def list_papers(
         query = query.filter(Paper.study_type == study_type)
 
     if specialty:
-        # SQLite: filter where specialty_tags JSON contains the tag
-        query = query.filter(Paper.specialty_tags.contains(specialty))
+        # specialty_tags is a JSON array in a text column, so this is a substring
+        # match. Tags are stored inconsistently ("public_health" and "public
+        # health" both occur), and /facets normalises to the spaced form, so match
+        # either — otherwise picking a facet returns nothing.
+        spaced = specialty.strip().replace("_", " ")
+        underscored = spaced.replace(" ", "_")
+        query = query.filter(
+            or_(
+                Paper.specialty_tags.ilike(f"%{spaced}%"),
+                Paper.specialty_tags.ilike(f"%{underscored}%"),
+            )
+        )
+
+    if evidence_level:
+        # key_findings is a JSON blob in a text column. Matching the serialised
+        # key/value is crude but avoids a migration; the alternative was the UI
+        # filtering the current page in memory, which silently contradicted the
+        # result count it displayed next to it.
+        query = query.filter(
+            Paper.key_findings.ilike(f'%"overall_evidence_level": "{evidence_level}"%')
+        )
 
     total = query.count()
     pages = max(1, math.ceil(total / per_page))
@@ -645,6 +669,48 @@ def search_papers(
         pages=pages,
         query=q,
     )
+
+
+# Declared before /{paper_id} so "facets" isn't matched as a paper id.
+@router.get("/facets", response_model=FacetsResponse)
+def get_facets(db: Session = Depends(get_db)):
+    """Filter options that exist in the summarised catalogue, with counts.
+
+    Derived from the data rather than hardcoded in the client: the UI's fixed list
+    offered study types that match nothing ("cohort_study" vs the stored "cohort")
+    and omitted the largest real ones.
+    """
+    summarised = db.query(Paper).filter(Paper.tldr != "", Paper.tldr.isnot(None))
+
+    study_types = [
+        FacetValue(value=value, count=count)
+        for value, count in (
+            summarised.with_entities(Paper.study_type, func.count(Paper.id))
+            .group_by(Paper.study_type)
+            .order_by(func.count(Paper.id).desc())
+            .all()
+        )
+        if value  # study_type is blank on a chunk of the catalogue
+    ]
+
+    # specialty_tags is a JSON array in a text column, so it has to be counted in
+    # Python. The summarised catalogue is a few thousand rows — cheap enough.
+    tag_counts: dict[str, int] = {}
+    for (raw,) in summarised.with_entities(Paper.specialty_tags).all():
+        for tag in _to_json(raw) or []:
+            if not isinstance(tag, str) or not tag.strip():
+                continue
+            # Tags arrive both as "public_health" and "public health".
+            key = tag.strip().lower().replace("_", " ")
+            tag_counts[key] = tag_counts.get(key, 0) + 1
+
+    specialties = [
+        FacetValue(value=value, count=count)
+        for value, count in sorted(tag_counts.items(), key=lambda kv: kv[1], reverse=True)
+        if count >= 5  # long tail of one-off tags is noise in a filter list
+    ]
+
+    return FacetsResponse(study_types=study_types, specialties=specialties)
 
 
 @router.get("/{paper_id}", response_model=PaperDetail)

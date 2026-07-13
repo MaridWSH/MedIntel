@@ -122,6 +122,17 @@ export interface FullText {
   available: boolean;
 }
 
+export interface FacetValue {
+  value: string;
+  count: number;
+}
+
+/** Filter options that exist in the catalogue. Never hardcode these in the UI. */
+export interface Facets {
+  study_types: FacetValue[];
+  specialties: FacetValue[];
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -141,6 +152,7 @@ export interface PaperListParams {
   per_page?: number;
   study_type?: string | null;
   specialty?: string | null;
+  evidence_level?: string | null;
   sort?: 'id' | '-id';
 }
 

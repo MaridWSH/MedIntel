@@ -189,22 +189,12 @@ export default function RegisterPage() {
                     <Icon icon="lucide:shield-check" className="text-[16px] text-teal-deep" />
                     <div className="text-[11.5px] font-semibold text-ink">Your data is safe</div>
                   </div>
+                  {/* "Hashed with AES-256" is not a thing, and we hold no HIPAA/GDPR/ISO certification. */}
                   <p className="text-[11.5px] text-ink-soft leading-[1.5]">
-                    Credentials are hashed with AES-256 and never stored in plain text. We comply with
-                    HIPAA, GDPR Art. 9, and are working towards ISO 27001.
+                    Passwords are hashed with Argon2 and never stored in plain text, and the site is
+                    served over TLS. We are a closed beta and hold no compliance certification &mdash;
+                    please don&rsquo;t put patient data here.
                   </p>
-                  <div className="mt-3 pt-3 border-t border-ink/8 grid grid-cols-3 gap-2 text-[9.5px] mono-stat text-ink/45">
-                    <div>
-                      HIPAA<span className="block text-[8.5px] text-ink/35 mt-0.5">ALIGNED</span>
-                    </div>
-                    <div>
-                      GDPR<span className="block text-[8.5px] text-ink/35 mt-0.5">ART. 9</span>
-                    </div>
-                    <div>
-                      ISO 27001
-                      <span className="block text-[8.5px] text-ink/35 mt-0.5">IN PROGRESS</span>
-                    </div>
-                  </div>
                 </div>
 
                 <Link

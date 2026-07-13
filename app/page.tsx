@@ -11,11 +11,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tec
 // ── Evidence Engine agent data ──────────────────────────────────────────
 const AGENTS = [
   { id: '01', icon: 'lucide:scan-text', title: 'TLDR Synthesis', desc: 'Reads the full text, abstracts, and supplementary materials into a single PICO-structured paragraph that a doctor can absorb during rounds.', badges: ['PICO FORMAT', '≤ 60 WORDS'] },
-  { id: '02', icon: 'lucide:network', title: 'Mind Map', desc: 'Lays out findings as a zoomable, click-through knowledge graph. Every node links to the source paragraph so the chain of evidence is one tap away.', badges: ['CLICK-TO-SOURCE'] },
+  { id: '02', icon: 'lucide:network', title: 'Structured Breakdown', desc: 'Decomposes the paper into background, methods, results, limitations and implications — each point typed, so findings and caveats are told apart at a glance.', badges: ['TYPED NODES'] },
   { id: '03', icon: 'lucide:image', title: 'Infographic', desc: 'Renders a journal-grade visual summary — the kind you share with the department WhatsApp group or in a journal-club slide.', badges: ['1200 × 630'] },
-  { id: '04', icon: 'lucide:shield-alert', title: 'Critical Appraisal', desc: 'Flags bias, scores methodology, surfaces limitations. The same questions a fellow asks in journal club — answered before you ask them.', badges: ['BIAS FLAGS', 'GRADE'] },
+  { id: '04', icon: 'lucide:shield-alert', title: 'Summary Fidelity', desc: 'Re-reads our own summary against the source and flags any figure or claim it cannot trace back. It checks the summary, not the study — it is not a GRADE appraisal.', badges: ['SOURCE-CHECKED'] },
   { id: '05', icon: 'lucide:stethoscope', title: 'Clinical Relevance', desc: 'Tags by specialty and grades the practice-change signal. Tells you, plainly, whether this paper should change what you do tomorrow morning.', badges: ['PRACTICE-CHANGE'] },
-  { id: '06', icon: 'lucide:quote', title: 'Citation Export', desc: 'Every claim carries its source. Export to RIS, BibTeX, EndNote, or paste-ready citations in AMA, Vancouver, APA, or Harvard.', badges: ['RIS', 'BIBTEX', 'AMA'], highlight: true },
+  { id: '06', icon: 'lucide:quote', title: 'Citation Export', desc: 'Every summary links back to the paper it came from. Export a formatted citation, BibTeX, or RIS.', badges: ['RIS', 'BIBTEX'], highlight: true },
 ];
 
 /*
@@ -116,7 +116,7 @@ export default async function Home() {
                   <span className="mono-stat">Live</span>
                 </span>
                 <span className="text-ink/30">&mdash;</span>
-                <span className="text-[11.5px] text-ink-soft">Evidence Engine v0.9 &middot; 6 agents &middot; 1.2M papers processed this month</span>
+                <span className="text-[11.5px] text-ink-soft">Evidence Engine v0.9 &middot; 6 agents &middot; closed beta</span>
               </div>
             </div>
 
@@ -132,8 +132,8 @@ export default async function Home() {
             {/* Subhead */}
             <div className="fade-in d-2 mt-7 text-center max-w-[620px] mx-auto">
               <p className="serif-body text-[17px] md:text-[19px] text-ink-soft leading-[1.5]">
-                Six specialised agents read every trial, review, and case report &mdash; and return a PICO
-                summary, mind map, infographic, and clinical bottom line in under twelve seconds.
+                Six specialised agents read the paper and return a structured summary, a breakdown of the
+                findings, a shareable card, and a clinical bottom line &mdash; in about thirty seconds.
               </p>
             </div>
 
@@ -412,7 +412,7 @@ export default async function Home() {
               <span className="italic text-teal-bright">already read.</span>
             </h2>
             <p className="serif-body text-[17px] md:text-[19px] text-paper/75 mt-7 max-w-[620px] mx-auto">
-              Five free papers, every month, forever. The first search takes under twelve seconds.
+              Five free papers, every month, forever.
               No credit card. No commitment. A physician built this for physicians.
             </p>
             <div className="mt-10 flex flex-col md:flex-row items-center justify-center gap-3">
@@ -426,7 +426,8 @@ export default async function Home() {
             </div>
             <div className="mt-8 flex items-center justify-center gap-2 text-[10.5px] mono-stat text-paper/55">
               <Icon icon="lucide:lock" className="text-[12px]" />
-              PHI-LICENSED &middot; GDPR &middot; HIPAA-ALIGNED &middot; SOC 2 IN PROGRESS
+              {/* Was "PHI-LICENSED · GDPR · HIPAA-ALIGNED · SOC 2 IN PROGRESS" — none of it holds. */}
+              CLOSED BETA &middot; AI-GENERATED &middot; NOT CLINICAL ADVICE
             </div>
           </div>
         </section>

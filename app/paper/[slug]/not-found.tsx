@@ -42,7 +42,7 @@ export default function PaperNotFound() {
 
           <p className="fade-in d-3 serif-body text-[15.5px] text-ink-soft leading-[1.55] max-w-[460px] mx-auto mb-10">
             The paper you&rsquo;re looking for may not yet be synthesised, or the URL is incorrect.
-            Our corpus covers 50 million papers across 17 major databases.
+            Our corpus is open-access research from PubMed Central, and only part of it is summarised so far.
           </p>
 
           <div className="fade-in d-4 flex flex-col sm:flex-row items-center justify-center gap-3">

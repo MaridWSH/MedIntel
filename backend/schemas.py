@@ -162,6 +162,22 @@ class FullTextResponse(BaseModel):
     available: bool = True
 
 
+class FacetValue(BaseModel):
+    value: str
+    count: int
+
+
+class FacetsResponse(BaseModel):
+    """Filter options that actually exist in the catalogue, with their counts.
+
+    The UI used to hardcode its filter lists. Several values never matched
+    anything (it offered "cohort_study"; the data says "cohort"), and the biggest
+    real category was missing entirely.
+    """
+    study_types: list[FacetValue]
+    specialties: list[FacetValue]
+
+
 class PaperDetail(BaseModel):
     id: str
     title: str

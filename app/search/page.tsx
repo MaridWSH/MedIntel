@@ -1,48 +1,116 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Icon from '../../components/ui/Icon';
 import TopUtilityStrip from '../../components/site/TopUtilityStrip';
 import SiteHeader from '../../components/site/SiteHeader';
 import SiteFooter from '../../components/site/SiteFooter';
-import { listPapers, searchPapers } from '../../lib/papers';
-import type { Paper } from '../../lib/papers/types';
+import { getFacets, listPapers, searchPapers } from '../../lib/papers';
+import type { FacetValue, Paper } from '../../lib/papers/types';
 
-const SPECIALTIES = [
-  'Cardiology',
-  'Endocrinology',
-  'Internal Medicine',
-  'Oncology',
-  'Neurology',
-  'Pulmonology',
-  'Emergency Medicine',
-  'Pediatrics',
-];
-
-const STUDY_TYPES = [
-  'RCT',
-  'systematic_review',
-  'cross_sectional',
-  'cohort_study',
-  'case_control',
-  'other',
-];
+/*
+ * Filter options come from /papers/facets, not from a list in this file. The
+ * hardcoded list offered "cross_sectional", "cohort_study" and "case_control" —
+ * the data stores "cross-sectional", "cohort" and "case-control", so those three
+ * filters always returned nothing — and it omitted narrative_review, the second
+ * largest category. Same for specialties.
+ */
+const MAX_SPECIALTY_FACETS = 12;
 
 const SORT_OPTIONS = [
   { value: 'id', label: 'Most recent' },
   { value: '-id', label: 'Oldest first' },
 ];
 
-export default function SearchPage() {
+const prettify = (value: string) =>
+  value.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+const EVIDENCE_LEVELS: FacetValue[] = [
+  { value: 'high', count: 0 },
+  { value: 'moderate', count: 0 },
+  { value: 'low', count: 0 },
+  { value: 'very_low', count: 0 },
+];
+
+const EVIDENCE_LABELS: Record<string, string> = {
+  high: 'High',
+  moderate: 'Moderate',
+  low: 'Low',
+  very_low: 'Very low',
+};
+
+interface FacetFilterProps {
+  icon: string;
+  title: string;
+  facets: FacetValue[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  format: (value: string) => string;
+  showCounts?: boolean;
+}
+
+function FacetFilter({
+  icon,
+  title,
+  facets,
+  selected,
+  onToggle,
+  format,
+  showCounts = true,
+}: FacetFilterProps) {
+  if (facets.length === 0) return null;
+
+  return (
+    <div className="bg-paper border border-ink/12 rounded-2xl mb-3 overflow-hidden">
+      <div className="flex items-center justify-between px-4 h-11">
+        <span className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
+          <Icon icon={icon} className="text-[14px] text-teal-deep" />
+          {title}
+        </span>
+      </div>
+      <div className="px-3 pb-4 pt-1">
+        <ul className="space-y-0.5">
+          {facets.map((f) => (
+            <li key={f.value}>
+              <label className="flex items-center gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(f.value)}
+                  onChange={() => onToggle(f.value)}
+                  className="accent-[var(--teal-deep)] w-3.5 h-3.5"
+                />
+                <span className="text-ink-soft truncate">{format(f.value)}</span>
+                {showCounts && (
+                  <span className="ml-auto text-[10.5px] mono-stat text-ink/40 shrink-0">
+                    {f.count.toLocaleString()}
+                  </span>
+                )}
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function SearchPageInner() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('q') ?? '';
+
   // ── State ─────────────────────────────────────────────────────────
   const [items, setItems] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Search & filters
-  const [query, setQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState(initialQuery);
+
+  // Facets, loaded from the API
+  const [specialtyFacets, setSpecialtyFacets] = useState<FacetValue[]>([]);
+  const [studyTypeFacets, setStudyTypeFacets] = useState<FacetValue[]>([]);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -56,8 +124,30 @@ export default function SearchPage() {
   const [selectedEvidenceGrades, setSelectedEvidenceGrades] = useState<string[]>([]);
   const [sort, setSort] = useState<'id' | '-id'>('id');
 
-  // Active search query (what was actually submitted)
-  const [activeQuery, setActiveQuery] = useState('');
+  // Active search query (what was actually submitted).
+  // Seeded from ?q= so /search?q=diabetes — the link the landing page produces —
+  // actually searches instead of showing an unfiltered listing.
+  const [activeQuery, setActiveQuery] = useState(initialQuery);
+
+  // Keep in step when the URL changes underneath us (e.g. a second hero search).
+  useEffect(() => {
+    const q = searchParams.get('q') ?? '';
+    setActiveQuery(q);
+    setSearchInput(q);
+    setPage(1);
+  }, [searchParams]);
+
+  useEffect(() => {
+    getFacets()
+      .then((f) => {
+        setStudyTypeFacets(f.study_types);
+        setSpecialtyFacets(f.specialties.slice(0, MAX_SPECIALTY_FACETS));
+      })
+      .catch(() => {
+        setStudyTypeFacets([]);
+        setSpecialtyFacets([]);
+      });
+  }, []);
 
   // ── Load papers ───────────────────────────────────────────────────
   const loadPapers = useCallback(async () => {
@@ -76,8 +166,12 @@ export default function SearchPage() {
         : await listPapers({
             page,
             per_page: perPage,
-            study_type: selectedStudyTypes.length > 0 ? selectedStudyTypes[0] : null,
-            specialty: selectedSpecialties.length > 0 ? selectedSpecialties[0] : null,
+            // The API takes one value per facet; the checkboxes allow several, so
+            // the first selection wins. Multi-select would need an `in` filter
+            // server-side — worth doing, but not silently pretending here.
+            study_type: selectedStudyTypes[0] ?? null,
+            specialty: selectedSpecialties[0] ?? null,
+            evidence_level: selectedEvidenceGrades[0] ?? null,
             sort,
           });
 
@@ -92,7 +186,7 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, sort]);
+  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, selectedEvidenceGrades, sort]);
 
   // Load on mount and when dependencies change
   useEffect(() => {
@@ -182,19 +276,12 @@ export default function SearchPage() {
     selectedEvidenceGrades.length > 0 ||
     activeQuery !== '';
 
-  // Client-side evidence grade filter (API doesn't support it)
-  const filteredItems = selectedEvidenceGrades.length > 0
-    ? items.filter((paper) => {
-        const grade = paper.overall_evidence_level;
-        return grade && selectedEvidenceGrades.includes(grade);
-      })
-    : items;
+  // Evidence grade is filtered server-side now. It used to be applied to the
+  // current page in memory, so the sidebar quietly removed rows while the header
+  // went on reporting the unfiltered total.
+  const filteredItems = items;
 
-  function formatStudyType(type: string): string {
-    return type
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, (l) => l.toUpperCase());
-  }
+  const formatStudyType = prettify;
 
   return (
     <>
@@ -345,103 +432,34 @@ export default function SearchPage() {
                 )}
               </div>
 
-              {/* Specialty filter */}
-              <div className="bg-paper border border-ink/12 rounded-2xl mb-3 overflow-hidden">
-                <div className="flex items-center justify-between px-4 h-11">
-                  <span className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
-                    <Icon icon="lucide:stethoscope" className="text-[14px] text-teal-deep" />
-                    Specialty
-                  </span>
-                  <Icon icon="lucide:chevron-down" className="text-[13px] text-ink/45" />
-                </div>
-                <div className="px-3 pb-4 pt-1">
-                  <ul className="space-y-0.5">
-                    {SPECIALTIES.map((s) => (
-                      <li key={s}>
-                        <label className="flex items-center gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
-                          <input
-                            type="checkbox"
-                            checked={selectedSpecialties.includes(s)}
-                            onChange={() => toggleSpecialty(s)}
-                            className="accent-[var(--teal-deep)] w-3.5 h-3.5"
-                          />
-                          <span className="text-ink-soft">{s}</span>
-                          {selectedSpecialties.includes(s) && (
-                            <span className="ml-auto text-[10px] text-teal-deep mono-stat">ACTIVE</span>
-                          )}
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              {/* Specialty — options and counts come from the API. */}
+              <FacetFilter
+                icon="lucide:stethoscope"
+                title="Specialty"
+                facets={specialtyFacets}
+                selected={selectedSpecialties}
+                onToggle={toggleSpecialty}
+                format={prettify}
+              />
 
-              {/* Study type filter */}
-              <div className="bg-paper border border-ink/12 rounded-2xl mb-3 overflow-hidden">
-                <div className="flex items-center justify-between px-4 h-11">
-                  <span className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
-                    <Icon icon="lucide:file-text" className="text-[14px] text-teal-deep" />
-                    Study type
-                  </span>
-                  <Icon icon="lucide:chevron-down" className="text-[13px] text-ink/45" />
-                </div>
-                <div className="px-3 pb-4 pt-1">
-                  <ul className="space-y-0.5">
-                    {STUDY_TYPES.map((t) => (
-                      <li key={t}>
-                        <label className="flex items-center gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
-                          <input
-                            type="checkbox"
-                            checked={selectedStudyTypes.includes(t)}
-                            onChange={() => toggleStudyType(t)}
-                            className="accent-[var(--teal-deep)] w-3.5 h-3.5"
-                          />
-                          <span className="text-ink-soft">{formatStudyType(t)}</span>
-                          {selectedStudyTypes.includes(t) && (
-                            <span className="ml-auto text-[10px] text-teal-deep mono-stat">ACTIVE</span>
-                          )}
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              <FacetFilter
+                icon="lucide:file-text"
+                title="Study type"
+                facets={studyTypeFacets}
+                selected={selectedStudyTypes}
+                onToggle={toggleStudyType}
+                format={prettify}
+              />
 
-              {/* Evidence grade */}
-              <div className="bg-paper border border-ink/12 rounded-2xl mb-3 overflow-hidden">
-                <div className="flex items-center justify-between px-4 h-11">
-                  <span className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
-                    <Icon icon="lucide:award" className="text-[14px] text-teal-deep" />
-                    Evidence grade
-                  </span>
-                  <Icon icon="lucide:chevron-down" className="text-[13px] text-ink/45" />
-                </div>
-                <div className="px-3 pb-4 pt-1">
-                  <ul className="space-y-0.5">
-                    {[
-                      { label: 'A — High', value: 'high' },
-                      { label: 'B — Moderate', value: 'moderate' },
-                      { label: 'C — Low', value: 'low' },
-                      { label: 'D — Very low', value: 'very_low' },
-                    ].map((g) => (
-                      <li key={g.value}>
-                        <label className="flex items-center gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
-                          <input
-                            type="checkbox"
-                            checked={selectedEvidenceGrades.includes(g.value)}
-                            onChange={() => toggleEvidenceGrade(g.value)}
-                            className="accent-[var(--teal-deep)] w-3.5 h-3.5"
-                          />
-                          <span className="text-ink-soft">{g.label}</span>
-                          {selectedEvidenceGrades.includes(g.value) && (
-                            <span className="ml-auto text-[10px] text-teal-deep mono-stat">ACTIVE</span>
-                          )}
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              <FacetFilter
+                icon="lucide:award"
+                title="Evidence grade"
+                facets={EVIDENCE_LEVELS}
+                selected={selectedEvidenceGrades}
+                onToggle={toggleEvidenceGrade}
+                format={(v) => EVIDENCE_LABELS[v] ?? prettify(v)}
+                showCounts={false}
+              />
 
               {/* Per page */}
               <div className="bg-paper border border-ink/12 rounded-2xl overflow-hidden">
@@ -661,5 +679,17 @@ export default function SearchPage() {
       </main>
       <SiteFooter />
     </>
+  );
+}
+
+/*
+ * useSearchParams() forces the subtree to render client-side, and Next requires a
+ * Suspense boundary around it or the whole route deopts to dynamic rendering.
+ */
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchPageInner />
+    </Suspense>
   );
 }

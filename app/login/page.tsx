@@ -77,7 +77,7 @@ export default function LoginPage() {
           <div className="grid grid-cols-12 gap-8 lg:gap-12">
             {/* LEFT: Login form */}
             <div className="col-span-12 lg:col-span-7 fade-in d-2">
-              <div className="mono-stat text-teal-deep mb-3">PHYSICIAN PORTAL</div>
+              <div className="mono-stat text-teal-deep mb-3">SIGN IN</div>
               <h1 className="display text-[40px] md:text-[52px] tracking-tight mb-4">
                 Welcome back<span className="italic text-teal">.</span>
               </h1>
@@ -244,16 +244,19 @@ export default function LoginPage() {
                 <div className="rounded-2xl bg-paper border border-ink/10 p-5">
                   <div className="flex items-center gap-2.5 mb-3">
                     <Icon icon="lucide:shield-check" className="text-[16px] text-teal-deep" />
-                    <span className="text-[11.5px] font-semibold text-ink">Physician-only access</span>
+                    <span className="text-[11.5px] font-semibold text-ink">Account security</span>
                   </div>
-                  <p className="text-[11px] text-ink-soft leading-[1.5] mb-4">
-                    Every account is verified against national medical registries. Your data is encrypted at rest and never shared with third parties.
+                  {/*
+                    Was: "Every account is verified against national medical registries. Your data
+                    is encrypted at rest" + HIPAA/GDPR/ISO 27001 badges. Registration checks nothing
+                    beyond a valid email, the database is an unencrypted file, and we hold none of
+                    those certifications.
+                  */}
+                  <p className="text-[11px] text-ink-soft leading-[1.5] mb-3">
+                    Passwords are hashed with Argon2 and never stored in plain text, and the site is
+                    served over TLS. We are a closed beta: we hold no compliance certification, so
+                    don&rsquo;t put patient data here.
                   </p>
-                  <div className="grid grid-cols-3 gap-2 text-[9.5px] mono-stat text-ink/45">
-                    <div className="text-center">HIPAA<span className="block text-[8.5px] text-ink/35 mt-0.5">ALIGNED</span></div>
-                    <div className="text-center">GDPR<span className="block text-[8.5px] text-ink/35 mt-0.5">ART. 9</span></div>
-                    <div className="text-center">ISO 27001<span className="block text-[8.5px] text-ink/35 mt-0.5">IN PROGRESS</span></div>
-                  </div>
                 </div>
 
                 <div className="rounded-2xl bg-ink text-paper p-5">

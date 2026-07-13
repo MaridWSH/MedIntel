@@ -1,4 +1,5 @@
 import {
+  Facets,
   FullText,
   Paper,
   PaperListResponse,
@@ -41,6 +42,7 @@ export async function listPapers(params: PaperListParams = {}) {
     per_page: params.per_page ?? 20,
     study_type: params.study_type,
     specialty: params.specialty,
+    evidence_level: params.evidence_level,
     sort: params.sort ?? 'id',
   });
   return fetchAPI<PaperListResponse>(`${BASE_API}/papers${qs}`);
@@ -64,6 +66,11 @@ export async function getPaperById(paperId: string) {
 /** GET /api/papers/{paper_id}/fulltext — Source text, split into anchored sections. */
 export async function getPaperFullText(paperId: string) {
   return fetchAPI<FullText>(`${BASE_API}/papers/${encodeURIComponent(paperId)}/fulltext`);
+}
+
+/** GET /api/papers/facets — Filter options that exist, with counts. */
+export async function getFacets() {
+  return fetchAPI<Facets>(`${BASE_API}/papers/facets`);
 }
 
 /** Helper: auto-paginate and get ALL papers */

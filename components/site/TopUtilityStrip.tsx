@@ -1,30 +1,50 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Icon from '../ui/Icon';
 
 /**
- * Every claim in this strip is now one we can actually stand behind.
+ * Every claim in this strip is one we can stand behind.
  *
- * It previously advertised "50,418,727 papers indexed" (the real figure is four
- * orders of magnitude smaller), "Reviewed by 1,200+ physicians" (no physician has
- * reviewed anything here), and "CME accredited · EG-MS · AB-2938" — an
- * accreditation number that does not exist. Claiming CME accreditation you do not
- * hold is not a cosmetic problem, so none of it comes back without a source.
+ * It previously advertised "50,418,727 papers indexed" (four orders of magnitude
+ * out), "Reviewed by 1,200+ physicians" (no physician has reviewed anything here),
+ * and "CME accredited · EG-MS · AB-2938" — an accreditation number that does not
+ * exist. None of it comes back without a source.
+ *
+ * This is a client component on purpose. It was an async server component, but
+ * it's imported by pages that are themselves 'use client' (search, login,
+ * register, …), which pulled it into the client bundle and ran the fetch in the
+ * browser on every render — 18 requests for a single navigation. Fetching once
+ * here, with a module-level cache, is honest about where it actually runs.
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
 
-async function getPaperCount(): Promise<number | null> {
-  try {
-    const res = await fetch(`${API_BASE}/papers?per_page=1`, { next: { revalidate: 3600 } });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return typeof data.total === 'number' ? data.total : null;
-  } catch {
-    return null;
-  }
-}
+// Survives remounts across client-side navigation, so the count is fetched once.
+let cachedCount: number | null = null;
 
-export default async function TopUtilityStrip() {
-  const count = await getPaperCount();
+export default function TopUtilityStrip() {
+  const [count, setCount] = useState<number | null>(cachedCount);
+
+  useEffect(() => {
+    if (cachedCount !== null) return;
+
+    let cancelled = false;
+    fetch(`${API_BASE}/papers?per_page=1`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || typeof data?.total !== 'number') return;
+        cachedCount = data.total;
+        setCount(data.total);
+      })
+      .catch(() => {
+        /* leave the count out rather than show a made-up one */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="bg-ink text-paper">
@@ -32,9 +52,7 @@ export default async function TopUtilityStrip() {
         <div className="flex items-center gap-5">
           <span className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-teal-bright animate-pulse" />
-            {count === null
-              ? 'Papers summarised'
-              : `${count.toLocaleString()} papers summarised`}
+            {count === null ? 'Papers summarised' : `${count.toLocaleString()} papers summarised`}
           </span>
           <span className="hidden md:flex items-center gap-2 text-paper/55">
             <Icon icon="lucide:bot" className="text-teal-bright text-[11px]" />

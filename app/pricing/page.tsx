@@ -56,7 +56,7 @@ const PLANS = [
       'PRISMA flow diagram export',
       'Bulk synthesis (up to 50 papers)',
       '5 collaborator seats',
-      'RIS / BibTeX / EndNote export',
+      'Citation, BibTeX & RIS export',
       'API access (beta)',
     ],
     cta: 'Start 14-day trial',

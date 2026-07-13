@@ -189,20 +189,7 @@ function ResetPasswordForm() {
             <p className="text-[11px] text-ink-soft leading-[1.5] mb-4">
               Passwords are hashed with bcrypt and never stored in plain text. Reset tokens expire in 15 minutes.
             </p>
-            <div className="grid grid-cols-3 gap-2 text-[9.5px] mono-stat text-ink/45">
-              <div className="text-center">
-                HIPAA
-                <span className="block text-[8.5px] text-ink/35 mt-0.5">ALIGNED</span>
-              </div>
-              <div className="text-center">
-                GDPR
-                <span className="block text-[8.5px] text-ink/35 mt-0.5">ART. 9</span>
-              </div>
-              <div className="text-center">
-                ISO 27001
-                <span className="block text-[8.5px] text-ink/35 mt-0.5">IN PROGRESS</span>
-              </div>
-            </div>
+            {/* Removed HIPAA / GDPR Art. 9 / ISO 27001 badges — we hold none of them. */}
           </div>
         </div>
       </aside>
