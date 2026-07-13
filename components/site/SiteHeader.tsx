@@ -81,8 +81,8 @@ export default function SiteHeader() {
               <Link href="/dashboard" className={navLinkClass('/dashboard')}>
                 Dashboard
               </Link>
-              <Link href="/account#cme" className={navLinkClass('/account#cme')}>
-                CME credits
+              <Link href="/search" className={navLinkClass('/search')}>
+                Search
               </Link>
             </>
           )}

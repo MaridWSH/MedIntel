@@ -82,7 +82,7 @@ export default function LoginPage() {
                 Welcome back<span className="italic text-teal">.</span>
               </h1>
               <p className="serif-body text-[16px] text-ink-soft leading-[1.5] max-w-[440px] mb-9">
-                Sign in to access your synthesised papers, CME credits, and clinical appraisals.
+                Sign in to access your synthesised papers and saved collections.
               </p>
 
               {/* Error message */}
@@ -218,11 +218,18 @@ export default function LoginPage() {
                 <div className="rounded-2xl bg-paper-warm border border-ink/10 p-6">
                   <div className="mono-stat text-ink/45 mb-4">WHAT YOU GET</div>
                   <div className="space-y-4">
+                    {/*
+                      "GRADE-appraised quality scores" and "CME credits — ACCME accredited"
+                      were both false: the score measures summary-vs-source fidelity, not
+                      study quality, and there is no CME accreditation of any kind here.
+                      ACCME is a real accrediting body; claiming its imprimatur is not a
+                      copy decision.
+                    */}
                     {[
                       { icon: "lucide:zap", label: "Six AI agents synthesise every paper in seconds" },
-                      { icon: "lucide:map", label: "Interactive mind maps linking PICOT to source text" },
-                      { icon: "lucide:scale", label: "GRADE-appraised quality scores on every study" },
-                      { icon: "lucide:graduation-cap", label: "CME credits — 0.5 hrs per paper, ACCME accredited" },
+                      { icon: "lucide:map", label: "Interactive mind maps linking findings to source text" },
+                      { icon: "lucide:scale", label: "Every summary checked against the paper it came from" },
+                      { icon: "lucide:search", label: "Semantic search across the full corpus" },
                     ].map(({ icon, label }) => (
                       <div key={label} className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-lg bg-teal-bright/10 border border-teal-bright/20 flex items-center justify-center shrink-0 mt-0.5">

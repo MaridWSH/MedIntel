@@ -3,11 +3,10 @@ import TopUtilityStrip from '../../../components/site/TopUtilityStrip';
 import SiteHeader from '../../../components/site/SiteHeader';
 import SiteFooter from '../../../components/site/SiteFooter';
 import PaperDetailView from '../../../components/paper/PaperDetailView';
-import type { Paper } from '../../../lib/papers/types';
+import type { FullText, Paper } from '../../../lib/papers/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
 
-/* ── Fetch paper by ID ── */
 async function getPaperById(id: string): Promise<Paper | null> {
   const res = await fetch(`${API_BASE}/papers/${encodeURIComponent(id)}`, {
     next: { revalidate: 300 },
@@ -22,10 +21,27 @@ async function getPaperById(id: string): Promise<Paper | null> {
   return res.json();
 }
 
-/* ── Page ── */
+/**
+ * Fetched on the server, alongside the paper: for the ~52% of papers with no AI
+ * summary this IS the page content, so rendering it client-side would mean an
+ * empty first paint and nothing for crawlers. Never throws — a paper without
+ * full text still has a page.
+ */
+async function getFullText(id: string): Promise<FullText | null> {
+  try {
+    const res = await fetch(`${API_BASE}/papers/${encodeURIComponent(id)}/fulltext`, {
+      next: { revalidate: 300 },
+    });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function PaperPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const paper = await getPaperById(slug);
+
+  const [paper, fullText] = await Promise.all([getPaperById(slug), getFullText(slug)]);
 
   if (!paper) {
     notFound();
@@ -35,7 +51,7 @@ export default async function PaperPage({ params }: { params: Promise<{ slug: st
     <>
       <TopUtilityStrip />
       <SiteHeader />
-      <PaperDetailView paper={paper} />
+      <PaperDetailView paper={paper} fullText={fullText} />
       <SiteFooter />
     </>
   );

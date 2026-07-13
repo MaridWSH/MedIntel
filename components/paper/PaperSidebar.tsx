@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Icon from '../ui/Icon';
-import type { Paper } from '../../lib/papers/types';
+import type { FullTextSection, Paper } from '../../lib/papers/types';
 
 /**
  * Sidebar: source link, section list, abstract, citation export, authors.
@@ -45,10 +45,23 @@ function buildRis(paper: Paper): string {
   return lines.join('\n');
 }
 
-export default function PaperSidebar({ paper }: { paper: Paper }) {
+interface PaperSidebarProps {
+  paper: Paper;
+  /** Sections of the source text, from the full-text endpoint. Their ids are the scroll anchors. */
+  sections: FullTextSection[];
+  onSectionClick: (sectionId: string) => void;
+}
+
+export default function PaperSidebar({ paper, sections, onSectionClick }: PaperSidebarProps) {
   const [format, setFormat] = useState<'CITATION' | 'BIBTEX' | 'RIS'>('CITATION');
   const [copied, setCopied] = useState(false);
   const [abstractOpen, setAbstractOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  const handleSectionClick = (id: string) => {
+    setActiveSection(id);
+    onSectionClick(id);
+  };
 
   const sourceUrl = paper.doi
     ? `https://doi.org/${paper.doi}`
@@ -82,7 +95,6 @@ export default function PaperSidebar({ paper }: { paper: Paper }) {
     URL.revokeObjectURL(url);
   };
 
-  const sections = paper.sections || [];
   const centers = paper.centers || [];
 
   return (
@@ -112,25 +124,52 @@ export default function PaperSidebar({ paper }: { paper: Paper }) {
           </a>
         </div>
 
-        {/* Sections — titles as published; we don't know page numbers, so we don't invent them. */}
+        {/*
+          Jumps to the section in the full-text tab. Previously these were inert
+          <li>s built from XML titles that had no anchor to jump to; before that,
+          they were buttons bound to {id,label,range} objects the API never sent,
+          so they rendered blank.
+        */}
         {sections.length > 0 && (
-          <div className="rounded-3xl bg-paper-warm/50 border border-ink/10 p-5">
-            <div className="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55 mb-3.5">
+          <nav className="rounded-3xl bg-paper-warm/50 border border-ink/10 p-3">
+            <div className="flex items-center gap-2 text-[10.5px] mono-stat text-ink/55 px-2 pt-1.5 pb-2.5">
               <Icon icon="lucide:list" className="text-[13px] text-teal" />
-              SECTIONS IN THE PAPER
+              JUMP TO SECTION
             </div>
-            <ol className="space-y-1">
-              {sections.map((title, i) => (
-                <li
-                  key={`${i}-${title}`}
-                  className="flex items-baseline gap-2.5 px-2 py-1.5 rounded-lg"
-                >
-                  <span className="text-[9.5px] mono-stat text-ink/35 w-4 shrink-0">{i + 1}</span>
-                  <span className="text-[12.5px] text-ink-soft leading-[1.45]">{title}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
+            <ul>
+              {sections.map((section) => {
+                const isActive = activeSection === section.id;
+                return (
+                  <li key={section.id}>
+                    <button
+                      onClick={() => handleSectionClick(section.id)}
+                      className={`w-full text-left flex items-baseline gap-2 rounded-xl transition-all px-3 py-2 ${
+                        section.level === 3 ? 'pl-7' : ''
+                      } ${isActive ? 'bg-ink text-paper' : 'hover-tint group'}`}
+                    >
+                      <span
+                        className={`text-[12.5px] leading-[1.45] ${
+                          isActive
+                            ? 'text-paper'
+                            : section.level === 3
+                              ? 'text-ink/60'
+                              : 'text-ink-soft font-medium'
+                        }`}
+                      >
+                        {section.title}
+                      </span>
+                      <Icon
+                        icon="lucide:arrow-right"
+                        className={`ml-auto text-[12px] shrink-0 ${
+                          isActive ? 'text-teal-bright' : 'text-ink/0 group-hover:text-teal-deep'
+                        }`}
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
         )}
 
         {/* Abstract */}

@@ -36,7 +36,7 @@ export default function SiteFooter() {
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
               <li><a href="/search" className="hover:text-teal-deep transition-colors">Search &amp; discovery</a></li>
               <li><a href="/paper" className="hover:text-teal-deep transition-colors">Paper detail view</a></li>
-              <li><a href="/account#cme" className="hover:text-teal-deep transition-colors">CME module</a></li>
+              <li><a href="/search" className="hover:text-teal-deep transition-colors">Search</a></li>
               <li><a href="/account" className="hover:text-teal-deep transition-colors">Physician dashboard</a></li>
               <li><a href="/hospital-admin" className="hover:text-teal-deep transition-colors">Hospital admin portal</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
               <li><a href="/mobile" className="hover:text-teal-deep transition-colors">Mobile (iOS / Android)</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>

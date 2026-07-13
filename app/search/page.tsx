@@ -480,7 +480,11 @@ export default function SearchPage() {
                   <span className="italic text-teal">.</span>
                 </h2>
                 <span className="mono-stat text-ink/45 px-2 h-6 rounded-md bg-ink/5 flex items-center">
-                  {total} RESULTS
+                  {/* Ranked, not exhaustive: the API caps semantic results, so "200 results"
+                      for a query means "the 200 best", which "RESULTS" alone implies badly. */}
+                  {activeQuery
+                    ? `TOP ${total.toLocaleString()} BY RELEVANCE`
+                    : `${total.toLocaleString()} PAPERS`}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-[11.5px]">
@@ -501,7 +505,7 @@ export default function SearchPage() {
             {loading && (
               <div className="text-center py-12">
                 <div className="animate-spin inline-block w-8 h-8 border-4 border-teal border-t-transparent rounded-full mb-2" />
-                <p className="text-ink/45 text-[13px]">Loading papers from API...</p>
+                <p className="text-ink/45 text-[13px]">Searching&hellip;</p>
               </div>
             )}
 
@@ -652,18 +656,6 @@ export default function SearchPage() {
               </div>
             )}
 
-            {/* Empty state hint */}
-            {!loading && filteredItems.length > 0 && (
-              <div className="mt-10 p-6 rounded-2xl border border-dashed border-ink/12 bg-paper-warm/30 text-center">
-                <Icon icon="lucide:database" className="text-[24px] text-ink/20 mb-2" />
-                <p className="text-[13px] text-ink-soft mb-1">
-                  Showing {filteredItems.length} of {total} papers from the API.
-                </p>
-                <p className="text-[11px] text-ink/45">
-                  Use the search bar above to find specific topics, or add filters to narrow results.
-                </p>
-              </div>
-            )}
           </div>
         </section>
       </main>

@@ -1,4 +1,11 @@
-import { Paper, PaperListResponse, PaperSearchResponse, PaperListParams, PaperSearchParams } from './types';
+import {
+  FullText,
+  Paper,
+  PaperListResponse,
+  PaperSearchResponse,
+  PaperListParams,
+  PaperSearchParams,
+} from './types';
 
 const BASE_API = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
 
@@ -52,6 +59,11 @@ export async function searchPapers(params: PaperSearchParams) {
 /** GET /api/papers/{paper_id} — Get single paper details */
 export async function getPaperById(paperId: string) {
   return fetchAPI<Paper>(`${BASE_API}/papers/${encodeURIComponent(paperId)}`);
+}
+
+/** GET /api/papers/{paper_id}/fulltext — Source text, split into anchored sections. */
+export async function getPaperFullText(paperId: string) {
+  return fetchAPI<FullText>(`${BASE_API}/papers/${encodeURIComponent(paperId)}/fulltext`);
 }
 
 /** Helper: auto-paginate and get ALL papers */

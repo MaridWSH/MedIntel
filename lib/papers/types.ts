@@ -102,6 +102,24 @@ export interface Paper {
   // Present on list/search responses only.
   overall_evidence_level?: string | null;
   sample_size?: string | null;
+  /** False when the pipeline produced no tldr/summary for this paper. */
+  has_summary?: boolean;
+}
+
+/** One section of the source paper, addressable by anchor. */
+export interface FullTextSection {
+  id: string;
+  title: string;
+  /** 2 = section, 3 = subsection. */
+  level: number;
+  content: string;
+}
+
+export interface FullText {
+  paper_id: string;
+  title: string;
+  sections: FullTextSection[];
+  available: boolean;
 }
 
 export interface PaginatedResponse<T> {

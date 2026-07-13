@@ -18,6 +18,8 @@ from models import Paper, User
 from schemas import (
     BackfillRequest,
     BackfillResponse,
+    FullTextResponse,
+    FullTextSection,
     IngestRequest,
     IngestResponse,
     KeyFindingClinical,
@@ -358,6 +360,11 @@ def _build_verification(raw: dict | None) -> VerificationOut | None:
     )
 
 
+def _has_summary(paper: Paper) -> bool:
+    """True when the pipeline actually produced something readable for this paper."""
+    return bool((paper.tldr or "").strip() or (paper.detailed_summary or "").strip())
+
+
 def _paper_to_list_item(paper: Paper) -> PaperListItem:
     """Convert a Paper ORM row to a compact list item."""
     findings = _to_json(paper.key_findings) or {}
@@ -374,6 +381,99 @@ def _paper_to_list_item(paper: Paper) -> PaperListItem:
         centers_count=paper.centers_count or 0,
         overall_evidence_level=findings.get("overall_evidence_level"),
         sample_size=findings.get("sample_size"),
+        has_summary=_has_summary(paper),
+    )
+
+
+# ── Full text ─────────────────────────────────────────────────────────────────
+
+_HEADING_RE = re.compile(r"^(#{2,3})\s+(.+?)\s*$")
+
+
+def _slugify(text: str, seen: set[str]) -> str:
+    """Stable anchor id for a section heading, de-duplicated within one paper."""
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "section"
+    candidate = slug
+    n = 2
+    while candidate in seen:
+        candidate = f"{slug}-{n}"
+        n += 1
+    seen.add(candidate)
+    return candidate
+
+
+def _parse_markdown_sections(md: str) -> list[FullTextSection]:
+    """Split the pipeline's markdown into ## / ### sections.
+
+    Content before the first heading (i.e. the H1 title) is dropped — the title
+    is already on the page.
+    """
+    sections: list[FullTextSection] = []
+    seen: set[str] = set()
+    current: FullTextSection | None = None
+    body: list[str] = []
+
+    for line in md.splitlines():
+        match = _HEADING_RE.match(line)
+        if match:
+            if current is not None:
+                current.content = "\n".join(body).strip()
+                sections.append(current)
+            hashes, title = match.groups()
+            current = FullTextSection(
+                id=_slugify(title, seen),
+                title=title,
+                level=len(hashes),
+                content="",
+            )
+            body = []
+        elif current is not None:
+            body.append(line)
+
+    if current is not None:
+        current.content = "\n".join(body).strip()
+        sections.append(current)
+
+    return sections
+
+
+@router.get("/{paper_id}/fulltext", response_model=FullTextResponse)
+def get_paper_fulltext(paper_id: str, db: Session = Depends(get_db)):
+    """Full text of the source paper, split into anchored sections.
+
+    The pipeline failed to summarise ~52% of the catalogue, but it still wrote
+    markdown for most of those papers. Serving it means a paper with no AI
+    summary is still worth opening, and gives the section nav something real to
+    scroll to.
+    """
+    paper = db.query(Paper).filter(Paper.id == paper_id).first()
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found")
+
+    # ponytail: paper_id comes from the URL — keep it inside MD_DIR.
+    md_path = (MD_DIR / f"{paper_id}.md").resolve()
+    if not str(md_path).startswith(str(MD_DIR.resolve()) + "/") or not md_path.exists():
+        return FullTextResponse(
+            paper_id=paper_id,
+            title=paper.title or "",
+            sections=[],
+            available=False,
+        )
+
+    try:
+        md = md_path.read_text(encoding="utf-8")
+    except OSError:
+        logger.exception("Could not read markdown for %s", paper_id)
+        return FullTextResponse(
+            paper_id=paper_id, title=paper.title or "", sections=[], available=False
+        )
+
+    sections = _parse_markdown_sections(md)
+    return FullTextResponse(
+        paper_id=paper_id,
+        title=paper.title or "",
+        sections=sections,
+        available=bool(sections),
     )
 
 
@@ -423,10 +523,22 @@ def list_papers(
     study_type: str | None = None,
     specialty: str | None = None,
     sort: str = Query("id", pattern="^(id|-id)$"),
+    summarised_only: bool = Query(
+        True,
+        description="Exclude papers the pipeline never summarised (52% of rows).",
+    ),
     db: Session = Depends(get_db),
 ):
-    """Paginated paper listing with optional filters."""
+    """Paginated paper listing with optional filters.
+
+    Defaults to summarised papers only. Of the 7,184 rows, 3,765 have no tldr and
+    no summary — listing them advertised a catalogue twice its real size and sent
+    readers to pages with nothing on them.
+    """
     query = db.query(Paper)
+
+    if summarised_only:
+        query = query.filter(Paper.tldr != "", Paper.tldr.isnot(None))
 
     if study_type:
         query = query.filter(Paper.study_type == study_type)

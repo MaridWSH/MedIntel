@@ -89,7 +89,7 @@ export default function RegisterPage() {
               <span className="text-ink-soft">No credit card required.</span>
             </h1>
             <p className="serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.5] mt-4 max-w-[560px]">
-              14 days of full access to all six AI agents, every pane, and CME credits. Physician
+              14 days of full access to all six AI agents and every pane. Physician
               verification required — we accept licences from 22 Arab Board states.
             </p>
           </div>

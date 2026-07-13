@@ -18,11 +18,20 @@ const AGENTS = [
   { id: '06', icon: 'lucide:quote', title: 'Citation Export', desc: 'Every claim carries its source. Export to RIS, BibTeX, EndNote, or paste-ready citations in AMA, Vancouver, APA, or Harvard.', badges: ['RIS', 'BIBTEX', 'AMA'], highlight: true },
 ];
 
+/*
+ * Real numbers, checked against the database (see the queries in the MVP review).
+ *
+ * These previously read: "50.4M papers indexed · 17 sources" (the corpus is four
+ * orders of magnitude smaller and comes from one source), "1,200+ board-certified
+ * physician reviewers" (there are none), and a "0.04% emendation rate ... audited
+ * quarterly" (no such audit exists). Nothing goes in this block that can't be
+ * derived from the data.
+ */
 const METRICS = [
-  { value: '50.4', suffix: 'M', label: 'PAPERS INDEXED · 17 SOURCES', desc: 'PubMed, Scopus, medRxiv, Cochrane, and pre-print servers in one corpus.' },
-  { value: '11.8', suffix: 's', label: 'MEDIAN SYNTHESIS TIME', desc: 'From PDF upload to all six agent outputs, validated and ready to share.' },
-  { value: '1,200', suffix: '+', label: 'PHYSICIAN REVIEWERS', desc: 'Board-certified. Each reviews only papers in their subspecialty.' },
-  { value: '0.04', suffix: '%', label: 'EMENDATION RATE', desc: "Audited quarterly against the originating journals' corrections." },
+  { value: '3,419', suffix: '', label: 'PAPERS SUMMARISED', desc: 'Open-access articles from PubMed Central, processed end to end.' },
+  { value: '32', suffix: 's', label: 'MEDIAN SYNTHESIS TIME', desc: 'Median wall-clock time for the agent pipeline to process one paper.' },
+  { value: '85', suffix: '%', label: 'PASS FIDELITY CHECK', desc: 'Summaries whose figures and claims our verifier could trace back to the source.' },
+  { value: '6', suffix: '', label: 'SPECIALISED AGENTS', desc: 'Summary, mind map, infographic, findings, verification, and relevance.' },
 ];
 
 // Helper: map evidence level to grade letter
@@ -202,9 +211,10 @@ export default async function Home() {
               </div>
               <div className="col-span-12 md:col-span-7 md:pt-12">
                 <p className="serif-body text-[17px] md:text-[18px] leading-[1.55] text-ink-soft max-w-[560px]">
-                  Each paper passes through a pipeline of six specialised AIs &mdash; each one a single-purpose
-                  reviewer with the focus of a third-year fellow. Their outputs are then verified by a
-                  board-certified physician before anything reaches you.
+                  Each paper passes through a pipeline of six specialised AIs, each with a single job.
+                  A seventh checks their work against the source and flags any figure or claim it
+                  cannot trace back. No clinician reviews these summaries &mdash; you are the reviewer,
+                  and the source is always one click away.
                 </p>
               </div>
             </div>
@@ -264,7 +274,8 @@ export default async function Home() {
               <Icon icon="lucide:arrow-right" className="text-ink/30 hidden md:block" />
               <div className="flex items-center gap-3 text-ink-soft">
                 <div className="w-9 h-9 rounded-lg bg-ink text-paper flex items-center justify-center text-[14px]">&#9733;</div>
-                <span className="text-[13px] font-medium">Delivered, under 12 seconds</span>
+                {/* Median pipeline time is ~32s, not "under 12 seconds". */}
+                <span className="text-[13px] font-medium">Delivered in about 30 seconds</span>
               </div>
             </div>
           </div>
@@ -275,16 +286,23 @@ export default async function Home() {
          * ═════════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-28 border-t border-ink/10 bg-paper-warm/40">
           <div className="max-w-[1380px] mx-auto px-6">
+            {/*
+              This block claimed the Egyptian Medical Syndicate and the Arab Board of
+              Health Specialisations "trust Claritas". Neither organisation has any
+              relationship with this product. Naming real accreditation bodies as
+              endorsers when they have not endorsed you is not marketing licence.
+              Replaced with what the corpus actually is.
+            */}
             <div className="text-center max-w-[760px] mx-auto mb-14">
               <div className="text-[10.5px] mono-stat text-teal-deep mb-5">§ 03 &middot; IN PRACTICE</div>
               <h2 className="display text-[36px] md:text-[52px] tracking-tight mb-5">
-                Trusted by the institutions
+                Open literature,
                 <br />
-                that train <span className="italic text-teal">tomorrow&rsquo;s doctors</span>.
+                <span className="italic text-teal">read in minutes</span>.
               </h2>
               <p className="serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.5] max-w-[620px] mx-auto">
-                From the Egyptian Medical Syndicate to the Arab Board of Health Specialisations, the
-                bodies that accredit physicians trust Claritas to keep them current.
+                Claritas is in closed beta. The corpus is open-access research from PubMed Central,
+                summarised by AI and checked against the source &mdash; not a substitute for reading it.
               </p>
             </div>
 

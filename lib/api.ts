@@ -21,7 +21,18 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+
+  /*
+   * Join with exactly one slash. Every caller passed a bare path ("auth/me"),
+   * and API_BASE_URL ends in "/api" with no trailing slash, so this used to
+   * build ".../apiauth/me" — a 404. That silently broke save/unsave, is-saved,
+   * saved-papers, dashboard stats, logout and auth/me. Normalising here rather
+   * than fixing six call sites means a missing slash can't reintroduce it.
+   */
+  const base = API_BASE_URL.replace(/\/$/, '');
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  const response = await fetch(`${base}${path}`, {
     ...options,
     headers,
   });

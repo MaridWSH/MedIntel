@@ -141,6 +141,25 @@ class PaperListItem(BaseModel):
     centers_count: int = 0
     overall_evidence_level: Optional[str] = None
     sample_size: Optional[str] = None
+    # 52% of the catalogue has no pipeline output at all — title and metadata
+    # only. Surfacing that lets callers avoid presenting an empty shell as a
+    # real result.
+    has_summary: bool = True
+
+
+class FullTextSection(BaseModel):
+    """One section of the source paper, addressable by anchor."""
+    id: str          # slug, used as the scroll anchor
+    title: str
+    level: int       # 2 = top-level section, 3 = subsection
+    content: str     # markdown body
+
+
+class FullTextResponse(BaseModel):
+    paper_id: str
+    title: str
+    sections: list[FullTextSection]
+    available: bool = True
 
 
 class PaperDetail(BaseModel):
