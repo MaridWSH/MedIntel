@@ -53,14 +53,14 @@ export default function SiteHeader() {
     <header className="z-30 border-b border-black/10 bg-paper/95 backdrop-blur-[6px] sticky top-0">
       <div className="max-w-[1380px] mx-auto px-6 h-[68px] flex items-center justify-between gap-6">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5 shrink-0 group">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
           <div className="relative w-9 h-9 bg-ink rounded-[10px] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-teal-bright/30 via-transparent to-transparent" />
             <span className="text-paper text-xl font-medium tracking-tight relative serif">C</span>
             <div className="absolute w-1 h-1 bg-teal-bright rounded-full bottom-1.5 right-1.5" />
           </div>
           <span className="text-xl font-medium tracking-tight serif">Claritas</span>
-        </a>
+        </Link>
 
         {/* Primary nav */}
         <nav className="hidden lg:flex items-center gap-1 text-[13.5px]">

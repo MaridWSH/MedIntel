@@ -34,6 +34,8 @@ QDRANT_URL = os.environ.get("MEDINTEL_QDRANT_URL", "http://localhost:6333")
 QDRANT_API_KEY = os.environ.get("MEDINTEL_QDRANT_API_KEY", None)
 QDRANT_COLLECTION_NAME = os.environ.get("MEDINTEL_QDRANT_COLLECTION", "papers")
 EMBEDDING_DIMENSION = int(os.environ.get("MEDINTEL_EMBEDDING_DIMENSION", "1024"))
+QDRANT_TIMEOUT_SECONDS = float(os.environ.get("MEDINTEL_QDRANT_TIMEOUT_SECONDS", "10"))
+ALLOWED_FILTER_FIELDS = {"study_type", "specialty_tags"}
 
 # Deterministic UUID namespace for paper IDs.
 # Using UUIDv5 means the same paper_id always maps to the same UUID.
@@ -95,6 +97,7 @@ def get_qdrant_client() -> QdrantClient:
         kwargs["location"] = ":memory:"
     else:
         kwargs["url"] = QDRANT_URL
+        kwargs["timeout"] = QDRANT_TIMEOUT_SECONDS
     if QDRANT_API_KEY:
         kwargs["api_key"] = QDRANT_API_KEY
     return QdrantClient(**kwargs)
@@ -337,6 +340,11 @@ def search_with_filter(
 
     conditions: list[rest.FieldCondition] = []
     for field, value in filters.items():
+        if field not in ALLOWED_FILTER_FIELDS:
+            raise ValueError(
+                f"Unsupported semantic-search filter {field!r}; allowed fields are "
+                f"{sorted(ALLOWED_FILTER_FIELDS)}"
+            )
         if isinstance(value, list):
             conditions.append(
                 rest.FieldCondition(key=field, match=rest.MatchAny(any=value))

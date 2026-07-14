@@ -415,13 +415,13 @@ The backend also implements auth flows for login, registration, and password rec
   - Rate limited.
   - Creates a new user record.
   - Returns `access_token` and user data in JSON.
-  - Sets `refresh_token` as an `HttpOnly` cookie, not in the JSON response.
+  - Sets short-lived `access_token` and longer-lived `refresh_token` HttpOnly cookies.
 
 - `POST /auth/login`
   - Rate limited.
   - Verifies email and password.
   - Returns `access_token` and user data in JSON.
-  - Sets `refresh_token` as an `HttpOnly` cookie.
+  - Sets short-lived `access_token` and longer-lived `refresh_token` HttpOnly cookies.
 
 - `POST /auth/forgot-password`
   - Rate limited.
@@ -434,4 +434,4 @@ The backend also implements auth flows for login, registration, and password rec
   - Returns a new access token and rotates the refresh token cookie.
 
 - `POST /auth/logout`
-  - Deletes the refresh token cookie.
+  - Deletes both authentication cookies.

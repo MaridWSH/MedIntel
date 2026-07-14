@@ -8,7 +8,7 @@
 
 ## Overview
 
-The MedIntel API provides access to 5,865+ processed clinical research papers. Papers are extracted from PubMed Central (PMC) and enriched via an LLM pipeline that generates summaries, key findings, mind maps, and verification scores.
+The MedIntel API exposes open-access PubMed Central paper metadata and versioned AI pipeline outputs. The audited local catalogue contains 7,184 rows, of which 3,419 have an earlier-generation summary. AI outputs are not clinician-reviewed and must be checked against the source.
 
 **Interactive docs (Swagger UI):** https://med.aidashnews.tech/docs
 
@@ -136,7 +136,7 @@ GET /api/papers?page=1&per_page=20&study_type=RCT&sort=id
       "sample_size": "N=30"
     }
   ],
-  "total": 5865,
+  "total": 3419,
   "page": 1,
   "per_page": 20,
   "pages": 294
@@ -261,7 +261,7 @@ In addition to the standard text search, MedIntel provides two advanced search e
 
 AI-powered search that understands meaning and context. Finds papers with semantically related concepts, even if the exact words don't match.
 
-**How it works:** Converts your query into a 384-dimensional embedding vector using the `all-MiniLM-L6-v2` model, then finds papers with the most similar embeddings using cosine similarity.
+**How it works:** Converts your query into a 1,024-dimensional embedding vector using `BAAI/bge-m3`, then finds papers with the most similar embeddings using cosine similarity.
 
 ```http
 GET /search?query=vitamin+D+deficiency+health+effects&limit=10
@@ -390,7 +390,7 @@ This will only find papers containing the exact words "vitamin" AND "D".
 ### Implementation Details
 
 - **Vector Database:** Qdrant v1.18.2 running on Docker
-- **Embedding Model:** `all-MiniLM-L6-v2` (384 dimensions)
+- **Embedding Model:** `BAAI/bge-m3` (1,024 dimensions)
 - **Similarity Metric:** Cosine similarity
 - **Indexed Papers:** 1,000+ papers (500 nutrition + 500 ophthalmology)
 - **Service:** FastAPI running on port 8081
@@ -405,7 +405,7 @@ python index_papers.py --limit 1000 --start-from 1000
 
 ### Ingest Papers (Admin)
 
-Trigger ingestion of pipeline JSON results into the database. Requires authentication.
+Trigger insertion or update of pipeline JSON results in the database. Requires authentication and an email listed in `MEDINTEL_ADMIN_EMAILS`. Files are accepted only when they match `MEDINTEL_PIPELINE_VERSION`, contain valid source/prompt/model provenance, report no errors, and pass verification. Rejected files increment `skipped`; an accepted regeneration replaces the existing paper's AI-derived fields.
 
 ```http
 POST /api/papers/ingest
@@ -431,7 +431,7 @@ Content-Type: application/json
   "ingested": 95,
   "skipped": 5,
   "errors": 0,
-  "total_in_db": 5865
+  "total_in_db": 7184
 }
 ```
 
@@ -447,7 +447,7 @@ GET /api/health
 ```json
 {
   "status": "ok",
-  "papers_count": 5865
+  "papers_count": 7184
 }
 ```
 
@@ -744,7 +744,7 @@ app.add_middleware(
 - **Database:** SQLite at `/root/MedIntel/backend/medintel.db`
 - **Reverse Proxy:** Docker nginx (`kwamelrent_nginx`) proxies `med.aidashnews.tech` to port 8001
 - **SSL:** Terminated at Cloudflare edge (domain is proxied through Cloudflare)
-- **Papers:** 5,865 papers ingested from `/root/papers/pipeline_outputs/results/`
+- **Papers:** 7,184 catalogue rows locally; 3,419 contain an earlier-generation summary
 
 ### Managing the Backend
 

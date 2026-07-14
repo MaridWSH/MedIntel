@@ -1,42 +1,80 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api').replace(/\/$/, '');
 
-// Token storage
-export const setAccessToken = (token: string) => {
-  localStorage.setItem("access_token", token);
-};
+function apiErrorMessage(payload: unknown, fallback: string): string {
+  if (!payload || typeof payload !== 'object' || !('detail' in payload)) return fallback;
+  const detail = (payload as { detail?: unknown }).detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (!item || typeof item !== 'object' || !('msg' in item)) return '';
+        const message = (item as { msg?: unknown }).msg;
+        return typeof message === 'string' ? message : '';
+      })
+      .filter(Boolean);
+    if (messages.length) return messages.join(', ');
+  }
+  return detail ? JSON.stringify(detail) : fallback;
+}
 
-export const getAccessToken = () => localStorage.getItem("access_token");
-
+// Authentication is stored by the API in HttpOnly cookies. Keeping bearer
+// tokens out of localStorage prevents injected browser scripts from reading
+// long-lived credentials.
 export const clearTokens = () => {
-  localStorage.removeItem("access_token");
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('access_token'); // Remove tokens from pre-cookie releases.
+  }
 };
 
-// Fetch with auto auth header and 401 handling
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const token = getAccessToken();
+function endpointUrl(endpoint: string) {
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE_URL}${path}`;
+}
+
+let refreshRequest: Promise<boolean> | null = null;
+
+async function refreshSession(): Promise<boolean> {
+  if (!refreshRequest) {
+    refreshRequest = fetch(endpointUrl('auth/refresh'), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => response.ok)
+      .catch(() => false)
+      .finally(() => {
+        refreshRequest = null;
+      });
+  }
+  return refreshRequest;
+}
+
+// Fetch with cookie credentials and one refresh/retry on an expired access token.
+export async function apiFetch(
+  endpoint: string,
+  options: RequestInit = {},
+  retryAfterRefresh = true,
+) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...((options.headers as Record<string, string>) || {}),
   };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
-  /*
-   * Join with exactly one slash. Every caller passed a bare path ("auth/me"),
-   * and API_BASE_URL ends in "/api" with no trailing slash, so this used to
-   * build ".../apiauth/me" — a 404. That silently broke save/unsave, is-saved,
-   * saved-papers, dashboard stats, logout and auth/me. Normalising here rather
-   * than fixing six call sites means a missing slash can't reintroduce it.
-   */
-  const base = API_BASE_URL.replace(/\/$/, '');
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-
-  const response = await fetch(`${base}${path}`, {
+  const response = await fetch(endpointUrl(endpoint), {
     ...options,
     headers,
+    credentials: 'include',
   });
-  if (response.status === 401) {
+
+  if (
+    response.status === 401 &&
+    retryAfterRefresh &&
+    !endpoint.replace(/^\//, '').startsWith('auth/refresh')
+  ) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      return apiFetch(endpoint, options, false);
+    }
     clearTokens();
   }
   return response;
@@ -44,26 +82,19 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
 // Login
 export async function loginUser(email: string, password: string) {
-  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+  const res = await fetch(endpointUrl('auth/login'), {
     method: "POST",
+    credentials: 'include',
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
 
   if (!res.ok) {
-    const err = await res.json();
-    let message = "Invalid credentials";
-    if (Array.isArray(err.detail)) {
-      message = err.detail.map((d: any) => d.msg).join(", ");
-    } else if (typeof err.detail === "string") {
-      message = err.detail;
-    }
-    throw new Error(message);
+    throw new Error(apiErrorMessage(await res.json().catch(() => null), 'Invalid credentials'));
   }
 
-  const data = await res.json();
-  setAccessToken(data.access_token);
-  return data;
+  clearTokens();
+  return res.json();
 }
 
 // Register
@@ -72,23 +103,15 @@ export async function registerUser(userData: {
   name: string;
   password: string;
 }) {
-  const res = await fetch(`${API_BASE_URL}/auth/register`, {
+  const res = await fetch(endpointUrl('auth/register'), {
     method: "POST",
+    credentials: 'include',
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(userData),
   });
 
   if (!res.ok) {
-    const err = await res.json();
-    let message = "Registration failed";
-    if (Array.isArray(err.detail)) {
-      message = err.detail.map((d: any) => d.msg).join(", ");
-    } else if (typeof err.detail === "string") {
-      message = err.detail;
-    } else if (err.detail) {
-      message = JSON.stringify(err.detail);
-    }
-    throw new Error(message);
+    throw new Error(apiErrorMessage(await res.json().catch(() => null), 'Registration failed'));
   }
 
   return res.json();
@@ -102,46 +125,30 @@ export async function fetchCurrentUser() {
 }
 
 export async function forgotPassword(email: string) {
-  const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+  const res = await fetch(endpointUrl('auth/forgot-password'), {
     method: "POST",
+    credentials: 'include',
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
 
   if (!res.ok) {
-    const err = await res.json();
-    let message = "Failed to send reset link";
-    if (Array.isArray(err.detail)) {
-      message = err.detail.map((d: any) => d.msg).join(", ");
-    } else if (typeof err.detail === "string") {
-      message = err.detail;
-    } else if (err.detail) {
-      message = JSON.stringify(err.detail);
-    }
-    throw new Error(message);
+    throw new Error(apiErrorMessage(await res.json().catch(() => null), 'Failed to send reset link'));
   }
 
   return res.json();
 }
 
 export async function resetPassword(resetToken: string, newPassword: string) {
-  const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+  const res = await fetch(endpointUrl('auth/reset-password'), {
     method: "POST",
+    credentials: 'include',
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reset_token: resetToken, new_password: newPassword }),
   });
 
   if (!res.ok) {
-    const err = await res.json();
-    let message = "Failed to reset password";
-    if (Array.isArray(err.detail)) {
-      message = err.detail.map((d: any) => d.msg).join(", ");
-    } else if (typeof err.detail === "string") {
-      message = err.detail;
-    } else if (err.detail) {
-      message = JSON.stringify(err.detail);
-    }
-    throw new Error(message);
+    throw new Error(apiErrorMessage(await res.json().catch(() => null), 'Failed to reset password'));
   }
 
   return res.json();
@@ -152,6 +159,13 @@ export async function logoutUser() {
   await apiFetch("auth/logout", { method: "POST" });
   clearTokens();
   window.location.href = "/login";
+}
+
+export async function deleteAccount() {
+  const res = await apiFetch('user/account', { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete account');
+  clearTokens();
+  return res.json();
 }
 
 // ── Saved Papers ──────────────────────────────────────────────────────────────

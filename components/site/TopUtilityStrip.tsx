@@ -61,7 +61,7 @@ export default function TopUtilityStrip() {
         </div>
 
         <div className="flex items-center gap-4 text-paper/65">
-          <span>BETA &middot; v0.9.4</span>
+          <span>CLOSED BETA</span>
           <span className="hidden md:inline text-paper/30">&middot;</span>
           <span className="hidden md:inline">Not clinical advice</span>
         </div>

@@ -27,7 +27,6 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
 
   const [activeTab, setActiveTab] = useState(hasSummary ? 'tldr' : 'fulltext');
   const [saved, setSaved] = useState(false);
-  const [following, setFollowing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [pendingSection, setPendingSection] = useState<string | null>(null);
 
@@ -53,10 +52,13 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
 
   useEffect(() => {
     if (activeTab !== 'fulltext' || !pendingSection) return;
-    document
-      .getElementById(`section-${pendingSection}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setPendingSection(null);
+    const frame = requestAnimationFrame(() => {
+      document
+        .getElementById(`section-${pendingSection}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setPendingSection(null);
+    });
+    return () => cancelAnimationFrame(frame);
   }, [activeTab, pendingSection]);
 
   const showToast = (msg: string) => {
@@ -97,29 +99,6 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
       document.body.removeChild(textArea);
       showToast('Link copied to clipboard!');
     }
-  };
-
-  // 3. FOLLOW TOPIC
-  const toggleFollow = () => {
-    const followedTopics = JSON.parse(localStorage.getItem('followedTopics') || '[]');
-    let updated;
-    if (following) {
-      updated = followedTopics.filter((t: any) => t.id !== paper.id);
-      showToast('Unfollowed this topic');
-    } else {
-      updated = [
-        ...followedTopics,
-        {
-          id: paper.id,
-          title: paper.title,
-          specialty: paper.specialty_tags?.[0] || '',
-          followedAt: new Date().toISOString(),
-        },
-      ];
-      showToast('You\'ll get updates on this topic');
-    }
-    localStorage.setItem('followedTopics', JSON.stringify(updated));
-    setFollowing(!following);
   };
 
   const picoEntries = paper.pico_summary
@@ -185,24 +164,6 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
                   <span className="hidden md:inline">Share</span>
                 </button>
 
-                {/* FOLLOW TOPIC BUTTON */}
-                <button
-                  onClick={toggleFollow}
-                  className={`h-9 px-3 rounded-lg border inline-flex items-center gap-1.5 text-[12px] font-medium transition-all duration-200 active:scale-95 ${
-                    following
-                      ? 'border-teal-deep bg-teal-deep/10 text-teal-deep'
-                      : 'border-ink/15 hover-tint text-ink-soft'
-                  }`}
-                  title={following ? 'Following topic' : 'Follow topic'}
-                >
-                  <Icon
-                    icon={following ? 'lucide:bell-ring' : 'lucide:bell'}
-                    className={`text-[14px] ${following ? 'text-teal-deep' : 'text-teal'}`}
-                  />
-                  <span className="hidden md:inline">
-                    {following ? 'Following' : 'Follow topic'}
-                  </span>
-                </button>
               </div>
             </div>
 

@@ -141,7 +141,7 @@ export interface PaginatedResponse<T> {
   pages: number;
 }
 
-export interface PaperListResponse extends PaginatedResponse<Paper> {}
+export type PaperListResponse = PaginatedResponse<Paper>;
 
 export interface PaperSearchResponse extends PaginatedResponse<Paper> {
   query: string;

@@ -3,34 +3,29 @@
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 class UserCreate(BaseModel):
-    email: str = Field(..., min_length=3, max_length=255, description="User email address used for login and account recovery.")
+    email: EmailStr = Field(..., description="User email address used for login and account recovery.")
     name: str = Field(..., min_length=1, max_length=255, description="Display name for the user account.")
-    password: str = Field(..., min_length=6, description="Password for the new account. Must be at least 6 characters.")
+    password: str = Field(..., min_length=8, max_length=128, description="Password for the new account. Must be at least 8 characters.")
 
 
 class UserLogin(BaseModel):
-    email: str = Field(..., description="Registered email address.")
-    password: str = Field(..., description="Account password.")
+    email: EmailStr = Field(..., description="Registered email address.")
+    password: str = Field(..., min_length=1, max_length=128, description="Account password.")
 
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     email: str
     name: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-    class Config:
-        from_attributes = True
-
 
 class TokenOut(BaseModel):
     access_token: str = Field(..., description="JWT access token for authenticated requests.")
@@ -50,7 +45,7 @@ class RegisterResponse(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class ForgotPasswordResponse(BaseModel):
@@ -58,8 +53,8 @@ class ForgotPasswordResponse(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    reset_token: str
-    new_password: str = Field(..., min_length=6)
+    reset_token: str = Field(..., min_length=32, max_length=255)
+    new_password: str = Field(..., min_length=8, max_length=128)
 
 
 class ResetPasswordResponse(BaseModel):
@@ -67,6 +62,10 @@ class ResetPasswordResponse(BaseModel):
 
 
 class LogoutResponse(BaseModel):
+    message: str
+
+
+class DeleteAccountResponse(BaseModel):
     message: str
 
 
@@ -228,21 +227,41 @@ class SemanticSearchRequest(BaseModel):
     query: str = Field(
         ...,
         min_length=1,
+        max_length=500,
         description="Free-text search query",
-        example="obesity",
+        json_schema_extra={"example": "obesity"},
     )
     top_k: int = Field(
         10,
         ge=1,
         le=100,
         description="Number of results to return",
-        example=5,
+        json_schema_extra={"example": 5},
     )
     filters: dict[str, Any] | None = Field(
         None,
         description="Optional metadata filters (e.g., {'study_type': 'RCT'})",
-        example={"study_type": "other"},
+        json_schema_extra={"example": {"study_type": "other"}},
     )
+
+    @field_validator("filters")
+    @classmethod
+    def validate_filters(cls, filters: dict[str, Any] | None):
+        if filters is None:
+            return None
+        allowed = {"study_type", "specialty_tags"}
+        unsupported = set(filters) - allowed
+        if unsupported:
+            raise ValueError(f"Unsupported filters: {sorted(unsupported)}")
+        for field, value in filters.items():
+            values = value if isinstance(value, list) else [value]
+            if not values or len(values) > 20 or not all(
+                isinstance(item, str) and 0 < len(item) <= 100 for item in values
+            ):
+                raise ValueError(
+                    f"Filter {field!r} must be a string or a list of up to 20 strings"
+                )
+        return filters
 
 
 class SemanticSearchResult(BaseModel):
@@ -266,86 +285,25 @@ class SemanticSearchResult(BaseModel):
 class SemanticSearchResponse(BaseModel):
     """Response from the semantic search endpoint."""
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "query": "obesity",
+                "top_k": 5,
+                "total": 1,
+                "items": [],
+            }
+        }
+    )
+
     query: str
     top_k: int
     total: int
     items: list[SemanticSearchResult]
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "obesity",
-                "top_k": 5,
-                "total": 3,
-                "items": [
-                    {
-                        "id": "PMC10000023",
-                        "title": "Rotational Grazing Modifies Rhipicephalus microplus Infestation in Cattle in the Humid Tropics",
-                        "tldr": "In this year-long field experiment in heifers in the humid tropics, rotational grazing with a 45-day pasture rest was associated with the lowest Rhipicephalus microplus infestation, while a 30-day rest produced the highest tick burdens. The main practical finding is that 30 days of pasture rest was not enough to reduce tick infestation, but 45 days appeared beneficial under these conditions. This is clinically relevant for cattle health and farm management because it suggests a non-chemical strategy that may help reduce acaricide use and chemical residues in milk, meat, and the environment.",
-                        "study_type": "other",
-                        "specialty_tags": [
-                            "veterinary medicine",
-                            "parasitology",
-                            "livestock production",
-                            "tropical medicine",
-                        ],
-                        "journal": "Animals : an Open Access Journal from MDPI",
-                        "doi": "10.3390/ani13050915",
-                        "author_list": "Gabriel Cruz-González, Juan Manuel Pinos-Rodríguez, Miguel Ángel Alonso-Díaz, Dora Romero-Salas, Jorge Genaro Vicente-Martínez, Agustin Fernández-Salas, Jesús Jarillo-Rodríguez, Epigmenio Castillo-Gallegos",
-                        "authors_count": 8,
-                        "centers_count": 2,
-                        "overall_evidence_level": "low",
-                        "sample_size": "N=30",
-                        "score": 0.95,
-                    },
-                    {
-                        "id": "PMC10000024",
-                        "title": "Dietary Protein Requirement of Juvenile Dotted Gizzard Shad Konosirus punctatus Based on the Variation of Fish Meal",
-                        "tldr": "In an 8-week feeding trial in juvenile dotted gizzard shad, diets containing fish meal as the sole protein source supported the best overall growth and feed utilization at an estimated dietary crude protein level of 31.75–33.82%. Both low protein and high protein diets were unfavorable: low protein was associated with poorer growth and feed utilization, while excessive protein altered digestive enzyme activity and amino acid metabolism. These findings are clinically significant for aquaculture because they provide a practical target protein range for formulating feeds for juvenile Konosirus punctatus while helping avoid inefficient protein use and unnecessary nitrogen waste.",
-                        "study_type": "other",
-                        "specialty_tags": [
-                            "aquaculture",
-                            "animal nutrition",
-                            "fisheries",
-                        ],
-                        "journal": "Animals : an Open Access Journal from MDPI",
-                        "doi": "10.3390/ani13050788",
-                        "author_list": "Tao Liu, Xinzhi Weng, Jiteng Wang, Tao Han, Yuebin Wang, Xuejun Chai",
-                        "authors_count": 6,
-                        "centers_count": 4,
-                        "overall_evidence_level": "low",
-                        "sample_size": "N=300",
-                        "score": 0.92,
-                    },
-                    {
-                        "id": "PMC10000025",
-                        "title": "Transcriptome-Based Evaluation of Optimal Reference Genes for Quantitative Real-Time PCR in Yak Stomach throughout the Growth Cycle",
-                        "tldr": "This yak stomach study found that the most reliable RT-qPCR reference genes across growth were RPS15, MRPL39, and RPS23, while YWHAZ was the least stable overall. Using these three genes together gave RT-qPCR results that matched RNA-seq patterns for HMGCS2, whereas unstable reference genes could create misleading differences. The practical significance is that future yak stomach gene-expression studies should use these validated controls to get more accurate molecular data about digestion and nutrient metabolism.",
-                        "study_type": "other",
-                        "specialty_tags": [
-                            "veterinary medicine",
-                            "gastroenterology",
-                            "molecular biology",
-                            "animal science",
-                            "ruminant nutrition",
-                        ],
-                        "journal": "Animals : an Open Access Journal from MDPI",
-                        "doi": "10.3390/ani13050925",
-                        "author_list": "Qi Min, Lu Yang, Yu Wang, Yili Liu, Mingfeng Jiang",
-                        "authors_count": 5,
-                        "centers_count": 2,
-                        "overall_evidence_level": "low",
-                        "sample_size": "N=15",
-                        "score": 0.88,
-                    },
-                ],
-            }
-        }
-
-
 class IngestRequest(BaseModel):
     source_dir: str = "/root/papers/pipeline_outputs/results"
-    limit: Optional[int] = None
+    limit: Optional[int] = Field(None, ge=1, le=10000)
 
 
 class IngestResponse(BaseModel):
@@ -356,7 +314,7 @@ class IngestResponse(BaseModel):
 
 
 class BackfillRequest(BaseModel):
-    limit: Optional[int] = None
+    limit: Optional[int] = Field(None, ge=1, le=10000)
 
 
 class BackfillResponse(BaseModel):
@@ -373,6 +331,12 @@ class HealthResponse(BaseModel):
     papers_count: int = 0
 
 
+class ReadinessResponse(BaseModel):
+    status: str
+    database: str
+    vector_index: str
+
+
 # ── Saved Papers ──────────────────────────────────────────────────────────────
 
 class SavePaperResponse(BaseModel):
@@ -381,12 +345,13 @@ class SavePaperResponse(BaseModel):
 
 
 class SavedPaperOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     paper_id: str
     saved_at: datetime
-
-    class Config:
-        from_attributes = True
-
+    title: str = ""
+    tldr: str = ""
+    study_type: str = ""
 
 class SavedPapersListResponse(BaseModel):
     items: list[SavedPaperOut]

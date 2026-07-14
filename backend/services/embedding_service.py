@@ -7,9 +7,8 @@ Responsibilities:
     - Provide both sync and async APIs.
     - Normalize text before embedding.
 
-For the first version each paper is treated as a single document. The passage
-used for embedding is built from:
-    Title + TLDR + Study Type + Specialty Tags
+For the first version each paper is treated as a single document. Source title
+and abstract are prioritized over AI-generated summary text.
 """
 
 from __future__ import annotations
@@ -19,6 +18,7 @@ import json
 import logging
 import os
 import re
+import threading
 from typing import List, Protocol, runtime_checkable
 
 import numpy as np
@@ -36,6 +36,7 @@ QUERY_INSTRUCTION = os.environ.get(
     "Represent this sentence for searching relevant scientific papers: ",
 )
 DEFAULT_BATCH_SIZE = int(os.environ.get("MEDINTEL_EMBEDDING_BATCH_SIZE", "32"))
+MAX_PASSAGE_CHARS = int(os.environ.get("MEDINTEL_EMBEDDING_MAX_CHARS", "12000"))
 
 
 # ---------------------------------------------------------------------------
@@ -87,24 +88,26 @@ def normalize_text(text: str | None) -> str:
 def _build_passage_from_paper(paper) -> str:
     """Build the embedding passage for a paper.
 
-    Combines only: Title + TLDR + Study Type + Specialty Tags.
-    Detailed summaries are intentionally excluded in the first version.
+    Source-derived title and abstract come first. The TLDR is included as a
+    secondary signal, but never substitutes for source text when it is present.
     """
     parts: List[str] = [
-        paper.title or "",
-        paper.tldr or "",
-        paper.study_type or "",
+        f"Title: {getattr(paper, 'title', '') or ''}",
+        f"Abstract: {getattr(paper, 'excerpt', '') or ''}",
+        f"AI summary: {getattr(paper, 'tldr', '') or ''}",
+        f"Study type: {getattr(paper, 'study_type', '') or ''}",
     ]
 
-    if paper.specialty_tags:
+    if getattr(paper, "specialty_tags", None):
         try:
             tags = json.loads(paper.specialty_tags)
             if isinstance(tags, list):
-                parts.extend(str(tag) for tag in tags)
+                parts.append("Specialties: " + ", ".join(str(tag) for tag in tags))
         except (json.JSONDecodeError, TypeError):
             logger.warning("Failed to parse specialty_tags for paper %s", getattr(paper, "id", "?"))
 
-    return " ".join(normalize_text(part) for part in parts)
+    passage = "\n".join(part for part in (normalize_text(p) for p in parts) if part)
+    return passage[:MAX_PASSAGE_CHARS]
 
 
 # ---------------------------------------------------------------------------
@@ -139,16 +142,18 @@ class SentenceTransformerEmbeddingService:
         self.query_instruction = query_instruction or QUERY_INSTRUCTION
         self.default_batch_size = default_batch_size or DEFAULT_BATCH_SIZE
         self._model = None
-        self._lock = asyncio.Lock()
+        self._model_lock = threading.Lock()
 
     def _load_model(self):
         """Load the sentence-transformer model once and cache it."""
         if self._model is None:
-            from sentence_transformers import SentenceTransformer
+            with self._model_lock:
+                if self._model is None:
+                    from sentence_transformers import SentenceTransformer
 
-            logger.info("Loading embedding model: %s", self.model_name)
-            self._model = SentenceTransformer(self.model_name)
-            logger.info("Embedding model loaded: %s", self.model_name)
+                    logger.info("Loading embedding model: %s", self.model_name)
+                    self._model = SentenceTransformer(self.model_name)
+                    logger.info("Embedding model loaded: %s", self.model_name)
         return self._model
 
     def encode_texts(
@@ -184,12 +189,13 @@ class SentenceTransformerEmbeddingService:
                 normalize_embeddings=normalize,
             )
             result = np.asarray(embeddings, dtype=np.float32)
-            if result.shape[1] != self.dimension:
-                logger.warning(
-                    "Model produced dimension %d but expected %d",
-                    result.shape[1],
-                    self.dimension,
+            if result.ndim != 2 or result.shape != (len(texts), self.dimension):
+                raise ValueError(
+                    f"Model produced shape {result.shape}; expected "
+                    f"({len(texts)}, {self.dimension})"
                 )
+            if not np.isfinite(result).all():
+                raise ValueError("Model produced non-finite embedding values")
             return result
         except Exception as exc:
             logger.exception("Failed to encode %d texts", len(texts))
@@ -246,7 +252,14 @@ class SentenceTransformerEmbeddingService:
                 convert_to_numpy=True,
                 normalize_embeddings=normalize,
             )
-            return np.asarray(embedding, dtype=np.float32)
+            result = np.asarray(embedding, dtype=np.float32)
+            if result.ndim != 1 or result.shape[0] != self.dimension:
+                raise ValueError(
+                    f"Model produced shape {result.shape}; expected ({self.dimension},)"
+                )
+            if not np.isfinite(result).all():
+                raise ValueError("Model produced non-finite embedding values")
+            return result
         except Exception as exc:
             logger.exception("Failed to encode query: %s", query)
             raise RuntimeError(f"Query embedding failed: {exc}") from exc
@@ -263,7 +276,7 @@ class SentenceTransformerEmbeddingService:
         executor=None,
     ) -> np.ndarray:
         """Async wrapper around encode_texts that runs in a thread pool."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             executor,
             self.encode_texts,
@@ -279,7 +292,7 @@ class SentenceTransformerEmbeddingService:
         executor=None,
     ) -> np.ndarray:
         """Async wrapper around encode_query that runs in a thread pool."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             executor,
             self.encode_query,
@@ -294,7 +307,7 @@ class SentenceTransformerEmbeddingService:
         executor=None,
     ) -> np.ndarray:
         """Async wrapper around encode_papers."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             executor,
             self.encode_papers,

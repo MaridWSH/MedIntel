@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # PostgreSQL for paper metadata
   postgres:
@@ -12,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${MEDINTEL_BIND_ADDRESS:-127.0.0.1}:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medintel} -d ${POSTGRES_DB:-medintel}"]
       interval: 5s
@@ -21,15 +19,16 @@ services:
 
   # Qdrant vector database for semantic search
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:v1.18.2
     container_name: medintel-qdrant
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "${MEDINTEL_BIND_ADDRESS:-127.0.0.1}:6333:6333"
+      - "${MEDINTEL_BIND_ADDRESS:-127.0.0.1}:6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      # The official image does not bundle curl; use Bash's TCP check instead.
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -41,14 +40,21 @@ services:
       dockerfile: Dockerfile
     container_name: medintel-backend
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://medintel:medintel@postgres:5432/medintel}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-medintel}:${POSTGRES_PASSWORD:-medintel}@postgres:5432/${POSTGRES_DB:-medintel}
       MEDINTEL_QDRANT_URL: ${MEDINTEL_QDRANT_URL:-http://qdrant:6333}
       MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers}
       MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-BAAI/bge-m3}
       MEDINTEL_SECRET_KEY: ${MEDINTEL_SECRET_KEY:-change-me-in-production}
       MEDINTEL_SECURE_COOKIES: ${MEDINTEL_SECURE_COOKIES:-false}
+      MEDINTEL_ENV: ${MEDINTEL_ENV:-development}
+      MEDINTEL_ALLOWED_ORIGINS: ${MEDINTEL_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      MEDINTEL_ADMIN_EMAILS: ${MEDINTEL_ADMIN_EMAILS:-}
+      MEDINTEL_ENABLE_DOCS: ${MEDINTEL_ENABLE_DOCS:-true}
+      MEDINTEL_RESET_URL: ${MEDINTEL_RESET_URL:-http://localhost:3000/reset-password}
+      MEDINTEL_PIPELINE_VERSION: ${MEDINTEL_PIPELINE_VERSION:-2026-07-14.2}
+      MEDINTEL_REQUIRE_CURRENT_PIPELINE: ${MEDINTEL_REQUIRE_CURRENT_PIPELINE:-true}
     ports:
-      - "8000:8000"
+      - "${MEDINTEL_BIND_ADDRESS:-127.0.0.1}:8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,6 +62,11 @@ services:
         condition: service_healthy
     command: >
       uvicorn main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # One-shot indexing job.
   # Run manually after papers exist in PostgreSQL:
@@ -65,7 +76,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://medintel:medintel@postgres:5432/medintel}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-medintel}:${POSTGRES_PASSWORD:-medintel}@postgres:5432/${POSTGRES_DB:-medintel}
       MEDINTEL_QDRANT_URL: ${MEDINTEL_QDRANT_URL:-http://qdrant:6333}
       MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers}
       MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-BAAI/bge-m3}

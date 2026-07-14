@@ -135,7 +135,7 @@ def test_semantic_search_endpoint_requires_authorization(client):
 
 def test_semantic_search_endpoint_returns_results_with_valid_token(client, test_db):
     user = test_db.query(User).filter(User.email == "test@example.com").first()
-    token = create_access_token({"sub": str(user.id)})
+    token = create_access_token({"sub": str(user.id), "ver": user.token_version})
 
     response = client.post(
         "/api/search",

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Icon from '../../components/ui/Icon';
@@ -102,8 +102,9 @@ function SearchPageInner() {
 
   // ── State ─────────────────────────────────────────────────────────
   const [items, setItems] = useState<Paper[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Search & filters
   const [searchInput, setSearchInput] = useState(initialQuery);
@@ -129,14 +130,6 @@ function SearchPageInner() {
   // actually searches instead of showing an unfiltered listing.
   const [activeQuery, setActiveQuery] = useState(initialQuery);
 
-  // Keep in step when the URL changes underneath us (e.g. a second hero search).
-  useEffect(() => {
-    const q = searchParams.get('q') ?? '';
-    setActiveQuery(q);
-    setSearchInput(q);
-    setPage(1);
-  }, [searchParams]);
-
   useEffect(() => {
     getFacets()
       .then((f) => {
@@ -150,11 +143,11 @@ function SearchPageInner() {
   }, []);
 
   // ── Load papers ───────────────────────────────────────────────────
-  const loadPapers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    let cancelled = false;
 
-    try {
+    async function loadPapers() {
+      try {
       /*
        * One search path. /api/papers/search is semantic-first and falls back to
        * keyword matching server-side, so there is nothing for the client to pick
@@ -175,23 +168,27 @@ function SearchPageInner() {
             sort,
           });
 
-      setItems(response.items);
-      setTotalPages(response.pages);
-      setTotal(response.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load papers');
-      setItems([]);
-      setTotal(0);
-      setTotalPages(0);
-    } finally {
-      setLoading(false);
+        if (cancelled) return;
+        setError(null);
+        setItems(response.items);
+        setTotalPages(response.pages);
+        setTotal(response.total);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to load papers');
+        setItems([]);
+        setTotal(0);
+        setTotalPages(0);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, selectedEvidenceGrades, sort]);
 
-  // Load on mount and when dependencies change
-  useEffect(() => {
-    loadPapers();
-  }, [loadPapers]);
+    void loadPapers();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, selectedEvidenceGrades, sort, reloadKey]);
 
   // ── Handlers ──────────────────────────────────────────────────────
 
@@ -339,7 +336,7 @@ function SearchPageInner() {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-ink/35 w-full"
-                    placeholder="Search 50M+ medical papers, understood in seconds"
+                    placeholder="Search the available open-access paper corpus"
                   />
                   {searchInput && (
                     <button
@@ -355,7 +352,7 @@ function SearchPageInner() {
                     type="submit"
                     className="btn-primary h-10 px-5 bg-ink text-paper rounded-[12px] text-[13px] font-semibold inline-flex items-center gap-1.5"
                   >
-                    Synthesise
+                    Search
                     <Icon icon="lucide:sparkles" className="text-[14px] text-teal-bright" />
                   </button>
                 </form>
@@ -453,7 +450,7 @@ function SearchPageInner() {
 
               <FacetFilter
                 icon="lucide:award"
-                title="Evidence grade"
+                title="Single-paper evidence signal"
                 facets={EVIDENCE_LEVELS}
                 selected={selectedEvidenceGrades}
                 onToggle={toggleEvidenceGrade}
@@ -536,7 +533,7 @@ function SearchPageInner() {
                 </div>
                 <p>{error}</p>
                 <button
-                  onClick={loadPapers}
+                  onClick={() => setReloadKey((value) => value + 1)}
                   className="mt-2 text-[12px] text-red-600 underline hover:text-red-800"
                 >
                   Try again

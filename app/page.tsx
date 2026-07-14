@@ -10,12 +10,12 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tec
 
 // ── Evidence Engine agent data ──────────────────────────────────────────
 const AGENTS = [
-  { id: '01', icon: 'lucide:scan-text', title: 'TLDR Synthesis', desc: 'Reads the full text, abstracts, and supplementary materials into a single PICO-structured paragraph that a doctor can absorb during rounds.', badges: ['PICO FORMAT', '≤ 60 WORDS'] },
-  { id: '02', icon: 'lucide:network', title: 'Structured Breakdown', desc: 'Decomposes the paper into background, methods, results, limitations and implications — each point typed, so findings and caveats are told apart at a glance.', badges: ['TYPED NODES'] },
-  { id: '03', icon: 'lucide:image', title: 'Infographic', desc: 'Renders a journal-grade visual summary — the kind you share with the department WhatsApp group or in a journal-club slide.', badges: ['1200 × 630'] },
-  { id: '04', icon: 'lucide:shield-alert', title: 'Summary Fidelity', desc: 'Re-reads our own summary against the source and flags any figure or claim it cannot trace back. It checks the summary, not the study — it is not a GRADE appraisal.', badges: ['SOURCE-CHECKED'] },
-  { id: '05', icon: 'lucide:stethoscope', title: 'Clinical Relevance', desc: 'Tags by specialty and grades the practice-change signal. Tells you, plainly, whether this paper should change what you do tomorrow morning.', badges: ['PRACTICE-CHANGE'] },
-  { id: '06', icon: 'lucide:quote', title: 'Citation Export', desc: 'Every summary links back to the paper it came from. Export a formatted citation, BibTeX, or RIS.', badges: ['RIS', 'BIBTEX'], highlight: true },
+  { id: '01', kind: 'AI AGENT', icon: 'lucide:scan-text', title: 'Summary extraction', desc: 'Produces a TLDR, structured narrative, study type, specialty tags, and PICO fields when the study supports them.', badges: ['PICO', 'SOURCE TEXT'] },
+  { id: '02', kind: 'AI AGENT', icon: 'lucide:stethoscope', title: 'Key findings', desc: 'Extracts the main outcomes, reported statistics, source quotes, and limitations from the paper.', badges: ['QUOTED EVIDENCE'] },
+  { id: '03', kind: 'AI AGENT', icon: 'lucide:network', title: 'Structured breakdown', desc: 'Organises background, methods, results, limitations, and implications into a navigable concept tree.', badges: ['TYPED NODES'] },
+  { id: '04', kind: 'AI AGENT', icon: 'lucide:shield-alert', title: 'Summary fidelity', desc: 'Checks important generated claims against the source. This is a model self-check, not peer review, GRADE, or a risk-of-bias assessment.', badges: ['MODEL SELF-CHECK'] },
+  { id: '05', kind: 'PRODUCT TOOL', icon: 'lucide:image', title: 'Shareable card', desc: 'Renders selected generated content into a downloadable card that carries an AI-generated disclaimer.', badges: ['DOWNLOADABLE'] },
+  { id: '06', kind: 'PRODUCT TOOL', icon: 'lucide:quote', title: 'Citation export', desc: 'Links to the original paper and exports a formatted citation, BibTeX, or RIS from source metadata.', badges: ['RIS', 'BIBTEX'], highlight: true },
 ];
 
 /*
@@ -28,33 +28,11 @@ const AGENTS = [
  * derived from the data.
  */
 const METRICS = [
-  { value: '3,419', suffix: '', label: 'PAPERS SUMMARISED', desc: 'Open-access articles from PubMed Central, processed end to end.' },
-  { value: '32', suffix: 's', label: 'MEDIAN SYNTHESIS TIME', desc: 'Median wall-clock time for the agent pipeline to process one paper.' },
-  { value: '85', suffix: '%', label: 'PASS FIDELITY CHECK', desc: 'Summaries whose figures and claims our verifier could trace back to the source.' },
-  { value: '6', suffix: '', label: 'SPECIALISED AGENTS', desc: 'Summary, mind map, infographic, findings, verification, and relevance.' },
+  { value: '3,419', suffix: '', label: 'PAPERS WITH SUMMARIES', desc: 'Local catalogue rows with an earlier-generation TLDR or detailed summary.' },
+  { value: '34', suffix: 's', label: 'MEDIAN SYNTHESIS TIME', desc: '33.5-second median across 6,679 earlier pipeline outputs with recorded timing.' },
+  { value: '85', suffix: '%', label: 'PASS MODEL SELF-CHECK', desc: 'Of 3,399 verifier outputs, 85.3% met the pipeline’s automated fidelity threshold.' },
+  { value: '4', suffix: '', label: 'SPECIALISED AI AGENTS', desc: 'Summary, findings, concept map, and source-fidelity self-check.' },
 ];
-
-// Helper: map evidence level to grade letter
-const evidenceToGrade = (level: string | null | undefined): string => {
-  const map: Record<string, string> = {
-    'high': 'A',
-    'moderate': 'B',
-    'low': 'C',
-    'very_low': 'D',
-  };
-  return map[level || ''] || 'C';
-};
-
-// Helper: evidence level color class
-const evidenceColorClass = (level: string | null | undefined): string => {
-  const map: Record<string, string> = {
-    'high': 'bg-teal-deep/10 text-teal-deep border-teal-deep/20',
-    'moderate': 'bg-blue-100 text-blue-700 border-blue-200',
-    'low': 'bg-amber-bg text-amber-ink border-amber-ink/20',
-    'very_low': 'bg-red-100 text-red-700 border-red-200',
-  };
-  return map[level || ''] || 'bg-ink/8 text-ink-soft border-ink/10';
-};
 
 /* ── Fetch papers directly from API ── */
 async function getRecentPapers(): Promise<Paper[]> {
@@ -116,7 +94,7 @@ export default async function Home() {
                   <span className="mono-stat">Live</span>
                 </span>
                 <span className="text-ink/30">&mdash;</span>
-                <span className="text-[11.5px] text-ink-soft">Evidence Engine v0.9 &middot; 6 agents &middot; closed beta</span>
+                <span className="text-[11.5px] text-ink-soft">Evidence Engine v0.9 &middot; 4 AI agents &middot; closed beta</span>
               </div>
             </div>
 
@@ -185,7 +163,7 @@ export default async function Home() {
             </div>
 
             <div className="fade-in d-5 mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11.5px] text-ink/55">
-              {['No credit card required', 'First 5 papers free, every month', 'Physician-verified before publication'].map((t) => (
+              {['Free during beta', 'Every output links to its source', 'AI-generated · not clinician-reviewed'].map((t) => (
                 <span key={t} className="flex items-center gap-1.5">
                   <Icon icon="lucide:check" className="text-teal text-[13px]" />
                   {t}
@@ -196,25 +174,24 @@ export default async function Home() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-         *  § 02 · THE EVIDENCE ENGINE — Six agents
+         *  § 02 · THE EVIDENCE ENGINE
          * ═════════════════════════════════════════════════════════════════ */}
-        <section id="six-agents" className="relative py-20 md:py-28 border-t border-ink/10">
+        <section id="evidence-engine" className="relative py-20 md:py-28 border-t border-ink/10">
           <div className="max-w-[1380px] mx-auto px-6">
             <div className="grid grid-cols-12 gap-8 mb-16">
               <div className="col-span-12 md:col-span-5">
                 <div className="text-[10.5px] mono-stat text-teal-deep mb-5">§ 02 &middot; THE EVIDENCE ENGINE</div>
                 <h2 className="display text-[40px] md:text-[56px] tracking-tight">
-                  Six agents read.
+                  Four agents extract.
                   <br />
                   <span className="italic text-teal">One doctor decides.</span>
                 </h2>
               </div>
               <div className="col-span-12 md:col-span-7 md:pt-12">
                 <p className="serif-body text-[17px] md:text-[18px] leading-[1.55] text-ink-soft max-w-[560px]">
-                  Each paper passes through a pipeline of six specialised AIs, each with a single job.
-                  A seventh checks their work against the source and flags any figure or claim it
-                  cannot trace back. No clinician reviews these summaries &mdash; you are the reviewer,
-                  and the source is always one click away.
+                  Three specialised AI steps generate the summary, findings, and concept map. A fourth
+                  model checks important generated claims against the source. No clinician reviews these
+                  summaries &mdash; you are the reviewer, and the source is always one click away.
                 </p>
               </div>
             </div>
@@ -233,7 +210,7 @@ export default async function Home() {
                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${a.highlight ? 'bg-teal-bright/15 border border-teal-bright/30' : 'bg-ink text-paper'}`}>
                       <Icon icon={a.icon} className={`text-[20px] ${a.highlight ? 'text-teal-bright' : 'text-teal-bright'}`} />
                     </div>
-                    {!a.highlight && <span className="text-[9.5px] mono-stat text-ink/40">AGENT {a.id}</span>}
+                    {!a.highlight && <span className="text-[9.5px] mono-stat text-ink/40">{a.kind} {a.id}</span>}
                   </div >
                   <h3 className={`serif text-[20px] tracking-tight mb-2 ${a.highlight ? 'text-paper' : ''}`}>{a.title}</h3>
                   <p className={`text-[13px] leading-[1.55] mb-4 ${a.highlight ? 'text-paper/75' : 'text-ink-soft'}`}>{a.desc}</p>
@@ -249,34 +226,19 @@ export default async function Home() {
             {/* Pipeline */}
             <div className="mt-10 bg-paper-warm/50 border border-ink/10 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-5 md:gap-3">
               {[
-                { num: '01', label: 'Paper ingested' },
-                { num: '02', label: 'Six agents run in parallel' },
-              ].map(({ num, label }) => (
+                { num: '01', label: 'Source XML parsed' },
+                { num: '02', label: 'Three extraction agents run' },
+                { num: '03', label: 'Model fidelity check runs' },
+                { num: '04', label: 'Output published with caveats' },
+              ].map(({ num, label }, index) => (
+                <div key={num} className="contents">
                 <div key={num} className="flex items-center gap-3 text-ink-soft">
                   <div className="w-9 h-9 rounded-lg bg-ink text-paper flex items-center justify-center text-[10px] mono-stat">{num}</div>
                   <span className="text-[13px] font-medium">{label}</span>
                 </div>
+                {index < 3 && <Icon icon="lucide:arrow-right" className="text-ink/30 hidden md:block" />}
+                </div>
               ))}
-              <Icon icon="lucide:arrow-right" className="text-ink/30 hidden md:block" />
-              <div className="flex items-center gap-3 text-ink-soft">
-                <div className="w-9 h-9 rounded-lg bg-amber-bg border border-amber-ink/30 text-amber-ink flex items-center justify-center">
-                  <Icon icon="lucide:user-round-search" className="text-[16px]" />
-                </div>
-                <span className="text-[13px] font-medium">MD reviews every output</span>
-              </div>
-              <Icon icon="lucide:arrow-right" className="text-ink/30 hidden md:block" />
-              <div className="flex items-center gap-3 text-ink-soft">
-                <div className="w-9 h-9 rounded-lg bg-teal-deep text-paper flex items-center justify-center">
-                  <Icon icon="lucide:badge-check" className="text-[16px]" />
-                </div>
-                <span className="text-[13px] font-medium">Validated badge assigned</span>
-              </div>
-              <Icon icon="lucide:arrow-right" className="text-ink/30 hidden md:block" />
-              <div className="flex items-center gap-3 text-ink-soft">
-                <div className="w-9 h-9 rounded-lg bg-ink text-paper flex items-center justify-center text-[14px]">&#9733;</div>
-                {/* Median pipeline time is ~32s, not "under 12 seconds". */}
-                <span className="text-[13px] font-medium">Delivered in about 30 seconds</span>
-              </div>
             </div>
           </div>
         </section>
@@ -412,8 +374,8 @@ export default async function Home() {
               <span className="italic text-teal-bright">already read.</span>
             </h2>
             <p className="serif-body text-[17px] md:text-[19px] text-paper/75 mt-7 max-w-[620px] mx-auto">
-              Five free papers, every month, forever.
-              No credit card. No commitment. A physician built this for physicians.
+              Free during the closed beta. No credit card or paid subscription is active.
+              Every AI-generated output should be checked against its linked source.
             </p>
             <div className="mt-10 flex flex-col md:flex-row items-center justify-center gap-3">
               <Link href="/register" className="btn-primary inline-flex items-center justify-center gap-2 px-7 h-14 bg-teal-bright text-ink rounded-[16px] text-[15px] font-semibold w-full md:w-auto">
