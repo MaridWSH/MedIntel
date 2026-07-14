@@ -59,6 +59,8 @@ export default function SiteFooter() {
             <div className="text-[10px] mb-4 mono-stat text-ink/45">COMPANY</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
               <li><span>Closed beta</span></li>
+              <li><Link href="/research-survey" className="hover:text-teal-deep transition-colors">Research workflow survey</Link></li>
+              <li><Link href="/feedback" className="hover:text-teal-deep transition-colors">Product feedback</Link></li>
               <li><Link href="/privacy" className="hover:text-teal-deep transition-colors">Privacy</Link></li>
               <li><Link href="/terms" className="hover:text-teal-deep transition-colors">Terms</Link></li>
             </ul>
@@ -78,7 +80,7 @@ export default function SiteFooter() {
               BETA SERVICE
             </span>
             <span>&middot;</span>
-            <span>v0.9.4 &middot; BETA</span>
+            <span>CLOSED BETA</span>
           </div>
         </div>
       </div>

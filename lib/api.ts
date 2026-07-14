@@ -201,6 +201,65 @@ export async function getDashboardStats() {
   return res.json();
 }
 
+// ── Beta research and product surveys ────────────────────────────────────────
+
+export interface ResearchSurveyPayload {
+  professional_role: string;
+  specialty: string;
+  years_experience: string;
+  sources: string[];
+  sources_other: string;
+  papers_needed: string;
+  most_time_consuming: string;
+  most_time_consuming_other: string;
+  biggest_problem: string;
+  biggest_problem_other: string;
+  trust_level: string;
+  trust_reason: string;
+  website: string;
+}
+
+export interface ProductFeedbackPayload {
+  overall_rating: number;
+  ease_of_use_rating: number;
+  search_rating: number | null;
+  summary_rating: number | null;
+  features_used: string[];
+  most_useful: string;
+  problems_encountered: string;
+  improvements: string;
+  feature_requests: string;
+  would_recommend: string;
+  contact_email: string | null;
+  website: string;
+}
+
+export async function submitResearchSurvey(payload: ResearchSurveyPayload) {
+  const res = await apiFetch('feedback/research-methods', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw new Error(
+      apiErrorMessage(await res.json().catch(() => null), 'Could not submit the survey'),
+    );
+  }
+  return res.json();
+}
+
+export async function submitProductFeedback(payload: ProductFeedbackPayload) {
+  const res = await apiFetch('feedback/product', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw new Error(
+      apiErrorMessage(await res.json().catch(() => null), 'Could not submit your feedback'),
+    );
+  }
+  return res.json();
+}
+
 /*
  * semanticSearch() / keywordSearch() lived here and called /search and
  * /keyword-search. Neither endpoint has ever existed — both 404'd on every call.

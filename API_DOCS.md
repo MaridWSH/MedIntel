@@ -437,6 +437,37 @@ Content-Type: application/json
 
 ---
 
+## Beta Feedback Forms
+
+The two public beta forms do not require an account. Submissions are limited to 10 per IP per form per hour, validate browser origins, and must not contain patient-identifiable or confidential information.
+
+### Submit Research Workflow Survey
+
+```http
+POST /api/feedback/research-methods
+Content-Type: application/json
+```
+
+Stores answers about professional role, research sources, papers normally read, time-consuming review tasks, search problems, and willingness to rely on source-linked AI summaries.
+
+### Submit Product Feedback
+
+```http
+POST /api/feedback/product
+Content-Type: application/json
+```
+
+Stores 1–5 ratings, features used, problems, improvement ideas, feature requests, recommendation intent, and an optional follow-up email.
+
+### Read Responses (Admin)
+
+```http
+GET /api/feedback/research-methods?limit=100
+GET /api/feedback/product?limit=100
+```
+
+Both retrieval endpoints require authentication with an email listed in `MEDINTEL_ADMIN_EMAILS`.
+
 ## Health Check
 
 ```http
@@ -714,7 +745,7 @@ interface Verification {
 
 ## Rate Limiting
 
-Currently no rate limiting. For production use, consider implementing rate limiting at the Cloudflare level or via nginx.
+Authentication and survey submissions have a process-local per-IP limiter. This protects a single MVP instance, but production with multiple API workers or hosts should enforce shared limits at Cloudflare, nginx, an API gateway, or Redis.
 
 ---
 

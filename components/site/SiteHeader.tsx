@@ -76,6 +76,9 @@ export default function SiteHeader() {
           <Link href="/pricing" className={navLinkClass('/pricing')}>
             Pricing
           </Link>
+          <Link href="/feedback" className={navLinkClass('/feedback')}>
+            Feedback
+          </Link>
           {user && (
             <>
               <Link href="/dashboard" className={navLinkClass('/dashboard')}>

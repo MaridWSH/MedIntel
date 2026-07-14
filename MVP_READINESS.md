@@ -40,8 +40,8 @@ The application builds cleanly and its implemented flows are coherent. The remai
 
 - `npm run lint`: pass, zero warnings.
 - `npm run typecheck`: pass.
-- `npm run build`: pass on Next.js 16.2.10/Turbopack; 14 routes generated.
-- Backend: 27 tests pass.
+- `npm run build`: pass on Next.js 16.2.10/Turbopack; 16 routes generated.
+- Backend: 31 tests pass.
 - AI pipeline: 11 safety tests pass.
 - Production smoke: `/`, `/search`, `/pricing`, `/privacy`, `/terms`, `/login`, and `/register` return HTTP 200 with the expected security headers.
 - Python direct dependencies: no known vulnerabilities reported by `pip-audit`.

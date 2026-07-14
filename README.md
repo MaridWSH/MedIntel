@@ -63,6 +63,15 @@ Pipeline version `2026-07-14.2` treats older/unversioned results as incomplete. 
 
 Before processing the full corpus, run a representative, clinician-reviewed evaluation set and record factuality, quote-grounding, false-pass, false-reject, latency, and cost metrics. The pipeline’s own verifier score is not an independent clinical-quality evaluation.
 
+## Beta surveys
+
+- `/research-survey` collects anonymous answers about how clinicians and researchers find and review medical literature.
+- `/feedback` collects product ratings, problems, improvement ideas, and feature requests. A follow-up email is optional.
+- Public submissions are validated, origin-checked, and limited to 10 submissions per IP per form per hour.
+- Recent responses are available to configured administrators at `GET /api/feedback/research-methods` and `GET /api/feedback/product`.
+
+Apply `backend/migrations/002_feedback_forms.sql` for PostgreSQL or `002_feedback_forms_sqlite.sql` for an existing SQLite deployment before restarting the API.
+
 ## Verification
 
 ```bash
@@ -86,6 +95,7 @@ MEDINTEL_LLM_API_KEY=test .venv/bin/python -m pytest -q tests
 - Restrict `MEDINTEL_ALLOWED_ORIGINS` and configure `MEDINTEL_ADMIN_EMAILS`.
 - Configure and test SMTP plus `MEDINTEL_RESET_URL`.
 - Apply `backend/migrations/001_beta_hardening.sql` to existing PostgreSQL, or `001_beta_hardening_sqlite.sql` once to an existing local SQLite database.
+- Apply the matching `backend/migrations/002_feedback_forms*.sql` migration before enabling the two beta survey pages.
 - Keep `MEDINTEL_PIPELINE_VERSION=2026-07-14.2` and `MEDINTEL_REQUIRE_CURRENT_PIPELINE=true`; production hides stale AI output and readiness fails until a verified current corpus is loaded.
 - Back up PostgreSQL and Qdrant, and test restoration.
 - Route structured API/pipeline logs to monitored storage and alert on 5xx, readiness, latency, pipeline gate failures, and model cost.

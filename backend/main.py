@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db
 from models import Paper
-from routers import auth, papers, search, user
+from routers import auth, feedback, papers, search, user
 from schemas import HealthResponse, ReadinessResponse
 from services.qdrant_service import collection_exists
 
@@ -94,6 +94,7 @@ async def request_observability(request: Request, call_next):
 
 # Mount routers
 app.include_router(auth.router, prefix="/api")
+app.include_router(feedback.router, prefix="/api")
 app.include_router(papers.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(user.router, prefix="/api")
