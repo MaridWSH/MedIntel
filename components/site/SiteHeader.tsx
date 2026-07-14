@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fetchCurrentUser, logoutUser } from '@/lib/api';
 import Icon from '../ui/Icon';
 
@@ -16,6 +16,11 @@ export default function SiteHeader() {
   const router = useRouter();
   const [user, setUser] = useState<HeaderUser | null>(null);
   const [checking, setChecking] = useState(true);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     fetchCurrentUser()
@@ -32,6 +37,45 @@ export default function SiteHeader() {
     window.addEventListener('hashchange', updateHash);
     return () => window.removeEventListener('hashchange', updateHash);
   }, []);
+
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setProfileMenuOpen(false);
+        profileButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsidePress);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePress);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [profileMenuOpen]);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    setSignOutError('');
+    try {
+      await logoutUser();
+      setUser(null);
+      setProfileMenuOpen(false);
+      router.push('/');
+      router.refresh();
+    } catch {
+      setSignOutError('Could not sign out. Please try again.');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   const isActive = (href: string) => {
     const [base, hash] = href.split('#');
@@ -79,19 +123,6 @@ export default function SiteHeader() {
           <Link href="/feedback" className={navLinkClass('/feedback')}>
             Feedback
           </Link>
-          {user && (
-            <>
-              <Link href="/dashboard" className={navLinkClass('/dashboard')}>
-                Dashboard
-              </Link>
-              <Link href="/search" className={navLinkClass('/search')}>
-                Search
-              </Link>
-            </>
-          )}
-          <Link href="/account" className={navLinkClass('/account')}>
-            Account
-          </Link>
         </nav>
 
         {/* Right cluster */}
@@ -122,18 +153,97 @@ export default function SiteHeader() {
             </>
           )}
           {!checking && user && (
-            <button
-              onClick={() => {
-                logoutUser().then(() => {
-                  setUser(null);
-                  router.push('/');
-                });
-              }}
-              className="inline-flex items-center gap-1.5 px-4 h-9 rounded-md border border-ink/15 text-[12.5px] font-medium hover:bg-ink/5 transition-colors"
-            >
-              <Icon icon="lucide:log-out" className="text-[14px]" />
-              Sign out
-            </button>
+            <div ref={profileMenuRef} className="relative">
+              <button
+                ref={profileButtonRef}
+                type="button"
+                aria-label={`Open profile menu for ${user.name}`}
+                aria-controls="profile-navigation"
+                aria-expanded={profileMenuOpen}
+                onClick={() => {
+                  setSignOutError('');
+                  setProfileMenuOpen((open) => !open);
+                }}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
+                  profileMenuOpen
+                    ? 'border-teal-deep bg-teal-deep text-paper'
+                    : 'border-ink/15 bg-paper text-ink-soft hover:border-teal-deep/40 hover:bg-teal-deep/8 hover:text-teal-deep'
+                }`}
+              >
+                <Icon icon="lucide:user-round" className="text-[19px]" />
+              </button>
+
+              {profileMenuOpen && (
+                <nav
+                  id="profile-navigation"
+                  aria-label="Profile navigation"
+                  className="absolute right-0 top-[calc(100%+0.65rem)] z-50 w-64 overflow-hidden rounded-2xl border border-ink/12 bg-paper shadow-[0_24px_60px_-20px_rgba(11,29,42,0.35),0_4px_14px_-8px_rgba(11,29,42,0.2)]"
+                >
+                  <div className="border-b border-ink/10 bg-paper-warm/55 px-4 py-3.5">
+                    <p className="truncate text-[13px] font-semibold text-ink">{user.name}</p>
+                    <p className="mt-0.5 truncate text-[11px] text-ink/50">{user.email}</p>
+                  </div>
+
+                  <div className="p-2">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className={`flex h-10 items-center gap-3 rounded-xl px-3 text-[12.5px] font-medium transition-colors ${
+                        pathname === '/dashboard'
+                          ? 'bg-teal-deep/10 text-teal-deep'
+                          : 'text-ink-soft hover:bg-ink/5'
+                      }`}
+                    >
+                      <Icon icon="lucide:layout-dashboard" className="text-[16px]" />
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/search"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className={`flex h-10 items-center gap-3 rounded-xl px-3 text-[12.5px] font-medium transition-colors ${
+                        pathname === '/search'
+                          ? 'bg-teal-deep/10 text-teal-deep'
+                          : 'text-ink-soft hover:bg-ink/5'
+                      }`}
+                    >
+                      <Icon icon="lucide:search" className="text-[16px]" />
+                      Search
+                    </Link>
+                    <Link
+                      href="/account"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className={`flex h-10 items-center gap-3 rounded-xl px-3 text-[12.5px] font-medium transition-colors ${
+                        pathname === '/account'
+                          ? 'bg-teal-deep/10 text-teal-deep'
+                          : 'text-ink-soft hover:bg-ink/5'
+                      }`}
+                    >
+                      <Icon icon="lucide:user-round" className="text-[16px]" />
+                      Account
+                    </Link>
+
+                    <div className="my-2 border-t border-ink/10" />
+                    <button
+                      type="button"
+                      disabled={signingOut}
+                      onClick={() => void handleSignOut()}
+                      className="flex h-10 w-full items-center gap-3 rounded-xl px-3 text-left text-[12.5px] font-medium text-red-700 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <Icon
+                        icon={signingOut ? 'lucide:loader-2' : 'lucide:log-out'}
+                        className={`text-[16px] ${signingOut ? 'animate-spin' : ''}`}
+                      />
+                      {signingOut ? 'Signing out…' : 'Sign out'}
+                    </button>
+                    {signOutError && (
+                      <p role="alert" className="px-3 pb-1 pt-1 text-[10.5px] text-red-700">
+                        {signOutError}
+                      </p>
+                    )}
+                  </div>
+                </nav>
+              )}
+            </div>
           )}
         </div>
       </div>

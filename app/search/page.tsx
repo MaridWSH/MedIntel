@@ -413,8 +413,8 @@ function SearchPageInner() {
         <section className="relative max-w-[1380px] mx-auto px-6 py-8 grid grid-cols-12 gap-8">
           {/* LEFT: Filters sidebar */}
           <aside className="col-span-12 lg:col-span-3 fade-in d-2">
-            <div className="lg:sticky lg:top-[88px]">
-              <div className="flex items-center justify-between mb-4">
+            <div className="lg:sticky lg:top-[88px] lg:max-h-[calc(100vh-104px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:[scrollbar-gutter:stable]">
+              <div className="flex items-center justify-between mb-4 lg:sticky lg:top-0 lg:z-10 lg:bg-paper lg:py-1">
                 <h2 className="serif text-[18px] tracking-tight flex items-center gap-2">
                   <Icon icon="lucide:sliders-horizontal" className="text-[16px] text-teal-deep" />
                   Filters
