@@ -261,7 +261,7 @@ GET /api/papers/search?q=welfare&page=1&per_page=20
 
 **Endpoint:** `POST /api/search`
 
-Combines **semantic search** (Qdrant + BGE-M3 embeddings) and **keyword search** (PostgreSQL Full Text Search with `websearch_to_tsquery` and `ts_rank_cd`) in parallel. Results are merged, deduplicated, ranked with **Reciprocal Rank Fusion**, filtered, sorted, and paginated.
+Combines **semantic search** (Qdrant + BGE-M3 embeddings) and **keyword search** (PostgreSQL Full Text Search with `websearch_to_tsquery` and `ts_rank_cd`) in parallel. Results are merged, deduplicated, ranked with **Reciprocal Rank Fusion**, filtered, sorted, and paginated. Also returns **dynamic facet counts** for each filterable field, computed over the current result set with the standard "exclude the facet itself" rule (e.g., selecting a specialty does not hide other specialties from that facet).
 
 Filters are applied **after** hybrid retrieval. Within one filter field values are combined with `OR`. Across different filter fields they are combined with `AND`.
 
@@ -321,6 +321,7 @@ Content-Type: application/json
 | `filters.languages` | string[] | `null` | OR filter by language code |
 | `filters.authors` | string[] | `null` | OR filter by author substring |
 | `filters.years` | object | `null` | Inclusive publication year range: `{ "from": 2020, "to": 2025 }` |
+| `facets_enabled` | bool | `true` | Whether to include dynamic facet counts in the response |
 | `semantic_weight` | float | `0.7` | Weight of semantic vs keyword in RRF (0.0–1.0) |
 | `rrf_k` | int | `60` | Reciprocal Rank Fusion constant |
 
@@ -334,6 +335,32 @@ Content-Type: application/json
   "total": 342,
   "filters": {
     "specialties": ["Nutrition"]
+  },
+  "facets": {
+    "specialty": [
+      { "value": "Nutrition", "count": 120 },
+      { "value": "Endocrinology", "count": 85 },
+      { "value": "Cardiology", "count": 42 }
+    ],
+    "study_type": [
+      { "value": "RCT", "count": 98 },
+      { "value": "cohort_study", "count": 67 }
+    ],
+    "evidence_level": [
+      { "value": "high", "count": 54 },
+      { "value": "moderate", "count": 120 }
+    ],
+    "publication_year": [
+      { "value": 2023, "count": 45 },
+      { "value": 2022, "count": 38 }
+    ],
+    "journal": [
+      { "value": "Journal of Nutrition", "count": 12 }
+    ],
+    "language": [
+      { "value": "en", "count": 340 },
+      { "value": "ar", "count": 2 }
+    ]
   },
   "items": [
     {
@@ -356,6 +383,12 @@ Content-Type: application/json
   ]
 }
 ```
+
+**Facet behavior:**
+- Each facet is computed over the current result set (query + all filters **except** the facet itself).
+- Buckets are sorted by count descending, then value ascending.
+- `facets` is `null` when `facets_enabled` is `false` or when facet computation fails.
+- Facet results are cached in-memory for 60 seconds (LRU, max 256 entries).
 
 **Notes:**
 - `semantic_score` and `keyword_score` are the raw scores from each retrieval system. `final_score` is the Reciprocal Rank Fusion score used for ranking.

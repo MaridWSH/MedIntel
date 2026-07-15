@@ -37,9 +37,7 @@ if not DATABASE_URL:
     print("ERROR: DATABASE_URL is not set in the environment or .env file.")
     sys.exit(1)
 
-if DATABASE_URL.startswith("sqlite"):
-    print("ERROR: DATABASE_URL points to SQLite. This script is for PostgreSQL only.")
-    sys.exit(1)
+
 
 # Build a temporary URL that connects to the default 'postgres' maintenance database
 # so we can drop and recreate the target database.

@@ -90,5 +90,4 @@ class Paper(Base):
     __table_args__ = (
         Index("ix_papers_search_vector_gin", "search_vector", postgresql_using="gin"),
         Index("ix_papers_year_journal", "publication_year", "journal"),
-        Index("ix_papers_specialty_tags_gin", "specialty_tags", postgresql_using="gin"),
     )

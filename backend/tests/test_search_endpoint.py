@@ -1,8 +1,14 @@
-"""Tests for the hybrid search endpoint."""
+"""Tests for the hybrid search endpoint.
+
+These tests require a PostgreSQL test database. Set TEST_DATABASE_URL to a
+PostgreSQL connection string, e.g.:
+    TEST_DATABASE_URL=postgresql+psycopg2://medintel:medintel@localhost:5432/medintel_test
+"""
 
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
 
 import pytest
@@ -15,6 +21,11 @@ from database import Base, get_db
 from main import app
 from models import Paper
 from services.hybrid_search_service import HybridSearchService
+
+TEST_DATABASE_URL = os.environ.get(
+    "TEST_DATABASE_URL",
+    "postgresql+psycopg2://medintel:medintel@localhost:5432/medintel_test",
+)
 
 
 @dataclass
@@ -103,16 +114,24 @@ class FakeEmbeddingService:
         return [0.0] * self.dimension
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def test_db():
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    if TEST_DATABASE_URL.startswith("sqlite"):
+        raise RuntimeError("SQLite is not supported for tests. Use PostgreSQL.")
+
+    engine = create_engine(TEST_DATABASE_URL)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    # Drop and recreate all tables for a clean test database.
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+
     db = TestingSessionLocal()
     try:
         yield db
     finally:
         db.close()
+        engine.dispose()
 
 
 @pytest.fixture
@@ -166,8 +185,38 @@ def sample_papers():
     ]
 
 
+def _seed_papers(db, papers: list[FakePaper]):
+    """Insert FakePaper fixtures into the real test DB so facet SQL can aggregate them."""
+    for p in papers:
+        db.add(
+            Paper(
+                id=p.id,
+                title=p.title,
+                tldr=p.tldr,
+                detailed_summary=p.detailed_summary,
+                abstract=p.abstract,
+                keywords=p.keywords,
+                study_type=p.study_type,
+                specialty_tags=p.specialty_tags,
+                publication_year=p.publication_year,
+                journal=p.journal,
+                language=p.language,
+                author_list=p.author_list,
+                authors_count=p.authors_count,
+                centers_count=p.centers_count,
+                doi=p.doi,
+                evidence_level=p.evidence_level,
+                processing_time=p.processing_time,
+                has_errors=p.has_errors,
+            )
+        )
+    db.commit()
+
+
 @pytest.fixture
 def client(test_db, sample_papers):
+    _seed_papers(test_db, sample_papers)
+
     def override_get_db():
         try:
             yield test_db
@@ -281,13 +330,19 @@ def test_hybrid_search_sort_newest(client):
     assert body["items"][0]["paper_id"] == "PMC_NUTRITION_1"  # 2023
 
 
-def test_hybrid_search_empty_query_rejected_without_filters(client):
+def test_hybrid_search_empty_query_returns_all_papers(client):
+    """Browse mode: empty query with no filters returns all papers and facets."""
     response = client.post(
         "/api/search",
         json={"query": "", "page": 1, "page_size": 10},
     )
 
-    assert response.status_code == 422
+    assert response.status_code == 200
+    body = response.json()
+    assert body["query"] == ""
+    assert body["total"] == 3
+    assert len(body["items"]) == 3
+    assert body["facets"] is not None
 
 
 def test_hybrid_search_filter_only_returns_results(client):
@@ -307,3 +362,113 @@ def test_hybrid_search_filter_only_returns_results(client):
     assert body["query"] == ""
     assert body["total"] == 2
     assert all(item["paper_id"] in {"PMC_NUTRITION_1", "PMC_NUTRITION_2"} for item in body["items"])
+
+
+def test_hybrid_search_returns_facets(client):
+    response = client.post(
+        "/api/search",
+        json={"query": "nutrition", "page": 1, "page_size": 10},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "facets" in body
+    facets = body["facets"]
+    assert facets is not None
+
+    # Specialty facet: Nutrition appears in 2 papers, Cardiology in 1, Endocrinology in 1, Pediatrics in 1
+    specialty_counts = {b["value"]: b["count"] for b in facets["specialty"]}
+    assert specialty_counts["Nutrition"] == 2
+    assert specialty_counts["Cardiology"] == 1
+    assert specialty_counts["Endocrinology"] == 1
+    assert specialty_counts["Pediatrics"] == 1
+
+    # Study type facet: RCT in 2, cohort_study in 1
+    study_type_counts = {b["value"]: b["count"] for b in facets["study_type"]}
+    assert study_type_counts["RCT"] == 2
+    assert study_type_counts["cohort_study"] == 1
+
+    # Evidence level facet: high 1, moderate 1, low 1
+    evidence_counts = {b["value"]: b["count"] for b in facets["evidence_level"]}
+    assert evidence_counts["high"] == 1
+    assert evidence_counts["moderate"] == 1
+    assert evidence_counts["low"] == 1
+
+    # Publication year facet
+    year_counts = {b["value"]: b["count"] for b in facets["publication_year"]}
+    assert year_counts[2023] == 1
+    assert year_counts[2021] == 1
+    assert year_counts[2020] == 1
+
+
+def test_hybrid_search_facets_exclude_self_filter(client):
+    """Specialty facet should exclude the specialty filter itself (standard faceted search)."""
+    response = client.post(
+        "/api/search",
+        json={
+            "query": "nutrition",
+            "page": 1,
+            "page_size": 10,
+            "filters": {"specialties": ["Nutrition"]},
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    facets = body["facets"]
+    assert facets is not None
+
+    # Specialty facet should still show all specialties (not filtered by itself)
+    specialty_counts = {b["value"]: b["count"] for b in facets["specialty"]}
+    assert specialty_counts["Nutrition"] == 2
+    assert specialty_counts["Cardiology"] == 1
+    assert specialty_counts["Endocrinology"] == 1
+    assert specialty_counts["Pediatrics"] == 1
+
+    # But study_type facet should respect the specialty filter
+    study_type_counts = {b["value"]: b["count"] for b in facets["study_type"]}
+    assert study_type_counts["RCT"] == 2
+    assert "cohort_study" not in study_type_counts  # Cardiology paper filtered out
+
+
+def test_hybrid_search_facets_respect_other_filters(client):
+    """Study type facet should respect specialty and year filters."""
+    response = client.post(
+        "/api/search",
+        json={
+            "query": "nutrition",
+            "page": 1,
+            "page_size": 10,
+            "filters": {
+                "specialties": ["Nutrition"],
+                "years": {"from": 2021, "to": 2025},
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    facets = body["facets"]
+    assert facets is not None
+
+    # Only PMC_NUTRITION_1 (2023, RCT) matches both filters
+    study_type_counts = {b["value"]: b["count"] for b in facets["study_type"]}
+    assert study_type_counts["RCT"] == 1
+    assert "cohort_study" not in study_type_counts
+
+    # Specialty facet excludes the specialty filter itself but respects the year filter.
+    # With years 2021-2025, PMC_NUTRITION_2 (2020) is excluded, so Nutrition=1.
+    specialty_counts = {b["value"]: b["count"] for b in facets["specialty"]}
+    assert specialty_counts["Nutrition"] == 1
+    assert specialty_counts["Cardiology"] == 1
+
+
+def test_hybrid_search_facets_disabled(client):
+    response = client.post(
+        "/api/search",
+        json={"query": "nutrition", "page": 1, "page_size": 10, "facets_enabled": False},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["facets"] is None

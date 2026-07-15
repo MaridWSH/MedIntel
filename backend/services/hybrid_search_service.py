@@ -124,20 +124,54 @@ class HybridSearchService:
             merged = self._merge(semantic_hits, keyword_hits, rrf_k, weights)
             scope_ids: list[str] | None = [m.paper.id for m in merged]
         else:
-            # Filter-only browse: start from the full paper set.
+            # Browse mode: no query. Use SQL for filtering/sorting/pagination
+            # so we never load the whole table into memory.
             semantic_hits: list[tuple[str, float]] = []
             keyword_hits: list[tuple[str, float]] = []
-            all_papers = self._paper_repo.get_all(limit=None)
-            merged = [
-                _MergedResult(
-                    paper=paper,
+            merged, total = self._browse_with_sql(request)
+            scope_ids = None
+
+            items = [
+                HybridSearchItem(
+                    paper_id=r.paper.id,
+                    title=r.paper.title or "",
+                    tldr=r.paper.tldr or "",
+                    study_type=r.paper.study_type or "",
+                    specialty_tags=_parse_tags(r.paper.specialty_tags),
+                    publication_year=r.paper.publication_year,
+                    journal=r.paper.journal or "",
+                    language=r.paper.language or "",
+                    author_list=r.paper.author_list or "",
+                    evidence_level=r.paper.evidence_level or "",
+                    processing_time=r.paper.processing_time or 0.0,
+                    has_errors=bool(r.paper.has_errors),
                     semantic_score=None,
                     keyword_score=None,
                     final_score=0.0,
                 )
-                for paper in all_papers
+                for r in merged
             ]
-            scope_ids = None
+
+            facets: Facets | None = None
+            if request.facets_enabled:
+                try:
+                    facets = self._facet_service.compute(
+                        paper_ids=scope_ids,
+                        filters=request.filters,
+                    )
+                except Exception:
+                    logger.exception("Facet computation failed; returning without facets")
+                    facets = None
+
+            return HybridSearchResponse(
+                query=query,
+                page=request.page,
+                page_size=request.page_size,
+                total=total,
+                filters=request.filters,
+                facets=facets,
+                items=items,
+            )
         t_retrieve = time.perf_counter()
 
         filtered = self._apply_filters(merged, request.filters)
@@ -376,6 +410,55 @@ class HybridSearchService:
         start = (page - 1) * page_size
         end = start + page_size
         return results[start:end], total
+
+    def _browse_with_sql(
+        self,
+        request: HybridSearchRequest,
+    ) -> tuple[list[_MergedResult], int]:
+        """Browse mode: filter, sort, and paginate entirely in SQL."""
+        from services.search_filters import apply_filters
+
+        query = self._db.query(Paper)
+        query = apply_filters(query, request.filters)
+
+        total = query.count()
+
+        # Sorting
+        sort = request.sort or "relevance"
+        if sort == "newest":
+            query = query.order_by(Paper.publication_year.desc().nullslast(), Paper.id)
+        elif sort == "oldest":
+            query = query.order_by(Paper.publication_year.asc().nullslast(), Paper.id)
+        elif sort == "title":
+            query = query.order_by(Paper.title.asc())
+        elif sort == "highest_evidence":
+            # SQL-side evidence ordering: high > moderate > low > very_low > other
+            evidence_case = func.case(
+                (func.lower(Paper.evidence_level) == "high", 4),
+                (func.lower(Paper.evidence_level) == "moderate", 3),
+                (func.lower(Paper.evidence_level) == "low", 2),
+                (func.lower(Paper.evidence_level) == "very_low", 1),
+                else_=0,
+            )
+            query = query.order_by(evidence_case.desc(), Paper.id)
+        else:
+            # relevance fallback for browse: newest first
+            query = query.order_by(Paper.publication_year.desc().nullslast(), Paper.id)
+
+        # Pagination
+        offset = (request.page - 1) * request.page_size
+        papers = query.offset(offset).limit(request.page_size).all()
+
+        merged = [
+            _MergedResult(
+                paper=paper,
+                semantic_score=None,
+                keyword_score=None,
+                final_score=0.0,
+            )
+            for paper in papers
+        ]
+        return merged, total
 
     # ── Helpers ───────────────────────────────────────────────────────
 

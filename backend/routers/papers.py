@@ -71,6 +71,13 @@ def _paper_to_detail(paper: Paper) -> PaperDetail:
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
+@router.get("/count")
+def get_paper_count(db: Session = Depends(get_db)):
+    """Return the total number of indexed papers in the database."""
+    count = db.query(func.count(Paper.id)).scalar()
+    return {"count": count}
+
+
 @router.get("", response_model=PaperListResponse)
 def list_papers(
     page: int = Query(1, ge=1),
@@ -87,7 +94,6 @@ def list_papers(
         query = query.filter(Paper.study_type == study_type)
 
     if specialty:
-        # SQLite: filter where specialty_tags JSON contains the tag
         query = query.filter(Paper.specialty_tags.contains(specialty))
 
     total = query.count()

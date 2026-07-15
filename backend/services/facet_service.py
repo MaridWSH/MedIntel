@@ -18,7 +18,8 @@ import time
 from dataclasses import dataclass
 from typing import Iterable
 
-from sqlalchemy import and_, distinct, func, or_, select, text
+from sqlalchemy import String, and_, distinct, func, or_, select, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
 from models import Paper
@@ -189,7 +190,9 @@ class FacetService:
 
         # Filter-respecting: apply every filter except the facet being computed.
         reduced_filters = _exclude_filter_field(filters, field.name)
-        base_query = self._db.query(Paper)
+        # Only select the columns we need: id (for scope filtering) and the facet column.
+        # This avoids selecting columns that may not exist in the actual DB schema.
+        base_query = self._db.query(Paper.id, field.column)
         if scoped_ids is not None:
             if not scoped_ids:
                 return []
@@ -213,7 +216,7 @@ class FacetService:
         # Reference the column through the subquery so SQLAlchemy doesn't
         # generate a cartesian product between the original table and the subquery.
         subq_col = getattr(subq.c, column.key)
-        value_col = func.coalesce(func.cast(subq_col, text("TEXT")), "")
+        value_col = func.coalesce(func.cast(subq_col, String), "")
         stmt = (
             select(value_col.label("value"), func.count().label("count"))
             .group_by(value_col)
@@ -270,7 +273,7 @@ class FacetService:
 
         if dialect.startswith("postgres"):
             tag_expr = func.jsonb_array_elements_text(
-                func.cast(subq_col, text("JSONB"))
+                func.cast(subq_col, JSONB)
             ).label("tag")
             stmt = (
                 select(tag_expr, func.count().label("count"))

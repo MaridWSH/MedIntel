@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -11,17 +12,27 @@ from models import Paper, User
 from routers.papers import ingest_papers
 from schemas import IngestRequest
 
+TEST_DATABASE_URL = os.environ.get(
+    "TEST_DATABASE_URL",
+    "postgresql+psycopg2://medintel:medintel@localhost:5432/medintel_test",
+)
 
-@pytest.fixture
+
+@pytest.fixture(scope="function")
 def db_session():
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    if TEST_DATABASE_URL.startswith("sqlite"):
+        raise RuntimeError("SQLite is not supported for tests. Use PostgreSQL.")
+
+    engine = create_engine(TEST_DATABASE_URL)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
         yield db
     finally:
         db.close()
+        engine.dispose()
 
 
 @pytest.fixture

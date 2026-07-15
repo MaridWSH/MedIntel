@@ -252,13 +252,7 @@ class HybridSearchRequest(BaseModel):
 
     @model_validator(mode="after")
     def require_query_or_filters(self):
-        query = (self.query or "").strip()
-        has_filters = self.filters is not None and any(
-            getattr(self.filters, field) is not None
-            for field in HybridSearchFilters.model_fields
-        )
-        if not query and not has_filters:
-            raise ValueError("Either a query or at least one filter is required.")
+        # Browse mode (no query, no filters) is allowed: returns all papers.
         return self
 
 
