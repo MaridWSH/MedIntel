@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import TopUtilityStrip from "@/components/site/TopUtilityStrip";
@@ -22,7 +22,7 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     if (tokenFromUrl) {
-      setToken(tokenFromUrl);
+      window.history.replaceState({}, "", "/reset-password");
     }
   }, [tokenFromUrl]);
 
@@ -52,8 +52,8 @@ function ResetPasswordForm() {
       await resetPassword(token, password);
       setSuccess("Password reset successful! Redirecting to login...");
       setTimeout(() => (window.location.href = "/login"), 3000);
-    } catch (err: any) {
-      setError(err.message || "Failed to reset password.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to reset password.");
     } finally {
       setLoading(false);
     }
@@ -230,7 +230,7 @@ export default function ResetPasswordPage() {
             </div>
             <div className="hidden md:flex items-center gap-2 text-[10.5px] mono-stat text-ink/40">
               <Icon icon="lucide:lock" className="text-[11px]" />
-              ENCRYPTED · TLS 1.3
+              SINGLE-USE RESET TOKEN
             </div>
           </div>
 

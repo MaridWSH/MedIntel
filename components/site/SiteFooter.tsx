@@ -1,4 +1,4 @@
-import Icon from '../ui/Icon';
+import Link from 'next/link';
 
 export default function SiteFooter() {
   return (
@@ -7,39 +7,29 @@ export default function SiteFooter() {
         <div className="grid grid-cols-12 gap-10 md:gap-12 mb-14">
           {/* Logo + tagline */}
           <div className="col-span-12 md:col-span-4">
-            <a href="/" className="flex items-center gap-2.5 mb-5">
+            <Link href="/" className="flex items-center gap-2.5 mb-5">
               <div className="relative w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden bg-ink">
                 <div className="absolute inset-0 bg-gradient-to-br from-teal-bright/30 via-transparent to-transparent" />
                 <span className="text-paper text-xl font-medium tracking-tight relative serif">C</span>
                 <div className="absolute w-1 h-1 rounded-full bottom-1.5 right-1.5 bg-teal-bright" />
               </div>
               <span className="text-xl font-medium tracking-tight serif text-ink">Claritas</span>
-            </a>
+            </Link>
             <p className="text-[15px] leading-[1.55] max-w-[300px] mb-6 serif-body text-ink-soft">
-              Clinical literature, finally understood &mdash; and the physicians who read it, finally on time.
+              AI-assisted summaries and source-linked tools for reviewing open-access research.
             </p>
-            <div className="flex gap-1.5 mono-stat">
-              <span className="px-2 h-7 rounded-md border border-ink/15 inline-flex items-center text-ink-soft">
-                RTL &middot; EN / AR
-              </span>
-              <span className="px-2 h-7 rounded-md border border-ink/15 inline-flex items-center gap-1 text-ink-soft">
-                <Icon icon="lucide:sun" className="text-[12px]" />
-                <Icon icon="lucide:moon" className="text-[12px]" />
-                DARK MODE
-              </span>
-            </div>
+            <div className="mono-stat text-ink/45">CLOSED BETA · ENGLISH</div>
           </div>
 
           {/* Product */}
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">PRODUCT</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="/search" className="hover:text-teal-deep transition-colors">Search &amp; discovery</a></li>
-              <li><a href="/paper" className="hover:text-teal-deep transition-colors">Paper detail view</a></li>
-              <li><a href="/search" className="hover:text-teal-deep transition-colors">Search</a></li>
-              <li><a href="/account" className="hover:text-teal-deep transition-colors">Physician dashboard</a></li>
-              <li><a href="/hospital-admin" className="hover:text-teal-deep transition-colors">Hospital admin portal</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="/mobile" className="hover:text-teal-deep transition-colors">Mobile (iOS / Android)</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><Link href="/search" className="hover:text-teal-deep transition-colors">Search &amp; discovery</Link></li>
+              <li><Link href="/paper" className="hover:text-teal-deep transition-colors">Paper detail view</Link></li>
+              <li><Link href="/dashboard" className="hover:text-teal-deep transition-colors">Saved papers</Link></li>
+              <li><Link href="/account" className="hover:text-teal-deep transition-colors">Account</Link></li>
+              <li><Link href="/pricing" className="hover:text-teal-deep transition-colors">Beta access</Link></li>
             </ul>
           </div>
 
@@ -47,11 +37,10 @@ export default function SiteFooter() {
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">EVIDENCE</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="/#methodology" className="hover:text-teal-deep transition-colors">Methodology</a></li>
-              <li><a href="/#six-agents" className="hover:text-teal-deep transition-colors">The six agents</a></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">HITL review process</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">GRADE framework</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Corpus sources (17)</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><Link href="/#methodology" className="hover:text-teal-deep transition-colors">Methodology</Link></li>
+              <li><Link href="/#evidence-engine" className="hover:text-teal-deep transition-colors">The four AI agents</Link></li>
+              <li><span>Model self-check, not peer review</span></li>
+              <li><span>Source: PubMed Central</span></li>
             </ul>
           </div>
         
@@ -60,11 +49,8 @@ export default function SiteFooter() {
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">INSTITUTIONAL</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Contact sales</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">SSO (SAML / OIDC)</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Billing &amp; seats</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Bulk export API</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Uptime &amp; SLAs</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><span>Institutional pilots are planned</span></li>
+              <li><span>SSO and seat management are not yet available</span></li>
             </ul>
           </div>
 
@@ -72,11 +58,11 @@ export default function SiteFooter() {
           <div className="col-span-6 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">COMPANY</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Mission</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Clinical team</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Careers &middot; 7 open</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Press &amp; papers</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
-              <li><a href="#" className="hover:text-teal-deep transition-colors">Contact</a> <span className="text-[10px] text-teal-deep">(soon)</span></li>
+              <li><span>Closed beta</span></li>
+              <li><Link href="/research-survey" className="hover:text-teal-deep transition-colors">Research workflow survey</Link></li>
+              <li><Link href="/feedback" className="hover:text-teal-deep transition-colors">Product feedback</Link></li>
+              <li><Link href="/privacy" className="hover:text-teal-deep transition-colors">Privacy</Link></li>
+              <li><Link href="/terms" className="hover:text-teal-deep transition-colors">Terms</Link></li>
             </ul>
           </div>
         </div>
@@ -84,19 +70,17 @@ export default function SiteFooter() {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-ink/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] mono-stat text-ink/55">
           <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
-            <span>&copy; 2026 CLARITAS MEDICAL, INC.</span>
-            <a href="#" className="hover:text-teal-deep transition-colors">PRIVACY</a> <span className="text-[10px] text-teal-deep">(soon)</span>
-            <a href="#" className="hover:text-teal-deep transition-colors">TERMS</a> <span className="text-[10px] text-teal-deep">(soon)</span>
-            <a href="#" className="hover:text-teal-deep transition-colors">HCP LICENSE</a> <span className="text-[10px] text-teal-deep">(soon)</span>
-            <a href="#" className="hover:text-teal-deep transition-colors">PHI POLICY</a> <span className="text-[10px] text-teal-deep">(soon)</span>
+            <span>&copy; 2026 CLARITAS</span>
+            <Link href="/privacy" className="hover:text-teal-deep transition-colors">PRIVACY</Link>
+            <Link href="/terms" className="hover:text-teal-deep transition-colors">TERMS</Link>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal animate-pulse" />
-              ALL SYSTEMS OPERATIONAL
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-ink" />
+              BETA SERVICE
             </span>
             <span>&middot;</span>
-            <span>v0.9.4 &middot; BETA</span>
+            <span>CLOSED BETA</span>
           </div>
         </div>
       </div>

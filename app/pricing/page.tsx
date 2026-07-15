@@ -6,61 +6,57 @@ import SiteHeader from '../../components/site/SiteHeader';
 import SiteFooter from '../../components/site/SiteFooter';
 
 export const metadata: Metadata = {
-  title: 'Pricing · Claritas',
-  description: 'Simple pricing for physicians. 14-day free trial, no credit card required.',
+  title: 'Beta access · Claritas',
+  description: 'Claritas is free during closed beta. Paid plans and billing are not yet enabled.',
 };
 
 const PLANS = [
   {
-    name: 'Free',
-    tier: 'ALWAYS FREE',
-    price: '$0',
-    period: '/ mo',
-    description: 'For occasional readers who want a taste of AI-synthesised evidence.',
+    name: 'Closed Beta',
+    tier: 'AVAILABLE NOW',
+    price: 'Free',
+    period: ' during beta',
+    description: 'The complete feature set that is implemented today, with no payment details required.',
     features: [
-      '5 syntheses / month',
-      'TLDR + infographic panes',
-      'Basic search',
-      'Email digest (monthly)',
+      'Browse AI-generated paper summaries',
+      'Semantic search with keyword fallback',
+      'Mind map, fidelity, and source-text panes',
+      'Saved-paper library',
+      'Citation, BibTeX, and RIS export',
     ],
-    cta: 'Start free',
+    cta: 'Create beta account',
+    ctaStyle: 'bg-ink text-paper btn-primary',
+    highlight: true,
+    badge: 'CURRENT',
+  },
+  {
+    name: 'Individual',
+    tier: 'ROADMAP',
+    price: 'Planned',
+    period: '',
+    description: 'A future paid plan. Pricing, limits, and launch timing have not been set.',
+    features: [
+      'Everything in the closed beta',
+      'Saved searches and alerts are planned',
+      'No billing or usage limits are active today',
+    ],
+    cta: 'Join beta first',
     ctaStyle: 'border border-ink/15 text-ink hover-tint',
     highlight: false,
   },
   {
-    name: 'Professional',
-    tier: 'PRACTISING MD',
-    price: '$19',
-    period: '/ mo',
-    description: 'Full access for practising physicians who need evidence daily.',
+    name: 'Institutional',
+    tier: 'ROADMAP',
+    price: 'Planned',
+    period: '',
+    description: 'Institutional controls are a roadmap item, not an available product tier.',
     features: [
-      'All six agents, unlimited',
-      'Mind map & critical appraisal',
-      'Semantic search across the corpus',
-      'Advanced filters & saved searches',
-      'Priority synthesis queue',
+      'SSO and seat management are planned',
+      'Usage analytics and SLAs are not yet available',
+      'Institutional pricing has not been set',
     ],
-    cta: 'Start 14-day trial',
-    ctaStyle: 'bg-ink text-paper btn-primary',
-    highlight: true,
-    badge: 'MOST CHOSEN',
-  },
-  {
-    name: 'Research Pro',
-    tier: 'FELLOW · ACADEMIC',
-    price: '$39',
-    period: '/ mo',
-    description: 'For researchers and fellows running systematic reviews.',
-    features: [
-      'Everything in Professional',
-      'PRISMA flow diagram export',
-      'Bulk synthesis (up to 50 papers)',
-      '5 collaborator seats',
-      'Citation, BibTeX & RIS export',
-      'API access (beta)',
-    ],
-    cta: 'Start 14-day trial',
-    ctaStyle: 'bg-teal-deep text-paper btn-primary',
+    cta: 'Join beta first',
+    ctaStyle: 'border border-ink/15 text-ink hover-tint',
     highlight: false,
   },
 ];
@@ -91,15 +87,15 @@ export default function PricingPage() {
         <div className="relative max-w-[1100px] mx-auto px-6 pt-12 pb-20">
           {/* Header */}
           <div className="text-center mb-12 fade-in">
-            <div className="mono-stat text-teal-deep mb-3">PRICING</div>
+            <div className="mono-stat text-teal-deep mb-3">BETA ACCESS</div>
             <h1 className="display text-[44px] md:text-[64px] tracking-tight mb-4">
-              Simple pricing for
+              Free while we validate
               <br />
-              <span className="italic text-teal">practising physicians.</span>
+              <span className="italic text-teal">the product.</span>
             </h1>
             <p className="serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.55] max-w-[520px] mx-auto">
-              Every plan starts with a 14-day free trial. No credit card required.
-              Cancel any time — your data stays yours.
+              Billing, subscriptions, trials, and usage limits are not implemented yet.
+              Closed-beta accounts receive the currently available features at no charge.
             </p>
           </div>
 
@@ -166,17 +162,17 @@ export default function PricingPage() {
           <div className="fade-in rounded-2xl border border-ink/12 bg-paper-warm/40 p-8 md:p-10 text-center">
             <div className="mono-stat text-ink/45 mb-2">FOR INSTITUTIONS</div>
             <h2 className="serif text-[24px] md:text-[30px] tracking-tight mb-3">
-              Hospital-wide access<span className="italic text-teal">.</span>
+              Institutional roadmap<span className="italic text-teal">.</span>
             </h2>
             <p className="text-[14px] text-ink-soft leading-[1.55] max-w-[480px] mx-auto mb-6">
-              SSO (SAML/OIDC), centralised billing, usage analytics, and dedicated onboarding
-              for departments of 10 to 10,000 physicians.
+              SSO, centralised billing, usage analytics, and service-level agreements are not
+              available in the beta. They remain possible post-beta work, not current promises.
             </p>
             <Link
-              href="#"
+              href="/register"
               className="inline-flex items-center gap-2 h-11 px-6 rounded-[14px] bg-teal-deep text-paper text-[13px] font-semibold btn-primary"
             >
-              Contact sales
+              Join the beta
               <Icon icon="lucide:arrow-right" className="text-[14px]" />
             </Link>
           </div>
@@ -189,20 +185,20 @@ export default function PricingPage() {
             <div className="space-y-0 divide-y divide-ink/8">
               {[
                 {
-                  q: 'Can I switch plans later?',
-                  a: 'Yes — upgrade or downgrade any time. Changes take effect immediately with pro-rated billing.',
+                  q: 'Will beta access stay free?',
+                  a: 'Beta access is free today. Future pricing has not been decided; we will communicate material changes before they take effect.',
                 },
                 {
-                  q: 'What happens after the 14-day trial?',
-                  a: "You'll be prompted to choose a plan and add payment. If you don't, your account switches to the Free tier — no data is lost.",
+                  q: 'Do I need a credit card?',
+                  a: 'No. Claritas does not currently collect payment details or enforce paid plans.',
                 },
                 {
                   q: 'Are these summaries reviewed by a clinician?',
                   a: 'No. Every summary is generated by AI and automatically checked against the source paper; no clinician reviews them before publication. Treat them as a way into the literature, not a replacement for reading it.',
                 },
                 {
-                  q: 'Do you offer student or residency discounts?',
-                  a: 'Yes — 40% off Professional for verified medical students and residents. Contact us with your institutional email.',
+                  q: 'Can my institution buy access?',
+                  a: 'Not yet. Institutional authentication, billing, administration, and support commitments are not implemented in the beta.',
                 },
               ].map(({ q, a }) => (
                 <details key={q} className="group py-5">

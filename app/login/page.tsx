@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Icon from "@/components/ui/Icon";
 import TopUtilityStrip from "@/components/site/TopUtilityStrip";
 import SiteHeader from "@/components/site/SiteHeader";
@@ -30,8 +30,8 @@ export default function LoginPage() {
         setWelcome({ show: false, name: "" });
         window.location.href = "/account";
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Login failed");
       setLoading(false);
     }
   };
@@ -70,7 +70,7 @@ export default function LoginPage() {
             </div>
             <div className="hidden md:flex items-center gap-2 text-[10.5px] mono-stat text-ink/40">
               <Icon icon="lucide:lock" className="text-[11px]" />
-              ENCRYPTED · TLS 1.3
+              HTTPONLY SESSION COOKIES
             </div>
           </div>
 
@@ -226,10 +226,10 @@ export default function LoginPage() {
                       copy decision.
                     */}
                     {[
-                      { icon: "lucide:zap", label: "Six AI agents synthesise every paper in seconds" },
-                      { icon: "lucide:map", label: "Interactive mind maps linking findings to source text" },
-                      { icon: "lucide:scale", label: "Every summary checked against the paper it came from" },
-                      { icon: "lucide:search", label: "Semantic search across the full corpus" },
+                      { icon: "lucide:zap", label: "Four AI agents extract, structure, and check paper content" },
+                      { icon: "lucide:map", label: "Interactive concept maps organise methods, findings, and limitations" },
+                      { icon: "lucide:scale", label: "Current published outputs must pass an automated source-fidelity gate" },
+                      { icon: "lucide:search", label: "Semantic and keyword search across the available beta corpus" },
                     ].map(({ icon, label }) => (
                       <div key={label} className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-lg bg-teal-bright/10 border border-teal-bright/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -253,25 +253,18 @@ export default function LoginPage() {
                     those certifications.
                   */}
                   <p className="text-[11px] text-ink-soft leading-[1.5] mb-3">
-                    Passwords are hashed with Argon2 and never stored in plain text, and the site is
-                    served over TLS. We are a closed beta: we hold no compliance certification, so
-                    don&rsquo;t put patient data here.
+                    Passwords are hashed with Argon2 and browser sessions use HttpOnly cookies.
+                    Production deployment requires HTTPS. We hold no compliance certification, so
+                    do not put patient data here.
                   </p>
                 </div>
 
                 <div className="rounded-2xl bg-ink text-paper p-5">
-                  <p className="serif-body text-[14px] text-paper/85 leading-[1.55] mb-3">
-                    &ldquo;Claritas cut my literature review time by 80%. The mind map alone is worth the subscription.&rdquo;
+                  <div className="text-[10px] mono-stat text-teal-bright mb-3">CLOSED BETA</div>
+                  <p className="serif-body text-[14px] text-paper/85 leading-[1.55]">
+                    AI output can be incomplete or wrong. Use the linked source paper to verify every
+                    claim before relying on it in research or practice.
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-teal-deep flex items-center justify-center text-[11px] font-semibold">
-                      KS
-                    </div>
-                    <div>
-                      <div className="text-[11.5px] font-medium">Dr. K. El-Sherif</div>
-                      <div className="text-[10px] text-paper/55">Cardiology · Ain Shams · 14 yrs</div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </aside>

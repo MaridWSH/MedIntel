@@ -11,10 +11,6 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from typing import Any, Protocol
-
-import numpy as np
-
 from services.qdrant_service import (
     PaperEmbeddingPayload,
     SemanticSearchResult,

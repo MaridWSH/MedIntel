@@ -24,6 +24,9 @@ interface DashboardStats {
 interface SavedPaper {
   paper_id: string;
   saved_at: string;
+  title: string;
+  tldr: string;
+  study_type: string;
 }
 
 export default function DashboardPage() {
@@ -242,7 +245,9 @@ export default function DashboardPage() {
                           <Icon icon="lucide:file-text" className="text-[14px] text-teal-deep" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-[12px] font-medium text-ink truncate">{paper.paper_id}</div>
+                          <div className="text-[12px] font-medium text-ink truncate">
+                            {paper.title || paper.paper_id}
+                          </div>
                           <div className="text-[10px] text-ink/55">Saved {new Date(paper.saved_at).toLocaleDateString()}</div>
                         </div>
                       </Link>
@@ -298,7 +303,9 @@ export default function DashboardPage() {
                           <Icon icon="lucide:file-text" className="text-[16px] text-teal-deep" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-[13px] font-medium text-ink truncate">{paper.paper_id}</div>
+                          <div className="text-[13px] font-medium text-ink truncate">
+                            {paper.title || paper.paper_id}
+                          </div>
                           <div className="text-[11px] text-ink/55">Saved {new Date(paper.saved_at).toLocaleDateString()}</div>
                         </div>
                       </Link>
