@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from database import Base
+from app.core.database import Base
 
 
 class User(Base):
@@ -20,6 +20,7 @@ class User(Base):
     )
     reset_token: Mapped[str] = mapped_column(String(255), nullable=True)
     reset_token_expires: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
 class Paper(Base):

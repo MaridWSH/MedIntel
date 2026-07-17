@@ -10,15 +10,12 @@ from __future__ import annotations
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from fastapi import Depends
-from sqlalchemy.orm import Session
-
-from database import get_db
-from repositories.paper_repository import SQLAlchemyPaperRepository
-from repositories.vector_repository import QdrantVectorRepository
-from services.embedding_service import get_embedding_service
-from services.qdrant_service import get_qdrant_client
-from services.semantic_search_service import SemanticSearchService
+from app.core.database import get_db
+from app.repositories.paper_repository import SQLAlchemyPaperRepository
+from app.repositories.vector_repository import QdrantVectorRepository
+from app.services.embedding_service import get_embedding_service
+from app.services.qdrant_service import get_qdrant_client
+from app.services.semantic_search_service import SemanticSearchService
 
 
 # ---------------------------------------------------------------------------

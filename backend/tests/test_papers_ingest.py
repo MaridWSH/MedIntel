@@ -5,11 +5,11 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from auth import hash_password
-from database import Base
-from models import Paper, User
-from routers.papers import ingest_papers
-from schemas import IngestRequest
+from app.api.v1.admin import ingest_papers_admin
+from app.core.database import Base
+from app.core.security import hash_password
+from app.db.models import Paper, User
+from app.schemas import IngestRequest
 
 
 @pytest.fixture
@@ -30,6 +30,7 @@ def authenticated_user(db_session):
         email="test@example.com",
         name="Test User",
         hashed_password=hash_password("password123"),
+        is_admin=True,
     )
     db_session.add(user)
     db_session.commit()
@@ -61,25 +62,27 @@ def test_ingest_papers_from_pipeline_json(tmp_path: Path, db_session, authentica
     file_path = source_dir / "PMC_TEST.json"
     file_path.write_text(json.dumps(paper_data), encoding="utf-8")
 
-    def fake_realpath(path: str) -> str:
+    def fake_realpath(path: str, **kwargs) -> str:
         normalized = str(path)
         if normalized == "/root/papers/pipeline_outputs/results":
             return str(source_dir)
         if normalized == str(source_dir):
             return str(source_dir)
-        return str(Path(normalized).resolve())
+        return normalized
 
     monkeypatch.setattr("os.path.realpath", fake_realpath)
+    monkeypatch.setattr("app.api.v1.admin._index_papers", lambda papers: len(papers))
+    monkeypatch.setattr("app.api.v1.admin.RESULTS_DIR", source_dir)
 
-    response = ingest_papers(
+    response = ingest_papers_admin(
         body=IngestRequest(source_dir=str(source_dir), limit=0),
         db=db_session,
-        current_user=authenticated_user,
     )
 
     assert response.ingested == 1
     assert response.skipped == 0
     assert response.errors == 0
+    assert response.indexed == 1
     assert response.total_in_db == 1
 
     paper = db_session.query(Paper).filter(Paper.id == "PMC_TEST").first()

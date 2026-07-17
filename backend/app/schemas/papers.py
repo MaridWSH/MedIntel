@@ -1,78 +1,13 @@
-"""Pydantic schemas for request/response validation."""
+"""Paper-related Pydantic schemas."""
 
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
-# ── Auth ──────────────────────────────────────────────────────────────────────
+# ── Nested schemas ────────────────────────────────────────────────────────────
 
-class UserCreate(BaseModel):
-    email: str = Field(..., min_length=3, max_length=255, description="User email address used for login and account recovery.")
-    name: str = Field(..., min_length=1, max_length=255, description="Display name for the user account.")
-    password: str = Field(..., min_length=6, description="Password for the new account. Must be at least 6 characters.")
-
-
-class UserLogin(BaseModel):
-    email: str = Field(..., description="Registered email address.")
-    password: str = Field(..., description="Account password.")
-
-
-class UserOut(BaseModel):
-    id: int
-    email: str
-    name: str
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-    class Config:
-        from_attributes = True
-
-
-class TokenOut(BaseModel):
-    access_token: str = Field(..., description="JWT access token for authenticated requests.")
-    token_type: str = Field("bearer", description="OAuth2 token type.")
-
-
-class LoginResponse(BaseModel):
-    access_token: str = Field(..., description="JWT access token returned after successful login.")
-    token_type: str = Field("bearer", description="OAuth2 token type.")
-    user: UserOut = Field(..., description="Authenticated user profile data.")
-
-
-class RegisterResponse(BaseModel):
-    access_token: str = Field(..., description="JWT access token returned after successful registration.")
-    token_type: str = Field("bearer", description="OAuth2 token type.")
-    user: UserOut = Field(..., description="Profile data for the newly registered user.")
-
-
-class ForgotPasswordRequest(BaseModel):
-    email: str
-
-
-class ForgotPasswordResponse(BaseModel):
-    message: str
-
-
-class ResetPasswordRequest(BaseModel):
-    reset_token: str
-    new_password: str = Field(..., min_length=6)
-
-
-class ResetPasswordResponse(BaseModel):
-    message: str
-
-
-class LogoutResponse(BaseModel):
-    message: str
-
-
-# ── Papers ────────────────────────────────────────────────────────────────────
-
-# Nested schemas — typed structures for the API response
 class MindMapNode(BaseModel):
     id: str = ""
     label: str = ""
@@ -128,6 +63,8 @@ class VerificationOut(BaseModel):
     passed: bool = False
 
 
+# ── Paper responses ───────────────────────────────────────────────────────────
+
 class PaperListItem(BaseModel):
     id: str
     title: str
@@ -168,12 +105,7 @@ class FacetValue(BaseModel):
 
 
 class FacetsResponse(BaseModel):
-    """Filter options that actually exist in the catalogue, with their counts.
-
-    The UI used to hardcode its filter lists. Several values never matched
-    anything (it offered "cohort_study"; the data says "cohort"), and the biggest
-    real category was missing entirely.
-    """
+    """Filter options that actually exist in the catalogue, with their counts."""
     study_types: list[FacetValue]
     specialties: list[FacetValue]
 
@@ -364,30 +296,3 @@ class BackfillResponse(BaseModel):
     skipped_no_xml: int
     skipped_already_filled: int
     errors: int
-
-
-# ── Health ────────────────────────────────────────────────────────────────────
-
-class HealthResponse(BaseModel):
-    status: str = "ok"
-    papers_count: int = 0
-
-
-# ── Saved Papers ──────────────────────────────────────────────────────────────
-
-class SavePaperResponse(BaseModel):
-    message: str
-    paper_id: str
-
-
-class SavedPaperOut(BaseModel):
-    paper_id: str
-    saved_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class SavedPapersListResponse(BaseModel):
-    items: list[SavedPaperOut]
-    total: int

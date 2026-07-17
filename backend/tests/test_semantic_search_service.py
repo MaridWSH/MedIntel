@@ -9,12 +9,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from models import Paper
-from repositories.paper_repository import PaperRepository
-from repositories.vector_repository import VectorRepository
-from services.embedding_service import EmbeddingService
-from services.qdrant_service import PaperEmbeddingPayload, SemanticSearchResult
-from services.semantic_search_service import (
+from app.db.models import Paper
+from app.repositories.paper_repository import PaperRepository
+from app.repositories.vector_repository import VectorRepository
+from app.services.embedding_service import EmbeddingService
+from app.services.qdrant_service import PaperEmbeddingPayload, SemanticSearchResult
+from app.services.semantic_search_service import (
     SemanticSearchService,
     normalize_query,
 )

@@ -8,13 +8,13 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import User
+from app.core.database import get_db
+from app.db.models import User
 
 # JWT secret — must be set via environment variable in production.
 # Generates a random key for local dev if not provided.
@@ -34,7 +34,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 SECURE_COOKIES = os.getenv("MEDINTEL_SECURE_COOKIES", "false").lower() == "true"
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = HTTPBearer(scheme_name="JWT", auto_error=False)
 
 _RATE_LIMIT_STATE: dict[str, dict[str, float | int]] = {}
 
@@ -115,12 +115,14 @@ def decode_token(token: str) -> Optional[dict]:
 
 
 def get_current_user(
-    token: Optional[str] = Depends(oauth2_scheme),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
     """FastAPI dependency — extracts and validates the current user from JWT."""
-    if token is None:
+    if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    token = credentials.credentials
 
     payload = decode_token(token)
     if payload is None:
@@ -135,3 +137,13 @@ def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     return user
+
+
+def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """FastAPI dependency — rejects non-admin users with 403."""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return current_user

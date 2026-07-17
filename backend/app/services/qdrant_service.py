@@ -9,7 +9,7 @@ Responsibilities:
     - Search vectors with metadata filters.
 
 This module provides low-level Qdrant primitives. Higher-level repository
-abstractions live in repositories.vector_repository.
+abstractions live in app.repositories.vector_repository.
 """
 
 from __future__ import annotations
@@ -281,13 +281,15 @@ def count_papers(client: QdrantClient | None = None) -> int:
 
 
 def _search_result_from_record(record) -> SemanticSearchResult:
-    """Convert a Qdrant search result into a SemanticSearchResult."""
+    """Convert a Qdrant search/scroll result into a SemanticSearchResult."""
     payload = record.payload or {}
     # Prefer the original paper_id stored in the payload; fall back to stringifying the UUID.
     paper_id = payload.get("paper_id") or str(record.id)
+    # Scroll records do not have a score; default to 0.0.
+    score = getattr(record, "score", 0.0) or 0.0
     return SemanticSearchResult(
         paper_id=paper_id,
-        score=record.score,
+        score=score,
         title=payload.get("title", ""),
         tldr=payload.get("tldr", ""),
         study_type=payload.get("study_type", ""),
