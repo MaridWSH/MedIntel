@@ -5,12 +5,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from api.dependencies import get_semantic_search_service
-from auth import create_access_token, hash_password
-from database import Base, get_db
+from app.core.database import Base, get_db
+from app.core.dependencies import get_semantic_search_service
+from app.core.security import create_access_token, hash_password
+from app.db.models import User
+from app.services.semantic_search_service import SemanticSearchResult
 from main import app
-from models import User
-from services.semantic_search_service import SemanticSearchResult
 
 
 class FakePaper:

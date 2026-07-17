@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from services.embedding_service import (
+from app.services.embedding_service import (
     SentenceTransformerEmbeddingService,
     normalize_text,
 )

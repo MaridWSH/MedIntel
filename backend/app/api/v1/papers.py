@@ -1,29 +1,22 @@
-"""Papers router — list, detail, search, ingest, backfill."""
+"""Papers router — list, detail, search."""
 
 import json
 import logging
 import math
 import re
-import xml.etree.ElementTree as ET
-from defusedxml.ElementTree import parse as safe_xml_parse
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from auth import get_current_user
-from database import get_db
-from models import Paper, User
-from schemas import (
-    BackfillRequest,
-    BackfillResponse,
+from app.core.database import get_db
+from app.db.models import Paper
+from app.schemas import (
     FacetsResponse,
     FacetValue,
     FullTextResponse,
     FullTextSection,
-    IngestRequest,
-    IngestResponse,
     KeyFindingClinical,
     KeyFindingItem,
     KeyFindingsOut,
@@ -36,31 +29,9 @@ from schemas import (
     VerificationDomains,
     VerificationOut,
 )
+from app.services.paper_metadata_service import _parse_md_title, _parse_xml_metadata
 
 router = APIRouter(prefix="/papers", tags=["papers"])
-
-# ponytail: pipeline output locations — single source of truth
-RESULTS_DIR = Path("/root/papers/pipeline_outputs/results")
-XML_DIRS = [
-    Path("/root/papers/nutrition_papers"),
-    Path("/root/papers/ophthalmology_papers"),
-    Path("/root/papers/nutrition_papers_sample"),
-]
-MD_DIR = Path("/root/papers/pipeline_outputs/markdown")
-
-
-def _parse_md_title(pmc_id: str) -> str:
-    """Extract title from the first H1 line in the markdown file. ponytail: best-effort."""
-    md_path = MD_DIR / f"{pmc_id}.md"
-    if not md_path.exists():
-        return ""
-    try:
-        for line in md_path.read_text(encoding="utf-8").splitlines()[:5]:
-            if line.startswith("# "):
-                return line[2:].strip()
-    except OSError:
-        pass
-    return ""
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -71,142 +42,6 @@ def _to_json(raw: str):
         return json.loads(raw) if raw else None
     except (json.JSONDecodeError, TypeError):
         return None
-
-
-def _parse_xml_metadata(pmc_id: str) -> dict:
-    """Extract journal, title, doi, authors, centers from JATS XML. ponytail: best-effort — returns {} on any failure."""
-    xml_path = None
-    for d in XML_DIRS:
-        candidate = d / f"{pmc_id}.xml"
-        if candidate.exists():
-            xml_path = candidate
-            break
-    if xml_path is None:
-        return {}
-    try:
-        root = safe_xml_parse(xml_path).getroot()
-    except ET.ParseError:
-        return {}
-
-    meta = {}
-
-    # Title — <article-title>
-    el = root.find(".//article-title")
-    if el is not None:
-        meta["title"] = "".join(el.itertext()).strip()
-
-    # Journal — <journal-title>
-    el = root.find(".//journal-title")
-    if el is not None:
-        meta["journal"] = "".join(el.itertext()).strip()
-
-    # DOI — <article-id pub-id-type="doi">
-    for el in root.iter("article-id"):
-        if el.get("pub-id-type") == "doi" and el.text:
-            meta["doi"] = el.text.strip()
-            break
-
-    # Authors — <contrib contrib-type="author"> OR <contrib-group content-type="author"><contrib>
-    authors = []
-    for contrib_group in root.iter("contrib-group"):
-        # Check if this group is for authors (attribute can be on group or individual contribs)
-        group_is_authors = contrib_group.get("content-type") == "author"
-        for contrib in contrib_group.findall("contrib"):
-            is_author = group_is_authors or contrib.get("contrib-type") == "author"
-            if not is_author:
-                continue
-            name = contrib.find("name")
-            if name is None:
-                continue
-            surname = (name.findtext("surname") or "").strip()
-            given = (name.findtext("given-names") or "").strip()
-            full = f"{given} {surname}".strip() if given or surname else ""
-            if full:
-                authors.append(full)
-    if authors:
-        meta["author_list"] = ", ".join(authors)
-        meta["authors_count"] = len(authors)
-
-    # Centers — <aff> elements
-    affs = []
-    for aff in root.iter("aff"):
-        text = "".join(aff.itertext()).strip()
-        # ponytail: JATS aff has mixed content — strip leading punctuation artifacts
-        text = text.lstrip(", ").strip()
-        if text:
-            affs.append(text)
-    if affs:
-        meta["centers"] = affs
-        meta["centers_count"] = len(affs)
-
-    # Sections — top-level <sec><title> in <body>
-    sections = []
-    body = root.find(".//body")
-    if body is not None:
-        for sec in body.findall("sec"):
-            t = sec.findtext("title")
-            if t and t.strip():
-                sections.append(t.strip())
-    if sections:
-        meta["sections"] = sections
-
-    # Excerpt — <abstract> text
-    abstract_el = root.find(".//abstract")
-    if abstract_el is not None:
-        excerpt = " ".join(p.strip() for p in abstract_el.itertext() if p.strip())
-        if excerpt:
-            meta["excerpt"] = excerpt
-
-    # Reviewer/Editor — contrib-type="editor" or "reviewer"
-    reviewers = []
-    for contrib in root.iter("contrib"):
-        ct = contrib.get("contrib-type", "")
-        if ct in ("editor", "reviewer"):
-            name = contrib.find("name")
-            if name is not None:
-                surname = (name.findtext("surname") or "").strip()
-                given = (name.findtext("given-names") or "").strip()
-                full = f"{given} {surname}".strip() if given or surname else ""
-                if full:
-                    reviewers.append(full)
-    if reviewers:
-        meta["reviewer"] = ", ".join(reviewers)
-
-    # Citation — build from authors + title + journal + year + doi
-    # ponytail: best-effort formatted citation
-    year = ""
-    for el in root.iter("pub-date"):
-        y = el.findtext("year")
-        if y and y.strip().isdigit():
-            year = y.strip()
-            break
-    if not year:
-        # try <article-meta><pub-history><event><date>
-        for el in root.iter("date"):
-            y = el.findtext("year")
-            if y and y.strip().isdigit():
-                year = y.strip()
-                break
-
-    citation_parts = []
-    if authors:
-        # ponytail: first 3 authors + et al. for readability
-        if len(authors) > 3:
-            citation_parts.append(", ".join(authors[:3]) + " et al.")
-        else:
-            citation_parts.append(", ".join(authors))
-    if meta.get("title"):
-        citation_parts.append(meta["title"])
-    if meta.get("journal"):
-        citation_parts.append(meta["journal"])
-    if year:
-        citation_parts.append(f"({year})")
-    if meta.get("doi"):
-        citation_parts.append(f"https://doi.org/{meta['doi']}")
-    if citation_parts:
-        meta["citation"] = ". ".join(citation_parts) if len(citation_parts) <= 2 else ". ".join(citation_parts[:2]) + ". " + ". ".join(citation_parts[2:])
-
-    return meta
 
 
 # ── Reshaping helpers ─────────────────────────────────────────────────────────
@@ -225,7 +60,7 @@ def _parse_stats(text: str) -> dict:
     if m:
         stats["ci"] = f"{m.group(2)}-{m.group(3)}"
     # p-value: "p=0.03", "p < 0.05", "p=0.001"
-    m = re.search(r"p\s*[=<>]+\s*([\d.e+-]+)", text, re.IGNORECASE)
+    m = re.search(r"p\s*[=\u003c\u003e]+\s*([\d.e+-]+)", text, re.IGNORECASE)
     if m:
         try:
             stats["p_value"] = float(m.group(1))
@@ -568,7 +403,7 @@ def list_papers(
         # filtering the current page in memory, which silently contradicted the
         # result count it displayed next to it.
         query = query.filter(
-            Paper.key_findings.ilike(f'%"overall_evidence_level": "{evidence_level}"%')
+            Paper.key_findings.ilike(f'"overall_evidence_level": "{evidence_level}"%')
         )
 
     total = query.count()
@@ -622,7 +457,7 @@ def _semantic_search(db: Session, q: str) -> list[Paper] | None:
     to keyword matching instead of showing an empty page.
     """
     try:
-        from services.semantic_search_service import get_semantic_search_service
+        from app.services.semantic_search_service import get_semantic_search_service
 
         service = get_semantic_search_service(db)
         results = service.search(query=q, top_k=SEMANTIC_MAX_RESULTS)
@@ -720,194 +555,3 @@ def get_paper(paper_id: str, db: Session = Depends(get_db)):
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found")
     return _paper_to_detail(paper)
-
-
-@router.post("/ingest", response_model=IngestResponse)
-def ingest_papers(
-    body: IngestRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Ingest pipeline JSON results into the database. Requires auth.
-
-    For fields missing from the pipeline JSON (title, journal, doi, authors, centers),
-    falls back to parsing the corresponding JATS XML file from the source directory.
-    """
-    import os
-
-    # Restrict to allowed base directory to prevent path traversal
-    ALLOWED_BASE = os.path.realpath(str(RESULTS_DIR))
-
-    if body.source_dir:
-        candidate = os.path.realpath(body.source_dir)
-        if not candidate.startswith(ALLOWED_BASE + os.sep) and candidate != ALLOWED_BASE:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied: source_dir must be within {ALLOWED_BASE}",
-            )
-        source_dir = Path(candidate)
-    else:
-        source_dir = RESULTS_DIR
-
-    if not source_dir.exists():
-        raise HTTPException(status_code=400, detail=f"Source directory not found: {source_dir}")
-
-    files = sorted(source_dir.glob("*.json"))
-    if body.limit:
-        files = files[:body.limit]
-
-    ingested = 0
-    skipped = 0
-    errors = 0
-
-    for f in files:
-        try:
-            data = json.loads(f.read_text(encoding="utf-8"))
-            paper_id = data.get("paper_id", f.stem)
-
-            existing = db.query(Paper).filter(Paper.id == paper_id).first()
-            if existing:
-                skipped += 1
-                continue
-
-            summary = data.get("summary") or {}
-            key_findings_raw = data.get("key_findings")
-            mind_map_raw = data.get("mind_map")
-            verification_raw = data.get("verification")
-
-            # ponytail: XML fallback — fill gaps in title/journal/authors/centers
-            xml_meta = _parse_xml_metadata(paper_id)
-
-            title = summary.get("title", "") or xml_meta.get("title", "") or _parse_md_title(paper_id)
-            centers_list = xml_meta.get("centers", [])
-
-            paper = Paper(
-                id=paper_id,
-                title=title,
-                tldr=summary.get("tldr", ""),
-                detailed_summary=summary.get("detailed_summary", ""),
-                study_type=summary.get("study_type", ""),
-                specialty_tags=json.dumps(summary.get("specialty_tags", [])),
-                pico_summary=json.dumps(summary.get("pico_summary")) if summary.get("pico_summary") else "null",
-                key_findings=json.dumps(key_findings_raw) if key_findings_raw else "null",
-                mind_map=json.dumps(mind_map_raw) if mind_map_raw else "null",
-                verification=json.dumps(verification_raw) if verification_raw else "null",
-                processing_time=data.get("processing_time_seconds", 0.0) or 0.0,
-                has_errors=bool(data.get("errors")),
-                journal=xml_meta.get("journal", ""),
-                doi=xml_meta.get("doi", ""),
-                author_list=xml_meta.get("author_list", ""),
-                authors_count=xml_meta.get("authors_count", 0),
-                centers=json.dumps(centers_list) if centers_list else "[]",
-                centers_count=xml_meta.get("centers_count", 0),
-                citation=xml_meta.get("citation", ""),
-                sections=json.dumps(xml_meta.get("sections", [])),
-                excerpt=xml_meta.get("excerpt", ""),
-                reviewer=xml_meta.get("reviewer", ""),
-            )
-            db.add(paper)
-            ingested += 1
-
-        except Exception:
-            errors += 1
-
-    db.commit()
-    total_in_db = db.query(Paper).count()
-
-    return IngestResponse(
-        ingested=ingested,
-        skipped=skipped,
-        errors=errors,
-        total_in_db=total_in_db,
-    )
-
-
-@router.post("/backfill", response_model=BackfillResponse)
-def backfill_metadata(
-    body: BackfillRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Backfill missing metadata (journal, doi, authors, centers, title) from XML.
-
-    For papers already in the DB that are missing these fields, look up the
-    corresponding JATS XML and fill in the gaps. Requires auth.
-    """
-    query = db.query(Paper).filter(
-        or_(
-            Paper.title == "",
-            Paper.journal == "",
-            Paper.doi == "",
-            Paper.authors_count == 0,
-            Paper.centers_count == 0,
-            Paper.citation == "",
-            Paper.sections == "[]",
-            Paper.excerpt == "",
-        )
-    )
-    if body.limit:
-        papers = query.limit(body.limit).all()
-    else:
-        papers = query.all()
-
-    updated = 0
-    skipped_no_xml = 0
-    skipped_already_filled = 0
-    errors = 0
-
-    for paper in papers:
-        xml_meta = _parse_xml_metadata(paper.id)
-        md_title = _parse_md_title(paper.id) if not xml_meta else ""
-        if not xml_meta and not md_title:
-            skipped_no_xml += 1
-            continue
-
-        if not xml_meta and md_title:
-            # ponytail: only have markdown title — use it, no other metadata available
-            xml_meta = {"title": md_title}
-
-        changed = False
-
-        if not paper.title and xml_meta.get("title"):
-            paper.title = xml_meta["title"]
-            changed = True
-        if not paper.journal and xml_meta.get("journal"):
-            paper.journal = xml_meta["journal"]
-            changed = True
-        if not paper.doi and xml_meta.get("doi"):
-            paper.doi = xml_meta["doi"]
-            changed = True
-        if not paper.author_list and xml_meta.get("author_list"):
-            paper.author_list = xml_meta["author_list"]
-            paper.authors_count = xml_meta.get("authors_count", 0)
-            changed = True
-        if not paper.centers_count and xml_meta.get("centers"):
-            paper.centers = json.dumps(xml_meta["centers"])
-            paper.centers_count = xml_meta["centers_count"]
-            changed = True
-        if not paper.citation and xml_meta.get("citation"):
-            paper.citation = xml_meta["citation"]
-            changed = True
-        if (not paper.sections or paper.sections == "[]") and xml_meta.get("sections"):
-            paper.sections = json.dumps(xml_meta["sections"])
-            changed = True
-        if not paper.excerpt and xml_meta.get("excerpt"):
-            paper.excerpt = xml_meta["excerpt"]
-            changed = True
-        if not paper.reviewer and xml_meta.get("reviewer"):
-            paper.reviewer = xml_meta["reviewer"]
-            changed = True
-
-        if changed:
-            updated += 1
-        else:
-            skipped_already_filled += 1
-
-    db.commit()
-
-    return BackfillResponse(
-        updated=updated,
-        skipped_no_xml=skipped_no_xml,
-        skipped_already_filled=skipped_already_filled,
-        errors=errors,
-    )

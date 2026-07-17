@@ -11,11 +11,7 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from typing import Any, Protocol
-
-import numpy as np
-
-from services.qdrant_service import (
+from app.services.qdrant_service import (
     PaperEmbeddingPayload,
     SemanticSearchResult,
     count_papers,

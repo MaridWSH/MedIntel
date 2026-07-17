@@ -22,12 +22,10 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from sqlalchemy.orm import Session
-
-from models import Paper
-from repositories.paper_repository import PaperRepository, SQLAlchemyPaperRepository
-from repositories.vector_repository import VectorRepository
-from services.embedding_service import EmbeddingService, encode_papers, get_embedding_service
+from app.db.models import Paper
+from app.repositories.paper_repository import PaperRepository, SQLAlchemyPaperRepository
+from app.repositories.vector_repository import VectorRepository
+from app.services.embedding_service import EmbeddingService, encode_papers, get_embedding_service
 
 logger = logging.getLogger(__name__)
 
@@ -212,12 +210,12 @@ def get_semantic_search_service(
     Returns:
         A configured SemanticSearchService instance.
     """
-    from services.qdrant_service import get_qdrant_client
+    from app.services.qdrant_service import get_qdrant_client
 
     if embedding_service is None:
         embedding_service = get_embedding_service()
     if vector_repository is None:
-        from repositories.vector_repository import QdrantVectorRepository
+        from app.repositories.vector_repository import QdrantVectorRepository
 
         vector_repository = QdrantVectorRepository(client=get_qdrant_client())
 
@@ -260,7 +258,7 @@ def build_paper_payload(
         except (json.JSONDecodeError, TypeError):
             logger.warning("Failed to parse specialty_tags for paper %s", paper.id)
 
-    from services.qdrant_service import PaperEmbeddingPayload
+    from app.services.qdrant_service import PaperEmbeddingPayload
 
     return PaperEmbeddingPayload(
         paper_id=paper.id,
@@ -298,7 +296,7 @@ def index_papers(
     if embedding_service is None:
         embedding_service = get_embedding_service()
     if vector_repository is None:
-        from repositories.vector_repository import QdrantVectorRepository
+        from app.repositories.vector_repository import QdrantVectorRepository
 
         vector_repository = QdrantVectorRepository()
 

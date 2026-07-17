@@ -1,9 +1,9 @@
 """Index paper embeddings into Qdrant.
 
 Usage:
-    python -m backend.index_embeddings
-    python -m backend.index_embeddings --limit 1000
-    python -m backend.index_embeddings --batch-size 64 --recreate
+    python scripts/index_embeddings.py
+    python scripts/index_embeddings.py --limit 1000
+    python scripts/index_embeddings.py --batch-size 64 --recreate
 
 This command reads every paper from PostgreSQL (or the configured SQLAlchemy
 engine), generates a dense embedding with BGE-M3, and stores the vector in
@@ -13,22 +13,24 @@ Qdrant. It does not modify the ingestion pipeline.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
-from pathlib import Path
 
-# Allow running from project root
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-from database import Base, SessionLocal, engine
-from models import Paper
-from services.qdrant_service import (
+from app.core.database import Base, SessionLocal, engine
+from app.db.models import Paper
+from app.services.qdrant_service import (
     collection_exists,
     count_papers,
     delete_collection,
     ensure_collection,
 )
-from services.semantic_search_service import index_papers
+from app.services.semantic_search_service import index_papers
 
 
 def index(
@@ -77,26 +79,10 @@ def index(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Index MedIntel paper embeddings into Qdrant"
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=100,
-        help="Number of papers to embed and upsert per batch (default: 100)",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Only index N papers (default: all)",
-    )
-    parser.add_argument(
-        "--recreate",
-        action="store_true",
-        help="Drop and recreate the Qdrant collection before indexing",
-    )
+    parser = argparse.ArgumentParser(description="Index MedIntel paper embeddings into Qdrant")
+    parser.add_argument("--batch-size", type=int, default=100, help="Papers per batch")
+    parser.add_argument("--limit", type=int, default=None, help="Max papers to index")
+    parser.add_argument("--recreate", action="store_true", help="Drop and recreate Qdrant collection")
     args = parser.parse_args()
 
     index(batch_size=args.batch_size, limit=args.limit, recreate=args.recreate)

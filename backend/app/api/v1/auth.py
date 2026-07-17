@@ -6,7 +6,10 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
-from auth import (
+from app.core.database import get_db
+from app.core.security import (
+    REFRESH_TOKEN_EXPIRE_DAYS,
+    SECURE_COOKIES,
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
@@ -14,13 +17,10 @@ from auth import (
     get_current_user,
     get_refresh_token_from_request,
     hash_password,
-    REFRESH_TOKEN_EXPIRE_DAYS,
-    SECURE_COOKIES,
     verify_password,
 )
-from database import get_db
-from models import User
-from schemas import (
+from app.db.models import User
+from app.schemas import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     LoginResponse,
@@ -268,6 +268,7 @@ def refresh_token(response: Response, request: Request, db: Session = Depends(ge
         httponly=True,
         secure=SECURE_COOKIES,
         samesite="lax",
+        path="/",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
     )
     return TokenOut(access_token=access_token)

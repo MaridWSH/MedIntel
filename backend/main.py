@@ -4,10 +4,10 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from database import Base, engine, get_db
-from models import Paper
-from routers import auth, papers, user
-from schemas import HealthResponse
+from app.api.v1 import admin, auth, papers, user
+from app.core.database import Base, engine, get_db
+from app.db.models import Paper
+from app.schemas import HealthResponse
 
 # Create all tables on startup
 Base.metadata.create_all(bind=engine)
@@ -40,6 +40,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api")
 app.include_router(papers.router, prefix="/api")
 app.include_router(user.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 
 
 @app.get("/api/health", response_model=HealthResponse, tags=["health"])

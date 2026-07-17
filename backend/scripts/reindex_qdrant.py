@@ -3,7 +3,7 @@
 Run from the repo root with backend/ on the path:
 
     set -a; . backend/.env; set +a
-    PYTHONPATH=backend python3 backend/reindex_qdrant.py
+    PYTHONPATH=backend python3 scripts/reindex_qdrant.py
 
 Recreates the collection from scratch so a partially-populated or
 wrong-dimension index can't linger. Safe to re-run.
@@ -16,14 +16,19 @@ import os
 import sys
 import time
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("reindex")
 
-from database import SessionLocal  # noqa: E402
-from models import Paper  # noqa: E402
-from services import qdrant_service  # noqa: E402
-from services.embedding_service import get_embedding_service  # noqa: E402
-from services.qdrant_service import PaperEmbeddingPayload  # noqa: E402
+from app.core.database import SessionLocal  # noqa: E402
+from app.db.models import Paper  # noqa: E402
+from app.services import qdrant_service  # noqa: E402
+from app.services.embedding_service import get_embedding_service  # noqa: E402
+from app.services.qdrant_service import PaperEmbeddingPayload  # noqa: E402
 
 BATCH = int(os.environ.get("MEDINTEL_EMBEDDING_BATCH_SIZE", "64"))
 

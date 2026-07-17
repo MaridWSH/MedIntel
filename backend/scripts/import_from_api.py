@@ -1,23 +1,29 @@
 """Fetch paper list data from a remote API endpoint and store it in the backend database.
 
 Usage:
-    python -m backend.import_from_api
-    python -m backend.import_from_api --base-url https://med.aidashnews.tech/api/papers
-    python -m backend.import_from_api --per-page 50
+    python scripts/import_from_api.py
+    python scripts/import_from_api.py --base-url https://med.aidashnews.tech/api/papers
+    python scripts/import_from_api.py --per-page 50
 """
 
 from __future__ import annotations
 
 import json
 import os
+import sys
 from argparse import ArgumentParser
 from typing import Any
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import httpx
 from sqlalchemy.orm import Session
 
-from database import Base, SessionLocal, engine
-from models import Paper
+from app.core.database import Base, SessionLocal, engine
+from app.db.models import Paper
 
 
 DEFAULT_BASE_URL = "https://med.aidashnews.tech/api/papers"
@@ -81,48 +87,51 @@ def fetch_all_papers(base_url: str, per_page: int = 20) -> list[dict[str, Any]]:
         while True:
             response = client.get(
                 base_url,
-                params={"page": page, "per_page": per_page, "sort": "id"},
+                params={"page": page, "per_page": per_page},
+                headers={"Accept": "application/json"},
             )
             response.raise_for_status()
-            payload = response.json()
-            items = payload.get("items") or []
+            data = response.json()
+
+            items = data.get("items", [])
             if not items:
                 break
 
             results.extend(items)
-            if len(items) < per_page:
+
+            if len(items) < per_page or page >= data.get("pages", page):
                 break
+
             page += 1
 
     return results
 
 
-def main() -> None:
-    parser = ArgumentParser(description="Fetch remote paper list data and store it in the local database.")
-    parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help="Remote paper list endpoint URL")
-    parser.add_argument("--per-page", type=int, default=20, help="Page size for remote pagination")
-    parser.add_argument("--commit-batch", type=int, default=100, help="DB commit batch size")
+def main() -> int:
+    parser = ArgumentParser(description="Import papers from the MedIntel API")
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help="API base URL")
+    parser.add_argument("--per-page", type=int, default=20, help="Items per page")
     args = parser.parse_args()
 
     Base.metadata.create_all(bind=engine)
-
-    print(f"Fetching papers from: {args.base_url}")
-    items = fetch_all_papers(args.base_url, per_page=args.per_page)
-    print(f"Fetched {len(items)} items")
-
     db = SessionLocal()
     try:
-        for idx, item in enumerate(items, start=1):
+        papers = fetch_all_papers(args.base_url, per_page=args.per_page)
+        print(f"Fetched {len(papers)} papers from {args.base_url}")
+
+        for item in papers:
             upsert_paper(db, item)
-            if idx % args.commit_batch == 0:
-                db.commit()
-                print(f"Committed {idx} papers")
 
         db.commit()
-        print(f"Finished committing {len(items)} papers")
+        print(f"Imported/updated {len(papers)} papers")
+        print(f"Total papers in DB: {db.query(Paper).count()}")
+        return 0
+    except Exception as exc:
+        print(f"Error: {exc}")
+        return 1
     finally:
         db.close()
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

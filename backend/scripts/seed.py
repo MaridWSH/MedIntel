@@ -1,22 +1,25 @@
 """Seed script — load pipeline JSON results into SQLite.
 
 Usage:
-    python -m backend.seed                     # Load all
-    python -m backend.seed --limit 100         # Load first 100
-    python -m backend.seed --source /path/dir  # Custom source directory
+    python scripts/seed.py                     # Load all
+    python scripts/seed.py --limit 100         # Load first 100
+    python scripts/seed.py --source /path/dir  # Custom source directory
 """
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
 
-# Allow running from project root
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-from database import Base, SessionLocal, engine
-from models import Paper
+from app.core.database import Base, SessionLocal, engine
+from app.db.models import Paper
 
 DEFAULT_SOURCE = "/root/papers/pipeline_outputs/results"
 
