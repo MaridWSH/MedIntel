@@ -17,6 +17,7 @@ export default function SiteHeader() {
   const [user, setUser] = useState<HeaderUser | null>(null);
   const [checking, setChecking] = useState(true);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -95,7 +96,7 @@ export default function SiteHeader() {
 
   return (
     <header className="z-30 border-b border-black/10 bg-paper/95 backdrop-blur-[6px] sticky top-0">
-      <div className="max-w-[1380px] mx-auto px-6 h-[68px] flex items-center justify-between gap-6">
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 h-[60px] sm:h-[68px] flex items-center justify-between gap-3 sm:gap-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
           <div className="relative w-9 h-9 bg-ink rounded-[10px] flex items-center justify-center overflow-hidden">
@@ -103,7 +104,7 @@ export default function SiteHeader() {
             <span className="text-paper text-xl font-medium tracking-tight relative serif">C</span>
             <div className="absolute w-1 h-1 bg-teal-bright rounded-full bottom-1.5 right-1.5" />
           </div>
-          <span className="text-xl font-medium tracking-tight serif">Claritas</span>
+          <span className="hidden min-[380px]:inline text-xl font-medium tracking-tight serif">CiteRounds</span>
         </Link>
 
         {/* Primary nav */}
@@ -127,16 +128,16 @@ export default function SiteHeader() {
 
         {/* Right cluster */}
         <div className="flex items-center gap-2.5 shrink-0">
-          {/* Language dropdown */}
-          <div className="relative group">
-            <button className="flex items-center gap-1.5 px-2.5 h-9 rounded-md border border-ink/15 text-[12.5px] font-medium hover:bg-ink/5 transition-colors">
-              <Icon icon="lucide:globe" className="text-[14px] text-teal" />
-              <span>EN</span>
-              <span className="text-ink/30">&middot;</span>
-              <span className="text-ink/55">AR</span>
-              <Icon icon="lucide:chevron-down" className="text-[13px] text-ink/40" />
-            </button>
-          </div>
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-ink/15 text-ink-soft transition-colors hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep lg:hidden"
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-controls="mobile-navigation"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+          >
+            <Icon icon={mobileMenuOpen ? 'lucide:x' : 'lucide:list'} className="text-[18px]" />
+          </button>
 
           {!checking && !user && (
             <>
@@ -247,6 +248,37 @@ export default function SiteHeader() {
           )}
         </div>
       </div>
+
+      {mobileMenuOpen && (
+        <nav id="mobile-navigation" aria-label="Mobile navigation" className="border-t border-ink/10 bg-paper px-4 py-3 lg:hidden">
+          <div className="mx-auto flex max-w-[1380px] flex-col gap-1">
+            {[
+              ['/search', 'Evidence search'],
+              ['/#how-it-works', 'How it works'],
+              ['/pricing', 'Pricing'],
+              ['/feedback', 'Feedback'],
+            ].map(([href, label]) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex min-h-11 items-center rounded-md px-3 text-[13px] font-medium text-ink-soft transition-colors hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep"
+              >
+                {label}
+              </Link>
+            ))}
+            {!user && !checking && (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-2 flex min-h-11 items-center rounded-md border-t border-ink/10 px-3 pt-2 text-[13px] font-medium text-ink-soft"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

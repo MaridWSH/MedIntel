@@ -1,19 +1,19 @@
 /** @type {import('next').NextConfig} */
 const apiOrigin = (() => {
   try {
-    return new URL(process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api').origin;
+    return new URL(process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api').origin;
   } catch {
-    return 'https://med.aidashnews.tech';
+    return 'https://citerounds.com';
   }
 })();
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  `connect-src 'self' ${apiOrigin} http://localhost:8000 http://127.0.0.1:8000`,
+  `connect-src 'self' ${apiOrigin} https://cloudflareinsights.com http://localhost:8000 http://127.0.0.1:8000`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -23,6 +23,7 @@ const contentSecurityPolicy = [
 ].filter(Boolean).join('; ');
 
 const nextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   poweredByHeader: false,
   async headers() {
     return [

@@ -1,4 +1,4 @@
-"""Embedding service for the MedIntel Semantic Search module.
+"""Embedding service for the CiteRounds Semantic Search module.
 
 Responsibilities:
     - Load BAAI/bge-m3 exactly once and cache it in memory.

@@ -1,4 +1,4 @@
-"""MedIntel Backend API — FastAPI application."""
+"""CiteRounds Backend API — FastAPI application."""
 
 import os
 import json
@@ -31,14 +31,14 @@ allowed_origins = [
         "MEDINTEL_ALLOWED_ORIGINS",
         "http://localhost:3000,http://localhost:3001,"
         "http://127.0.0.1:3000,http://127.0.0.1:3001,"
-        "https://med.aidashnews.tech",
+        "https://citerounds.com",
     ).split(",")
     if origin.strip()
 ]
 logger = logging.getLogger("medintel.api")
 
 app = FastAPI(
-    title="MedIntel API",
+    title="CiteRounds API",
     description="Clinical literature synthesis API — serves processed nutrition papers.",
     version="0.1.0",
     docs_url="/docs" if docs_enabled else None,

@@ -91,7 +91,7 @@ def submit_product_feedback(
     db.commit()
     db.refresh(submission)
     return FeedbackSubmissionResponse(
-        message="Thank you. Your Claritas feedback has been recorded.",
+        message="Thank you. Your CiteRounds feedback has been recorded.",
         submission_id=submission.id,
     )
 

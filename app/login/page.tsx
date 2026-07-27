@@ -28,7 +28,11 @@ export default function LoginPage() {
       setWelcome({ show: true, name });
       setTimeout(() => {
         setWelcome({ show: false, name: "" });
-        window.location.href = "/account";
+        const requestedPath = new URLSearchParams(window.location.search).get('next');
+        const destination = requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+          ? requestedPath
+          : '/account';
+        window.location.href = destination;
       }, 3000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
@@ -63,7 +67,7 @@ export default function LoginPage() {
           <div className="fade-in flex items-center justify-between mb-8">
             <div className="flex items-center gap-2 text-[11.5px] text-ink/55">
               <Link href="/" className="hover:text-teal-deep">
-                Claritas
+                CiteRounds
               </Link>
               <Icon icon="lucide:chevron-right" className="text-[12px] text-ink/30" />
               <span className="text-teal-deep font-medium">Sign in</span>
@@ -204,7 +208,7 @@ export default function LoginPage() {
 
               {/* Register link */}
               <p className="mt-8 text-[13px] text-ink-soft">
-                New to Claritas?{" "}
+                New to CiteRounds?{" "}
                 <Link href="/register" className="text-teal-deep font-semibold hover:underline">
                   Create a physician account
                   <Icon icon="lucide:arrow-right" className="text-[13px] ml-1 inline" />

@@ -1,4 +1,4 @@
-"""Qdrant service for the MedIntel Semantic Search module.
+"""Qdrant service for the CiteRounds Semantic Search module.
 
 Responsibilities:
     - Create and configure the Qdrant collection.

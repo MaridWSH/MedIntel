@@ -6,8 +6,8 @@ import SiteHeader from '../../components/site/SiteHeader';
 import SiteFooter from '../../components/site/SiteFooter';
 
 export const metadata: Metadata = {
-  title: 'Beta access · Claritas',
-  description: 'Claritas is free during closed beta. Paid plans and billing are not yet enabled.',
+  title: 'Beta access',
+  description: 'CiteRounds is free during closed beta. Paid plans and billing are not yet enabled.',
 };
 
 const PLANS = [
@@ -190,7 +190,7 @@ export default function PricingPage() {
                 },
                 {
                   q: 'Do I need a credit card?',
-                  a: 'No. Claritas does not currently collect payment details or enforce paid plans.',
+                  a: 'No. CiteRounds does not currently collect payment details or enforce paid plans.',
                 },
                 {
                   q: 'Are these summaries reviewed by a clinician?',

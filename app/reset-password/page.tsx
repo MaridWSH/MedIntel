@@ -169,7 +169,7 @@ function ResetPasswordForm() {
                 { icon: "lucide:shield-check", label: "Use at least 12 characters" },
                 { icon: "lucide:shuffle", label: "Mix letters, numbers, and symbols" },
                 { icon: "lucide:lock", label: "Avoid common words or personal info" },
-                { icon: "lucide:refresh-cw", label: "Use a unique password for Claritas" },
+                { icon: "lucide:refresh-cw", label: "Use a unique password for CiteRounds" },
               ].map(({ icon, label }) => (
                 <div key={label} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-teal-bright/10 border border-teal-bright/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -223,7 +223,7 @@ export default function ResetPasswordPage() {
           <div className="fade-in flex items-center justify-between mb-8">
             <div className="flex items-center gap-2 text-[11.5px] text-ink/55">
               <Link href="/" className="hover:text-teal-deep">
-                Claritas
+                CiteRounds
               </Link>
               <Icon icon="lucide:chevron-right" className="text-[12px] text-ink/30" />
               <span className="text-teal-deep font-medium">Reset password</span>

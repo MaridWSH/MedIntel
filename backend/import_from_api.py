@@ -2,7 +2,7 @@
 
 Usage:
     python -m backend.import_from_api
-    python -m backend.import_from_api --base-url https://med.aidashnews.tech/api/papers
+    python -m backend.import_from_api --base-url https://citerounds.com/api/papers
     python -m backend.import_from_api --per-page 50
 """
 
@@ -20,7 +20,7 @@ from database import Base, SessionLocal, engine
 from models import Paper
 
 
-DEFAULT_BASE_URL = "https://med.aidashnews.tech/api/papers"
+DEFAULT_BASE_URL = "https://citerounds.com/api/papers"
 
 
 def normalize_specialty_tags(raw: Any) -> str:

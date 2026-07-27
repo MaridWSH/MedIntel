@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import TopUtilityStrip from '../../../components/site/TopUtilityStrip';
 import SiteHeader from '../../../components/site/SiteHeader';
 import SiteFooter from '../../../components/site/SiteFooter';
 import PaperDetailView from '../../../components/paper/PaperDetailView';
 import type { FullText, Paper } from '../../../lib/papers/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
 
 async function getPaperById(id: string): Promise<Paper | null> {
   const res = await fetch(`${API_BASE}/papers/${encodeURIComponent(id)}`, {
@@ -38,6 +39,34 @@ async function getFullText(id: string): Promise<FullText | null> {
   }
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const paper = await getPaperById(slug);
+  if (!paper) {
+    return {
+      title: 'Paper not found',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const description = (paper.tldr || paper.excerpt || paper.detailed_summary || '').replace(/\s+/g, ' ').trim();
+  return {
+    title: paper.title || `Paper ${paper.id}`,
+    description: description.slice(0, 160),
+    alternates: { canonical: `/paper/${encodeURIComponent(paper.id)}` },
+    openGraph: {
+      type: 'article',
+      title: paper.title || `Paper ${paper.id}`,
+      description: description.slice(0, 200),
+      url: `/paper/${encodeURIComponent(paper.id)}`,
+    },
+  };
+}
+
 export default async function PaperPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
@@ -47,8 +76,35 @@ export default async function PaperPage({ params }: { params: Promise<{ slug: st
     notFound();
   }
 
+  const paperJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ScholarlyArticle',
+    '@id': `https://citerounds.com/paper/${encodeURIComponent(paper.id)}#article`,
+    headline: paper.title,
+    name: paper.title,
+    url: `https://citerounds.com/paper/${encodeURIComponent(paper.id)}`,
+    description: (paper.tldr || paper.excerpt || paper.detailed_summary || '').replace(/\s+/g, ' ').trim().slice(0, 500),
+    isAccessibleForFree: true,
+    publisher: { '@id': 'https://citerounds.com/#organization' },
+    identifier: paper.id,
+    ...(paper.author_list
+      ? {
+          author: paper.author_list.split(',').map((name) => ({
+            '@type': 'Person',
+            name: name.trim(),
+          })),
+        }
+      : {}),
+    ...(paper.journal ? { isPartOf: { '@type': 'Periodical', name: paper.journal } } : {}),
+    ...(paper.doi ? { sameAs: `https://doi.org/${paper.doi.replace(/^https?:\/\/doi\.org\//, '')}` } : {}),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(paperJsonLd).replace(/</g, '\\u003c') }}
+      />
       <TopUtilityStrip />
       <SiteHeader />
       <PaperDetailView paper={paper} fullText={fullText} />

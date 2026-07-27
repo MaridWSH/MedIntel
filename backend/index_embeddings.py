@@ -78,7 +78,7 @@ def index(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Index MedIntel paper embeddings into Qdrant"
+        description="Index CiteRounds paper embeddings into Qdrant"
     )
     parser.add_argument(
         "--batch-size",

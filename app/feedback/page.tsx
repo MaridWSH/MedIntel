@@ -19,7 +19,7 @@ const FEATURES = [
 ];
 
 const inputClass =
-  'w-full rounded-xl border border-ink/15 bg-paper px-4 py-3 text-[14px] text-ink outline-none transition focus:border-teal-deep focus:ring-2 focus:ring-teal-deep/10';
+  'w-full rounded-xl border border-ink/15 bg-paper px-4 py-3 text-[16px] sm:text-[14px] text-ink outline-none transition focus:border-teal-deep focus:ring-2 focus:ring-teal-deep/10';
 
 function RatingField({
   label,
@@ -33,12 +33,12 @@ function RatingField({
   optional?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-ink/10 bg-paper p-5">
+    <div className="rounded-xl sm:rounded-2xl border border-ink/10 bg-paper p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="text-[13.5px] font-semibold">{label}</div>
         {optional && value === 0 && <span className="text-[10px] mono-stat text-ink/40">NOT USED</span>}
       </div>
-      <div className="grid grid-cols-5 gap-2 mt-4" role="radiogroup" aria-label={label}>
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mt-4" role="radiogroup" aria-label={label}>
         {[1, 2, 3, 4, 5].map((rating) => (
           <button
             key={rating}
@@ -46,7 +46,7 @@ function RatingField({
             role="radio"
             aria-checked={value === rating}
             onClick={() => onChange(rating)}
-            className={`rounded-xl border py-2.5 text-[13px] font-semibold transition ${value === rating ? 'border-teal-deep bg-teal-deep text-white' : 'border-ink/10 hover:border-teal-deep/50'}`}
+            className={`min-h-11 rounded-lg sm:rounded-xl border py-2.5 text-[13px] font-semibold transition ${value === rating ? 'border-teal-deep bg-teal-deep text-white' : 'border-ink/10 hover:border-teal-deep/50'}`}
           >
             {rating}
           </button>
@@ -125,26 +125,26 @@ export default function ProductFeedbackPage() {
       <main className="min-h-screen bg-paper-warm/35">
         <section className="relative overflow-hidden border-b border-ink/10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_0%,rgba(20,184,166,0.15),transparent_42%)]" />
-          <div className="max-w-[980px] mx-auto px-6 py-14 md:py-20 relative">
-            <div className="text-[10.5px] mono-stat text-teal-deep mb-4">CLARITAS CLOSED BETA · 4–6 MINUTES</div>
-            <h1 className="display text-[40px] md:text-[62px] tracking-tight max-w-[820px]">
+          <div className="max-w-[980px] mx-auto px-4 sm:px-6 py-10 sm:py-14 md:py-20 relative">
+            <div className="text-[10px] sm:text-[10.5px] mono-stat text-teal-deep mb-3 sm:mb-4">CITEROUNDS CLOSED BETA · 4–6 MINUTES</div>
+            <h1 className="display text-[36px] sm:text-[40px] md:text-[62px] tracking-tight max-w-[820px]">
               Help us decide what to <span className="italic text-teal">improve next.</span>
             </h1>
-            <p className="serif-body text-[16px] md:text-[18px] text-ink-soft leading-relaxed mt-5 max-w-[720px]">
-              Rate your experience, report anything that did not work, and tell us which features would make Claritas more useful.
+            <p className="serif-body text-[15px] sm:text-[16px] md:text-[18px] text-ink-soft leading-relaxed mt-4 sm:mt-5 max-w-[720px]">
+              Rate your experience, report anything that did not work, and tell us which features would make CiteRounds more useful.
             </p>
-            <div className="flex items-start gap-2.5 mt-6 text-[12px] text-ink-soft">
+            <div className="flex items-start gap-2.5 mt-5 sm:mt-6 text-[11.5px] sm:text-[12px] leading-relaxed text-ink-soft">
               <Icon icon="lucide:shield-check" className="text-[16px] text-teal-deep mt-0.5" />
               <span>Do not include patient-identifiable information or confidential research material.</span>
             </div>
           </div>
         </section>
 
-        <section className="max-w-[980px] mx-auto px-6 py-10 md:py-14">
+        <section className="max-w-[980px] mx-auto px-4 sm:px-6 py-7 sm:py-10 md:py-14">
           {submitted ? (
-            <div className="rounded-3xl border border-teal-deep/20 bg-paper p-8 md:p-12 text-center shadow-sm">
+            <div className="rounded-2xl sm:rounded-3xl border border-teal-deep/20 bg-paper p-6 sm:p-8 md:p-12 text-center shadow-sm">
               <div className="w-14 h-14 mx-auto rounded-2xl bg-teal-deep text-white flex items-center justify-center"><Icon icon="lucide:check" className="text-[28px]" /></div>
-              <h2 className="display text-[34px] mt-6">Thank you for helping shape Claritas.</h2>
+              <h2 className="display text-[30px] sm:text-[34px] mt-6">Thank you for helping shape CiteRounds.</h2>
               <p className="text-ink-soft mt-3 max-w-[560px] mx-auto">Your feedback has been recorded and will be reviewed during beta planning.</p>
               <div className="flex flex-col sm:flex-row justify-center gap-3 mt-7">
                 <Link href="/search" className="btn-primary px-5 py-3 rounded-xl bg-ink text-paper">Return to search</Link>
@@ -152,11 +152,11 @@ export default function ProductFeedbackPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-              <section className="rounded-2xl border border-ink/10 bg-paper p-5 md:p-7">
-                <div className="flex items-start gap-4 mb-5">
-                  <span className="w-9 h-9 rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">01</span>
-                  <div><h2 className="text-[18px] font-semibold">Rate your experience</h2><p className="text-[12.5px] text-ink-soft mt-1">1 is poor and 5 is excellent. Search and summary ratings are optional.</p></div>
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
+              <section className="rounded-xl sm:rounded-2xl border border-ink/10 bg-paper p-4 sm:p-5 md:p-7">
+                <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-5">
+                  <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">01</span>
+                  <div><h2 className="text-[16px] md:text-[18px] font-semibold">Rate your experience</h2><p className="text-[12.5px] text-ink-soft mt-1">1 is poor and 5 is excellent. Search and summary ratings are optional.</p></div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-3">
                   <RatingField label="Overall experience *" value={overall} onChange={setOverall} />
@@ -166,14 +166,14 @@ export default function ProductFeedbackPage() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-ink/10 bg-paper p-5 md:p-7">
-                <div className="flex items-start gap-4 mb-5">
-                  <span className="w-9 h-9 rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">02</span>
-                  <div><h2 className="text-[18px] font-semibold">Which features did you use?</h2><p className="text-[12.5px] text-ink-soft mt-1">Select all that apply.</p></div>
+              <section className="rounded-xl sm:rounded-2xl border border-ink/10 bg-paper p-4 sm:p-5 md:p-7">
+                <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-5">
+                  <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">02</span>
+                  <div><h2 className="text-[16px] md:text-[18px] font-semibold">Which features did you use?</h2><p className="text-[12.5px] text-ink-soft mt-1">Select all that apply.</p></div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2.5">
                   {FEATURES.map((feature) => (
-                    <label key={feature} className={`flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition ${features.includes(feature) ? 'border-teal-deep bg-teal-deep/[0.06]' : 'border-ink/10 hover:border-ink/25'}`}>
+                    <label key={feature} className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 sm:px-4 py-3 cursor-pointer transition ${features.includes(feature) ? 'border-teal-deep bg-teal-deep/[0.06]' : 'border-ink/10 hover:border-ink/25'}`}>
                       <input type="checkbox" checked={features.includes(feature)} onChange={() => toggleFeature(feature)} className="w-4 h-4 accent-[var(--teal-deep)]" />
                       <span className="text-[13.5px]">{feature}</span>
                     </label>
@@ -181,10 +181,10 @@ export default function ProductFeedbackPage() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-ink/10 bg-paper p-5 md:p-7">
-                <div className="flex items-start gap-4 mb-5">
-                  <span className="w-9 h-9 rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">03</span>
-                  <div><h2 className="text-[18px] font-semibold">Tell us what worked—and what did not</h2><p className="text-[12.5px] text-ink-soft mt-1">At least one written response is required.</p></div>
+              <section className="rounded-xl sm:rounded-2xl border border-ink/10 bg-paper p-4 sm:p-5 md:p-7">
+                <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-5">
+                  <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">03</span>
+                  <div><h2 className="text-[16px] md:text-[18px] font-semibold">Tell us what worked—and what did not</h2><p className="text-[12.5px] text-ink-soft mt-1">At least one written response is required.</p></div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <label className="text-[12px] font-semibold text-ink-soft">What was most useful?<textarea value={mostUseful} onChange={(e) => setMostUseful(e.target.value)} maxLength={1500} className={`${inputClass} mt-2 min-h-28 resize-y`} placeholder="What saved time or helped you understand a paper?" /></label>
@@ -194,14 +194,14 @@ export default function ProductFeedbackPage() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-ink/10 bg-paper p-5 md:p-7">
-                <div className="flex items-start gap-4 mb-5">
-                  <span className="w-9 h-9 rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">04</span>
-                  <div><h2 className="text-[18px] font-semibold">One last question</h2><p className="text-[12.5px] text-ink-soft mt-1">Would you recommend this beta to a colleague?</p></div>
+              <section className="rounded-xl sm:rounded-2xl border border-ink/10 bg-paper p-4 sm:p-5 md:p-7">
+                <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-5">
+                  <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-ink text-paper inline-flex items-center justify-center text-[10px] mono-stat shrink-0">04</span>
+                  <div><h2 className="text-[16px] md:text-[18px] font-semibold">One last question</h2><p className="text-[12.5px] text-ink-soft mt-1">Would you recommend this beta to a colleague?</p></div>
                 </div>
                 <div className="grid grid-cols-3 gap-2.5">
                   {['Yes', 'Maybe', 'No'].map((item) => (
-                    <label key={item} className={`rounded-xl border px-4 py-3 text-center cursor-pointer transition ${recommend === item ? 'border-teal-deep bg-teal-deep/[0.06]' : 'border-ink/10 hover:border-ink/25'}`}>
+                    <label key={item} className={`flex min-h-12 items-center justify-center rounded-xl border px-2 sm:px-4 py-3 text-center cursor-pointer transition ${recommend === item ? 'border-teal-deep bg-teal-deep/[0.06]' : 'border-ink/10 hover:border-ink/25'}`}>
                       <input type="radio" name="recommend" value={item} checked={recommend === item} onChange={() => setRecommend(item)} className="sr-only" />
                       <span className="text-[13.5px] font-semibold">{item}</span>
                     </label>
@@ -216,9 +216,9 @@ export default function ProductFeedbackPage() {
               <label className="absolute -left-[10000px]" aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
               {error && <div role="alert" aria-live="polite" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-[13px] text-red-800">{error}</div>}
 
-              <div className="rounded-2xl bg-ink text-paper p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+              <div className="rounded-xl sm:rounded-2xl bg-ink text-paper p-4 sm:p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                 <div><div className="font-semibold">Send your beta feedback</div><p className="text-[12px] text-paper/60 mt-1">Optional email · No patient data · Reviewed for product planning</p></div>
-                <button type="submit" disabled={pending} className="btn-primary min-w-40 rounded-xl bg-teal-bright text-ink px-6 py-3 font-semibold disabled:opacity-60 inline-flex items-center justify-center gap-2">
+                <button type="submit" disabled={pending} className="btn-primary w-full md:w-auto min-h-12 min-w-40 rounded-xl bg-teal-bright text-ink px-6 py-3 font-semibold disabled:opacity-60 inline-flex items-center justify-center gap-2">
                   {pending ? <><Icon icon="lucide:loader-2" className="text-[17px] animate-spin" />Submitting…</> : <>Submit feedback<Icon icon="lucide:arrow-right" className="text-[16px]" /></>}
                 </button>
               </div>

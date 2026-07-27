@@ -1,6 +1,6 @@
-# MedIntel Semantic Search
+# CiteRounds Semantic Search
 
-This document describes the semantic search module added to the MedIntel backend. It explains what each component does, why it exists, and how to use it.
+This document describes the semantic search module in the CiteRounds backend. It explains what each component does, why it exists, and how to use it.
 
 ---
 

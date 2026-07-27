@@ -39,7 +39,7 @@ export default function InfographicPane({ paper }: { paper: Paper }) {
   const studyType = paper.study_type?.toUpperCase() || 'STUDY';
   const tags = paper.specialty_tags?.slice(0, 3).join(' · ') || '';
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const shareText = `${paper.title} — AI summary on Claritas`;
+  const shareText = `${paper.title} — AI summary on CiteRounds`;
 
   const share = (platform: string) => {
     const urls: Record<string, string> = {
@@ -95,7 +95,7 @@ export default function InfographicPane({ paper }: { paper: Paper }) {
         <div className="absolute top-0 left-0 right-0 px-6 py-3.5 flex items-center justify-between border-b border-paper/10 text-[10px] mono-stat text-paper/60">
           <span className="flex items-center gap-2">
             <span className="serif text-paper text-[14px] font-medium">C.</span>
-            <span>CLARITAS &middot; AI SUMMARY</span>
+            <span>CITEROUNDS &middot; AI SUMMARY</span>
           </span>
           <span className="hidden sm:inline truncate max-w-[45%]">
             {studyType}

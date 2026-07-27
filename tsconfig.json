@@ -37,7 +37,8 @@
   ],
   "exclude": [
     "node_modules",
-    "claritas-app",
+    "tools",
+    "citerounds-app",
     "src",
     "_src-merged"
   ]

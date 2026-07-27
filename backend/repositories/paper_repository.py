@@ -1,4 +1,4 @@
-"""Paper repository for the MedIntel Semantic Search module.
+"""Paper repository for the CiteRounds Semantic Search module.
 
 Implements the Repository Pattern for paper metadata stored in PostgreSQL/SQLite.
 All database access required by semantic search goes through this module so the

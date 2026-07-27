@@ -1,6 +1,8 @@
-# Claritas / MedIntel
+# CiteRounds
 
-Claritas is a closed-beta research-reading product for browsing, searching, and reviewing AI-generated summaries of open-access PubMed Central papers. It is a research aid, not clinical advice, a medical device, peer review, or a substitute for the source paper.
+CiteRounds is a closed-beta research-reading product for browsing, searching, and reviewing AI-generated summaries of open-access PubMed Central papers. It is a research aid, not clinical advice, a medical device, peer review, or a substitute for the source paper.
+
+The existing `MEDINTEL_*` environment-variable namespace, database filenames, and deployment service names are retained for backward compatibility during the rebrand.
 
 ## Architecture
 

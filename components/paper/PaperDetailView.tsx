@@ -17,9 +17,10 @@ interface PaperDetailViewProps {
   paper: Paper;
   /** Server-fetched; null when we hold no text for this paper. */
   fullText: FullText | null;
+  mockupNotice?: string;
 }
 
-export default function PaperDetailView({ paper, fullText }: PaperDetailViewProps) {
+export default function PaperDetailView({ paper, fullText, mockupNotice }: PaperDetailViewProps) {
   // The pipeline produced no summary for ~52% of papers. When that's the case the
   // TLDR tab has nothing to show, so open on the source text instead.
   const hasSummary = Boolean(paper.tldr?.trim() || paper.detailed_summary?.trim());
@@ -32,10 +33,11 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
 
   // Load saved state from backend API
   useEffect(() => {
+    if (mockupNotice) return;
     isPaperSaved(paper.id)
       .then(setSaved)
       .catch(() => setSaved(false));
-  }, [paper.id]);
+  }, [paper.id, mockupNotice]);
 
   /**
    * Sidebar → full-text tab → scroll to the section.
@@ -68,6 +70,11 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
 
   // 1. SAVE / BOOKMARK — calls backend API
   const toggleSave = async () => {
+    if (mockupNotice) {
+      setSaved((current) => !current);
+      showToast(saved ? 'Removed from the mock collection' : 'Saved in this mockup preview');
+      return;
+    }
     try {
       if (saved) {
         await unsavePaper(paper.id);
@@ -109,6 +116,9 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
   // fidelity check. It says nothing about the study's own quality, and it is not
   // a peer-review status — do not relabel it as either.
   const fidelityPassed = paper.verification?.passed ?? false;
+  const sourceUrl = paper.doi
+    ? `https://doi.org/${paper.doi}`
+    : `https://www.ncbi.nlm.nih.gov/pmc/articles/${paper.id}/`;
 
   return (
     <main className="relative bg-paper">
@@ -137,6 +147,15 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
               </div>
 
               <div className="flex items-center gap-1.5">
+                <a
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-md bg-ink px-3 text-[12px] font-semibold text-paper transition-colors hover:bg-teal-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep focus-visible:ring-offset-2"
+                >
+                  <Icon icon="lucide:external-link" className="text-[14px] text-teal-bright" />
+                  <span className="hidden sm:inline">Open source</span>
+                </a>
                 {/* SAVE BUTTON */}
                 <button
                   className={`w-9 h-9 rounded-lg border inline-flex items-center justify-center transition-all duration-200 ${
@@ -166,6 +185,13 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
 
               </div>
             </div>
+
+            {mockupNotice && (
+              <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-teal-deep/25 bg-teal-deep/[0.07] px-4 py-3">
+                <Icon icon="lucide:info" className="mt-0.5 shrink-0 text-[15px] text-teal-deep" />
+                <p className="text-[12.5px] leading-[1.5] text-ink-soft">{mockupNotice}</p>
+              </div>
+            )}
 
             {/* Title + meta + badges */}
             <header className="pb-7 border-b border-ink/10">
@@ -273,7 +299,13 @@ export default function PaperDetailView({ paper, fullText }: PaperDetailViewProp
 
             <TabNav active={activeTab} onChange={setActiveTab} />
 
-            <div className="mt-7">
+            <div
+              id={`tabpanel-${activeTab}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${activeTab}`}
+              tabIndex={0}
+              className="mt-7 focus:outline-none"
+            >
               {activeTab === 'tldr' && <TldrPane paper={paper} />}
               {activeTab === 'fulltext' && <FullTextPane paper={paper} sections={sections} />}
               {activeTab === 'mindmap' && <MindMapPane paper={paper} />}

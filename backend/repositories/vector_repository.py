@@ -1,4 +1,4 @@
-"""Vector repository for the MedIntel Semantic Search module.
+"""Vector repository for the CiteRounds Semantic Search module.
 
 Implements the Repository Pattern for the vector store (Qdrant). The service
 layer depends on the VectorRepository protocol, not on the concrete Qdrant

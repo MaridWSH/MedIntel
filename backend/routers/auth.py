@@ -211,7 +211,7 @@ def forgot_password(body: ForgotPasswordRequest, request: Request, db: Session =
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER")
     smtp_pass = os.getenv("SMTP_PASSWORD")
-    from_email = os.getenv("FROM_EMAIL", "noreply@med.aidashnews.tech")
+    from_email = os.getenv("FROM_EMAIL", "noreply@citerounds.com")
 
     if smtp_host and smtp_user and smtp_pass:
         # Send email via SMTP
@@ -220,20 +220,20 @@ def forgot_password(body: ForgotPasswordRequest, request: Request, db: Session =
         from email.mime.multipart import MIMEMultipart
 
         reset_page_url = os.getenv(
-            "MEDINTEL_RESET_URL", "https://med.aidashnews.tech/reset-password"
+            "MEDINTEL_RESET_URL", "https://citerounds.com/reset-password"
         ).rstrip("?")
         reset_url = f"{reset_page_url}?token={reset_token}"
         safe_name = html.escape(user.name or "User")
 
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Claritas password reset"
+        msg["Subject"] = "CiteRounds password reset"
         msg["From"] = from_email
         msg["To"] = body.email
 
         text = f"""
 Hello {user.name or 'User'},
 
-You requested a password reset for your Claritas account.
+You requested a password reset for your CiteRounds account.
 
 Click the link below to reset your password:
 {reset_url}
@@ -242,7 +242,7 @@ This link will expire in 1 hour.
 
 If you did not request this reset, please ignore this email.
 
-— Claritas Team
+— CiteRounds Team
         """
 
         html = f"""
@@ -250,12 +250,12 @@ If you did not request this reset, please ignore this email.
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2 style="color: #0b7d72;">Password Reset Request</h2>
     <p>Hello {safe_name},</p>
-    <p>You requested a password reset for your Claritas account.</p>
+    <p>You requested a password reset for your CiteRounds account.</p>
     <p><a href="{reset_url}" style="display: inline-block; padding: 12px 24px; background-color: #0b7d72; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">Reset Password</a></p>
     <p style="font-size: 14px; color: #666;">This link will expire in 1 hour.</p>
     <p style="font-size: 14px; color: #666;">If you did not request this reset, please ignore this email.</p>
     <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-    <p style="font-size: 12px; color: #999;">— Claritas Team</p>
+    <p style="font-size: 12px; color: #999;">— CiteRounds Team</p>
 </body>
 </html>
         """

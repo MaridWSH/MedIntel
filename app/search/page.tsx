@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Icon from '../../components/ui/Icon';
 import TopUtilityStrip from '../../components/site/TopUtilityStrip';
 import SiteHeader from '../../components/site/SiteHeader';
@@ -42,33 +42,47 @@ const EVIDENCE_LABELS: Record<string, string> = {
 };
 
 interface FacetFilterProps {
+  name: string;
   icon: string;
   title: string;
   facets: FacetValue[];
-  selected: string[];
-  onToggle: (value: string) => void;
+  selected: string | null;
+  onSelect: (value: string | null) => void;
   format: (value: string) => string;
   showCounts?: boolean;
+  disabled?: boolean;
 }
 
 function FacetFilter({
+  name,
   icon,
   title,
   facets,
   selected,
-  onToggle,
+  onSelect,
   format,
   showCounts = true,
+  disabled = false,
 }: FacetFilterProps) {
   if (facets.length === 0) return null;
 
   return (
-    <div className="bg-paper border border-ink/12 rounded-2xl mb-3 overflow-hidden">
+    <fieldset className="mb-3 overflow-hidden rounded-lg border border-ink/12 bg-paper disabled:opacity-55" disabled={disabled}>
+      <legend className="sr-only">{title}</legend>
       <div className="flex items-center justify-between px-4 h-11">
         <span className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
           <Icon icon={icon} className="text-[14px] text-teal-deep" />
           {title}
         </span>
+        {selected && !disabled && (
+          <button
+            type="button"
+            onClick={() => onSelect(null)}
+            className="text-[10px] font-semibold uppercase tracking-wide text-teal-deep hover:underline"
+          >
+            Clear
+          </button>
+        )}
       </div>
       <div className="px-3 pb-4 pt-1">
         <ul className="space-y-0.5">
@@ -76,9 +90,10 @@ function FacetFilter({
             <li key={f.value}>
               <label className="flex items-center gap-2 px-2 h-8 rounded-md hover:bg-ink/[0.04] cursor-pointer text-[12.5px]">
                 <input
-                  type="checkbox"
-                  checked={selected.includes(f.value)}
-                  onChange={() => onToggle(f.value)}
+                  type="radio"
+                  name={name}
+                  checked={selected === f.value}
+                  onChange={() => onSelect(f.value)}
                   className="accent-[var(--teal-deep)] w-3.5 h-3.5"
                 />
                 <span className="text-ink-soft truncate">{format(f.value)}</span>
@@ -92,13 +107,15 @@ function FacetFilter({
           ))}
         </ul>
       </div>
-    </div>
+    </fieldset>
   );
 }
 
 function SearchPageInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') ?? '';
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // ── State ─────────────────────────────────────────────────────────
   const [items, setItems] = useState<Paper[]>([]);
@@ -120,10 +137,11 @@ function SearchPageInner() {
   const [perPage, setPerPage] = useState(20);
 
   // Filters
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
-  const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
-  const [selectedEvidenceGrades, setSelectedEvidenceGrades] = useState<string[]>([]);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [selectedStudyType, setSelectedStudyType] = useState<string | null>(null);
+  const [selectedEvidenceGrade, setSelectedEvidenceGrade] = useState<string | null>(null);
   const [sort, setSort] = useState<'id' | '-id'>('id');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Active search query (what was actually submitted).
   // Seeded from ?q= so /search?q=diabetes — the link the landing page produces —
@@ -142,12 +160,27 @@ function SearchPageInner() {
       });
   }, []);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (event.key === 'Escape') {
+        setMobileFiltersOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   // ── Load papers ───────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
     async function loadPapers() {
       try {
+      setLoading(true);
       /*
        * One search path. /api/papers/search is semantic-first and falls back to
        * keyword matching server-side, so there is nothing for the client to pick
@@ -159,12 +192,12 @@ function SearchPageInner() {
         : await listPapers({
             page,
             per_page: perPage,
-            // The API takes one value per facet; the checkboxes allow several, so
-            // the first selection wins. Multi-select would need an `in` filter
-            // server-side — worth doing, but not silently pretending here.
-            study_type: selectedStudyTypes[0] ?? null,
-            specialty: selectedSpecialties[0] ?? null,
-            evidence_level: selectedEvidenceGrades[0] ?? null,
+            // The API takes one value per facet, so the UI deliberately exposes
+            // one radio selection per group rather than pretending to support
+            // multi-select filtering.
+            study_type: selectedStudyType,
+            specialty: selectedSpecialty,
+            evidence_level: selectedEvidenceGrade,
             sort,
           });
 
@@ -188,18 +221,22 @@ function SearchPageInner() {
     return () => {
       cancelled = true;
     };
-  }, [activeQuery, page, perPage, selectedSpecialties, selectedStudyTypes, selectedEvidenceGrades, sort, reloadKey]);
+  }, [activeQuery, page, perPage, selectedSpecialty, selectedStudyType, selectedEvidenceGrade, sort, reloadKey]);
 
   // ── Handlers ──────────────────────────────────────────────────────
 
   // Submit search
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    setActiveQuery(searchInput);
+    const submittedQuery = searchInput.trim();
+    setActiveQuery(submittedQuery);
+    if (submittedQuery) {
+      setSelectedSpecialty(null);
+      setSelectedStudyType(null);
+      setSelectedEvidenceGrade(null);
+    }
     setPage(1);
-    // Clear filters when searching
-    setSelectedSpecialties([]);
-    setSelectedStudyTypes([]);
+    router.replace(submittedQuery ? `/search?q=${encodeURIComponent(submittedQuery)}` : '/search', { scroll: false });
   }
 
   // Clear search
@@ -207,39 +244,25 @@ function SearchPageInner() {
     setSearchInput('');
     setActiveQuery('');
     setPage(1);
+    router.replace('/search', { scroll: false });
   }
 
-  // Toggle specialty filter
-  function toggleSpecialty(specialty: string) {
-    setSelectedSpecialties((prev) =>
-      prev.includes(specialty)
-        ? prev.filter((s) => s !== specialty)
-        : [...prev, specialty]
-    );
-    setActiveQuery(''); // Clear search when filtering
+  function selectSpecialty(specialty: string | null) {
+    setSelectedSpecialty(specialty);
     setPage(1);
+    setMobileFiltersOpen(false);
   }
 
-  // Toggle study type filter
-  function toggleStudyType(studyType: string) {
-    setSelectedStudyTypes((prev) =>
-      prev.includes(studyType)
-        ? prev.filter((s) => s !== studyType)
-        : [...prev, studyType]
-    );
-    setActiveQuery(''); // Clear search when filtering
+  function selectStudyType(studyType: string | null) {
+    setSelectedStudyType(studyType);
     setPage(1);
+    setMobileFiltersOpen(false);
   }
 
-  // Toggle evidence grade filter
-  function toggleEvidenceGrade(grade: string) {
-    setSelectedEvidenceGrades((prev) =>
-      prev.includes(grade)
-        ? prev.filter((g) => g !== grade)
-        : [...prev, grade]
-    );
-    setActiveQuery(''); // Clear search when filtering
+  function selectEvidenceGrade(grade: string | null) {
+    setSelectedEvidenceGrade(grade);
     setPage(1);
+    setMobileFiltersOpen(false);
   }
 
   // Change sort
@@ -256,22 +279,27 @@ function SearchPageInner() {
 
   // Reset all filters
   function handleResetAll() {
-    setSelectedSpecialties([]);
-    setSelectedStudyTypes([]);
-    setSelectedEvidenceGrades([]);
+    setSelectedSpecialty(null);
+    setSelectedStudyType(null);
+    setSelectedEvidenceGrade(null);
     setSort('id');
     setActiveQuery('');
     setSearchInput('');
     setPage(1);
     setPerPage(20);
+    router.replace('/search', { scroll: false });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────
   const hasActiveFilters =
-    selectedSpecialties.length > 0 ||
-    selectedStudyTypes.length > 0 ||
-    selectedEvidenceGrades.length > 0 ||
+    selectedSpecialty !== null ||
+    selectedStudyType !== null ||
+    selectedEvidenceGrade !== null ||
     activeQuery !== '';
+  const hasBrowseFilters =
+    selectedSpecialty !== null ||
+    selectedStudyType !== null ||
+    selectedEvidenceGrade !== null;
 
   // Evidence grade is filtered server-side now. It used to be applied to the
   // current page in memory, so the sidebar quietly removed rows while the header
@@ -305,17 +333,17 @@ function SearchPageInner() {
             }}
           />
 
-          <div className="max-w-[1380px] mx-auto px-6 pt-8 pb-6 relative">
+          <div className="max-w-[1380px] mx-auto px-4 sm:px-6 pt-7 pb-6 relative">
             {/* Title */}
             <div className="flex items-start justify-between gap-4 mb-5">
               <div className="fade-in">
                 <div className="flex items-center gap-2 text-[10.5px] mono-stat text-ink/45 mb-3">
-                  <Link href="/" className="hover:text-teal-deep">CLARITAS</Link>
+                  <Link href="/" className="hover:text-teal-deep">CITEROUNDS</Link>
                   <Icon icon="lucide:chevron-right" className="text-[11px] text-ink/30" />
                   <span>SEARCH</span>
                 </div>
-                <h1 className="display text-[36px] md:text-[48px] tracking-tight">
-                  Search <span className="italic text-teal">&amp; discovery</span>
+                <h1 className="display text-[34px] md:text-[42px] tracking-tight">
+                  Search the <span className="italic text-teal">evidence catalogue</span>
                 </h1>
               </div>
 
@@ -326,33 +354,35 @@ function SearchPageInner() {
             </div>
 
             {/* Search bar */}
-            <div className="fade-in d-2 relative max-w-[860px]">
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-teal-bright/25 via-teal-deep/15 to-teal-bright/15 blur-2xl opacity-40 rounded-[26px]" />
-              <div className="relative bg-paper border border-ink/15 rounded-[22px] shadow-[0_24px_60px_-30px_rgba(11,29,42,0.3),0_2px_8px_-4px_rgba(11,29,42,0.08)] overflow-hidden">
-                <form onSubmit={handleSearch} className="flex items-center gap-3 pl-5 pr-3 py-3.5">
-                  <Icon icon="lucide:search" className="text-[20px] text-teal shrink-0" />
+            <div className="fade-in d-2 max-w-[920px]">
+              <div className="overflow-hidden rounded-lg border border-ink/15 bg-paper shadow-[0_18px_45px_-32px_rgba(11,29,42,0.45)] transition-shadow focus-within:border-teal-deep/50 focus-within:ring-2 focus-within:ring-teal-deep/20">
+                <form onSubmit={handleSearch} role="search" className="flex items-center gap-2 p-2">
+                  <Icon icon="lucide:search" className="ml-2 shrink-0 text-[19px] text-teal-deep" />
                   <input
-                    type="text"
+                    ref={searchInputRef}
+                    type="search"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-ink/35 w-full"
-                    placeholder="Search the available open-access paper corpus"
+                    className="h-11 min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-ink/40 sm:text-[15px]"
+                    placeholder="Ask a clinical question or search a topic"
+                    aria-label="Search the evidence catalogue"
                   />
                   {searchInput && (
                     <button
                       type="button"
                       onClick={handleClearSearch}
-                      className="text-ink/40 hover:text-ink/70"
+                      aria-label="Clear search"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink/45 hover:bg-ink/5 hover:text-ink"
                     >
                       <Icon icon="lucide:x" className="text-[16px]" />
                     </button>
                   )}
-                  <span className="hidden md:flex items-center gap-1 px-2 h-7 rounded-md border border-ink/12 text-ink/55 text-[11.5px] mono-stat">⌘K</span>
+                  <span className="hidden items-center gap-1 rounded border border-ink/12 px-2 py-1 text-[10px] text-ink/50 md:flex mono">⌘K</span>
                   <button
                     type="submit"
-                    className="btn-primary h-10 px-5 bg-ink text-paper rounded-[12px] text-[13px] font-semibold inline-flex items-center gap-1.5"
+                    className="btn-primary inline-flex h-11 shrink-0 items-center gap-2 rounded-md bg-ink px-3.5 text-[13px] font-semibold text-paper sm:px-5"
                   >
-                    Search
+                    <span className="hidden sm:inline">Search papers</span>
                     <Icon icon="lucide:sparkles" className="text-[14px] text-teal-bright" />
                   </button>
                 </form>
@@ -362,44 +392,55 @@ function SearchPageInner() {
                   <span className="text-[10px] mono-stat text-ink/45 shrink-0">FILTERS</span>
 
                   {/* Active filter chips */}
-                  {selectedSpecialties.map((s) => (
+                  {selectedSpecialty && (
                     <button
-                      key={s}
-                      onClick={() => toggleSpecialty(s)}
-                      className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-full bg-teal-deep/10 border border-teal-deep/20 text-teal-deep text-[11px]"
+                      onClick={() => selectSpecialty(null)}
+                      className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-md bg-teal-deep/10 border border-teal-deep/20 text-teal-deep text-[11px]"
                     >
-                      {s}
+                      {prettify(selectedSpecialty)}
                       <Icon icon="lucide:x" className="text-[10px]" />
                     </button>
-                  ))}
-                  {selectedStudyTypes.map((t) => (
+                  )}
+                  {selectedStudyType && (
                     <button
-                      key={t}
-                      onClick={() => toggleStudyType(t)}
-                      className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-full bg-teal-deep/10 border border-teal-deep/20 text-teal-deep text-[11px]"
+                      onClick={() => selectStudyType(null)}
+                      className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-md bg-teal-deep/10 border border-teal-deep/20 text-teal-deep text-[11px]"
                     >
-                      {formatStudyType(t)}
+                      {formatStudyType(selectedStudyType)}
                       <Icon icon="lucide:x" className="text-[10px]" />
                     </button>
-                  ))}
+                  )}
+                  {selectedEvidenceGrade && (
+                    <button
+                      onClick={() => selectEvidenceGrade(null)}
+                      className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-md bg-teal-deep/10 border border-teal-deep/20 text-teal-deep text-[11px]"
+                    >
+                      {EVIDENCE_LABELS[selectedEvidenceGrade] ?? prettify(selectedEvidenceGrade)} evidence
+                      <Icon icon="lucide:x" className="text-[10px]" />
+                    </button>
+                  )}
                   {activeQuery && (
-                    <span className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-full bg-ink text-paper text-[11px]">
+                    <span className="shrink-0 flex items-center gap-1 px-2.5 h-7 rounded-md bg-ink text-paper text-[11px]">
                       <Icon icon="lucide:search" className="text-[10px]" />
                       &quot;{activeQuery}&quot;
                     </span>
                   )}
 
                   {!hasActiveFilters && (
-                    <button className="shrink-0 text-[11px] text-teal-deep font-medium hover:underline px-2 h-7 inline-flex items-center gap-1">
-                      <Icon icon="lucide:plus" className="text-[12px]" />
-                      Add filter
+                    <button
+                      type="button"
+                      onClick={() => setMobileFiltersOpen(true)}
+                      className="shrink-0 text-[11px] text-teal-deep font-medium hover:underline px-2 h-7 inline-flex items-center gap-1 lg:hidden"
+                    >
+                      <Icon icon="lucide:sliders-horizontal" className="text-[12px]" />
+                      Open filters
                     </button>
                   )}
 
                   <div className="ml-auto shrink-0 flex items-center gap-2 pl-3 border-l border-ink/10 text-ink/55">
                     <span className="mono-stat text-ink/45">N</span>
-                    <span className="font-semibold text-ink-soft">{total.toLocaleString()}</span>
-                    <span>papers synthesised</span>
+                    <span className="font-semibold text-ink-soft">{loading ? '—' : total.toLocaleString()}</span>
+                    <span>{activeQuery ? 'ranked matches' : 'papers synthesised'}</span>
                   </div>
                 </div>
               </div>
@@ -410,16 +451,23 @@ function SearchPageInner() {
         {/* ═══════════════════════════════════════════════════════════════
          *  RESULTS WORKSPACE
          * ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative max-w-[1380px] mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+        <section className="relative max-w-[1380px] mx-auto px-4 sm:px-6 py-7 md:py-8 grid grid-cols-12 gap-8">
           {/* LEFT: Filters sidebar */}
-          <aside className="col-span-12 lg:col-span-3 fade-in d-2">
-            <div className="lg:sticky lg:top-[88px] lg:max-h-[calc(100vh-104px)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:[scrollbar-gutter:stable]">
+          <aside className={`${mobileFiltersOpen ? 'fixed inset-0 z-50 bg-ink/35' : 'hidden'} lg:static lg:z-auto lg:col-span-3 lg:block lg:bg-transparent fade-in d-2`}>
+            <button
+              type="button"
+              aria-label="Close filters"
+              onClick={() => setMobileFiltersOpen(false)}
+              className="absolute inset-0 cursor-default lg:hidden"
+            />
+            <div className="relative ml-auto h-full w-[min(360px,calc(100vw-28px))] overflow-y-auto bg-paper p-4 shadow-2xl lg:sticky lg:top-[88px] lg:ml-0 lg:h-auto lg:w-auto lg:max-h-[calc(100vh-104px)] lg:overflow-y-auto lg:bg-transparent lg:p-0 lg:pr-2 lg:shadow-none lg:overscroll-contain lg:[scrollbar-gutter:stable]">
               <div className="flex items-center justify-between mb-4 lg:sticky lg:top-0 lg:z-10 lg:bg-paper lg:py-1">
                 <h2 className="serif text-[18px] tracking-tight flex items-center gap-2">
                   <Icon icon="lucide:sliders-horizontal" className="text-[16px] text-teal-deep" />
-                  Filters
+                  Browse filters
                 </h2>
-                {hasActiveFilters && (
+                <div className="flex items-center gap-3">
+                {hasBrowseFilters && (
                   <button
                     onClick={handleResetAll}
                     className="text-[10.5px] mono-stat text-teal-deep hover:underline"
@@ -427,39 +475,61 @@ function SearchPageInner() {
                     RESET ALL
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setMobileFiltersOpen(false)}
+                  aria-label="Close filters"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink/12 text-ink-soft lg:hidden"
+                >
+                  <Icon icon="lucide:x" className="text-[16px]" />
+                </button>
+                </div>
               </div>
+
+              {activeQuery && (
+                <div className="mb-4 rounded-lg border border-amber-ink/25 bg-amber-bg/70 p-3 text-[12px] leading-[1.5] text-ink-soft">
+                  Search results are ranked semantically. Clear the search query to browse by specialty,
+                  study type, or evidence signal.
+                </div>
+              )}
 
               {/* Specialty — options and counts come from the API. */}
               <FacetFilter
+                name="specialty"
                 icon="lucide:stethoscope"
                 title="Specialty"
                 facets={specialtyFacets}
-                selected={selectedSpecialties}
-                onToggle={toggleSpecialty}
+                selected={selectedSpecialty}
+                onSelect={selectSpecialty}
                 format={prettify}
+                disabled={Boolean(activeQuery)}
               />
 
               <FacetFilter
+                name="study-type"
                 icon="lucide:file-text"
                 title="Study type"
                 facets={studyTypeFacets}
-                selected={selectedStudyTypes}
-                onToggle={toggleStudyType}
+                selected={selectedStudyType}
+                onSelect={selectStudyType}
                 format={prettify}
+                disabled={Boolean(activeQuery)}
               />
 
               <FacetFilter
+                name="evidence-grade"
                 icon="lucide:award"
                 title="Single-paper evidence signal"
                 facets={EVIDENCE_LEVELS}
-                selected={selectedEvidenceGrades}
-                onToggle={toggleEvidenceGrade}
+                selected={selectedEvidenceGrade}
+                onSelect={selectEvidenceGrade}
                 format={(v) => EVIDENCE_LABELS[v] ?? prettify(v)}
                 showCounts={false}
+                disabled={Boolean(activeQuery)}
               />
 
               {/* Per page */}
-              <div className="bg-paper border border-ink/12 rounded-2xl overflow-hidden">
+              <div className="bg-paper border border-ink/12 rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between px-4 h-11">
                   <span className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-soft">
                     <Icon icon="lucide:list" className="text-[14px] text-teal-deep" />
@@ -488,8 +558,8 @@ function SearchPageInner() {
           {/* RIGHT: Results */}
           <div className="col-span-12 lg:col-span-9 fade-in d-3">
             {/* Results header */}
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-3">
                 <h2 className="serif text-[18px] tracking-tight">
                   {activeQuery ? `Search: "${activeQuery}"` : 'Synthesised papers'}
                   <span className="italic text-teal">.</span>
@@ -497,22 +567,38 @@ function SearchPageInner() {
                 <span className="mono-stat text-ink/45 px-2 h-6 rounded-md bg-ink/5 flex items-center">
                   {/* Ranked, not exhaustive: the API caps semantic results, so "200 results"
                       for a query means "the 200 best", which "RESULTS" alone implies badly. */}
-                  {activeQuery
-                    ? `TOP ${total.toLocaleString()} BY RELEVANCE`
-                    : `${total.toLocaleString()} PAPERS`}
+                  {loading
+                    ? activeQuery ? 'SEARCHING' : 'LOADING'
+                    : activeQuery
+                      ? `TOP ${total.toLocaleString()} BY RELEVANCE`
+                      : `${total.toLocaleString()} PAPERS`}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-[11.5px]">
-                <span className="mono-stat text-ink/45">SORT</span>
-                <select
-                  value={sort}
-                  onChange={(e) => handleSortChange(e.target.value as 'id' | '-id')}
-                  className="h-8 pl-2.5 pr-8 rounded-lg bg-paper border border-ink/12 text-[11.5px] text-ink-soft appearance-none cursor-pointer focus:border-teal-deep focus:outline-none"
+                <button
+                  type="button"
+                  onClick={() => setMobileFiltersOpen(true)}
+                  className="inline-flex h-9 items-center gap-2 rounded-md border border-ink/12 bg-paper px-3 font-medium text-ink-soft lg:hidden"
                 >
-                  {SORT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                  <Icon icon="lucide:sliders-horizontal" className="text-[14px] text-teal-deep" />
+                  Filters
+                  {hasBrowseFilters && <span className="h-1.5 w-1.5 rounded-full bg-teal-deep" />}
+                </button>
+                {!activeQuery && (
+                  <>
+                    <span className="mono-stat text-ink/45">SORT</span>
+                    <select
+                      value={sort}
+                      onChange={(e) => handleSortChange(e.target.value as 'id' | '-id')}
+                      aria-label="Sort papers"
+                      className="h-9 rounded-md border border-ink/12 bg-paper pl-2.5 pr-8 text-[11.5px] text-ink-soft focus:border-teal-deep focus:outline-none"
+                    >
+                      {SORT_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
               </div>
             </div>
 
@@ -565,27 +651,41 @@ function SearchPageInner() {
                   <Link
                     key={paper.id}
                     href={`/paper/${paper.id}`}
-                    className="group block rounded-2xl border border-ink/10 bg-paper hover:border-teal-deep/30 hover:shadow-[0_16px_40px_-16px_rgba(11,29,42,0.2)] transition-all duration-300 overflow-hidden"
+                    className="group block overflow-hidden rounded-lg border border-ink/10 bg-paper transition-all duration-200 hover:border-teal-deep/30 hover:shadow-[0_14px_36px_-22px_rgba(11,29,42,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep"
                   >
                     <div className="p-5 md:p-6">
                       {/* Meta row */}
                       <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <span className="px-2 h-6 rounded-md bg-ink text-paper text-[9.5px] mono-stat font-semibold flex items-center">
+                        <span className="flex min-h-6 items-center rounded-md bg-ink px-2 text-[10px] font-semibold uppercase tracking-wide text-paper">
                           {formatStudyType(paper.study_type)}
                         </span>
-                        <span className="text-[10px] mono-stat text-ink/45">{paper.id}</span>
-                        <span className="text-ink/15">·</span>
-                        <span className="text-[10.5px] text-ink/55">{paper.processing_time?.toFixed(1) ?? '—'}s processing</span>
+                        {paper.overall_evidence_level && (
+                          <span className="flex min-h-6 items-center rounded-md border border-teal-deep/20 bg-teal-deep/8 px-2 text-[10.5px] font-medium text-teal-deep">
+                            {prettify(paper.overall_evidence_level)} evidence signal
+                          </span>
+                        )}
+                        {paper.sample_size && (
+                          <span className="flex min-h-6 items-center rounded-md border border-ink/12 px-2 text-[10.5px] text-ink/60">
+                            {paper.sample_size}
+                          </span>
+                        )}
                         {paper.has_errors && (
                           <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-red-500">
                             <Icon icon="lucide:alert-triangle" className="text-[12px]" />
                             PROCESSING ERRORS
                           </span>
                         )}
-                        <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-ink/40">
+                        {paper.has_summary && paper.tldr ? (
+                        <span className="ml-auto flex items-center gap-1 text-[10px] font-medium text-ink/45">
                           <Icon icon="lucide:bot" className="text-[12px]" />
-                          AI SUMMARY
+                          AI summary available
                         </span>
+                        ) : !paper.has_errors ? (
+                          <span className="ml-auto flex items-center gap-1 text-[10px] font-medium text-ink/45">
+                            <Icon icon="lucide:file-text" className="text-[12px]" />
+                            Source record
+                          </span>
+                        ) : null}
                       </div>
 
                       {/* Title */}
@@ -594,23 +694,35 @@ function SearchPageInner() {
                       </h3>
 
                       {/* Summary */}
-                      <p className="text-[13px] text-ink-soft leading-[1.55] mb-4 line-clamp-2">
-                        {paper.tldr}
-                      </p>
+                      {paper.tldr ? (
+                        <p className="text-[13.5px] text-ink-soft leading-[1.6] mb-4 line-clamp-2">
+                          {paper.tldr}
+                        </p>
+                      ) : (
+                        <p className="mb-4 text-[12.5px] leading-[1.55] text-ink/50">
+                          No AI summary is available yet. Open the record to inspect the source metadata
+                          and any available full text.
+                        </p>
+                      )}
 
                       {/* Tags + Footer */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        {paper.specialty_tags.map((tag) => (
+                      <div className="flex flex-wrap items-center gap-2 border-t border-ink/8 pt-4">
+                        {paper.journal && (
+                          <span className="mr-1 max-w-full truncate text-[11.5px] italic text-ink/50 md:max-w-[46%]">
+                            {paper.journal}
+                          </span>
+                        )}
+                        {paper.specialty_tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag}
-                            className="px-2 h-6 rounded-md bg-teal-deep/8 text-teal-deep text-[10.5px] mono-stat font-medium flex items-center"
+                            className="flex min-h-6 items-center rounded-md bg-teal-deep/8 px-2 text-[10.5px] font-medium text-teal-deep"
                           >
-                            {tag}
+                            {prettify(tag)}
                           </span>
                         ))}
-                        <div className="ml-auto flex items-center gap-1.5 text-[11px] text-ink/45">
+                        <div className="ml-auto flex items-center gap-1.5 text-[11.5px] font-semibold text-teal-deep">
+                          <span>Review evidence</span>
                           <Icon icon="lucide:arrow-right" className="text-[12px] group-hover:text-teal-deep transition-colors" />
-                          <span className="group-hover:text-teal-deep transition-colors">View details</span>
                         </div>
                       </div>
                     </div>

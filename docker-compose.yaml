@@ -33,7 +33,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # MedIntel FastAPI backend
+  # CiteRounds FastAPI backend
   backend:
     build:
       context: ./backend

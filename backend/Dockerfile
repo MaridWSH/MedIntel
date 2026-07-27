@@ -1,4 +1,4 @@
-# Dockerfile for the MedIntel FastAPI backend
+# Dockerfile for the CiteRounds FastAPI backend
 FROM python:3.12-slim
 
 WORKDIR /app

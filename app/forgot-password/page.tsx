@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
           <div className="fade-in flex items-center justify-between mb-8">
             <div className="flex items-center gap-2 text-[11.5px] text-ink/55">
               <Link href="/" className="hover:text-teal-deep">
-                Claritas
+                CiteRounds
               </Link>
               <Icon icon="lucide:chevron-right" className="text-[12px] text-ink/30" />
               <span className="text-teal-deep font-medium">Reset password</span>

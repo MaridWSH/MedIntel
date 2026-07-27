@@ -2,18 +2,18 @@ import Link from 'next/link';
 
 export default function SiteFooter() {
   return (
-    <footer className="relative py-16 md:py-20 border-t border-ink/10 bg-paper-warm">
-      <div className="max-w-[1380px] mx-auto px-6">
-        <div className="grid grid-cols-12 gap-10 md:gap-12 mb-14">
+    <footer className="relative py-12 sm:py-16 md:py-20 border-t border-ink/10 bg-paper-warm">
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-12 md:gap-12 mb-14">
           {/* Logo + tagline */}
-          <div className="col-span-12 md:col-span-4">
+          <div className="col-span-2 md:col-span-4">
             <Link href="/" className="flex items-center gap-2.5 mb-5">
               <div className="relative w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden bg-ink">
                 <div className="absolute inset-0 bg-gradient-to-br from-teal-bright/30 via-transparent to-transparent" />
                 <span className="text-paper text-xl font-medium tracking-tight relative serif">C</span>
                 <div className="absolute w-1 h-1 rounded-full bottom-1.5 right-1.5 bg-teal-bright" />
               </div>
-              <span className="text-xl font-medium tracking-tight serif text-ink">Claritas</span>
+              <span className="text-xl font-medium tracking-tight serif text-ink">CiteRounds</span>
             </Link>
             <p className="text-[15px] leading-[1.55] max-w-[300px] mb-6 serif-body text-ink-soft">
               AI-assisted summaries and source-linked tools for reviewing open-access research.
@@ -22,7 +22,7 @@ export default function SiteFooter() {
           </div>
 
           {/* Product */}
-          <div className="col-span-6 md:col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">PRODUCT</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
               <li><Link href="/search" className="hover:text-teal-deep transition-colors">Search &amp; discovery</Link></li>
@@ -34,7 +34,7 @@ export default function SiteFooter() {
           </div>
 
           {/* Evidence */}
-          <div className="col-span-6 md:col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">EVIDENCE</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
               <li><Link href="/#methodology" className="hover:text-teal-deep transition-colors">Methodology</Link></li>
@@ -46,7 +46,7 @@ export default function SiteFooter() {
         
 
           {/* Institutional */}
-          <div className="col-span-6 md:col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">INSTITUTIONAL</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
               <li><span>Institutional pilots are planned</span></li>
@@ -55,7 +55,7 @@ export default function SiteFooter() {
           </div>
 
           {/* Company */}
-          <div className="col-span-6 md:col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <div className="text-[10px] mb-4 mono-stat text-ink/45">COMPANY</div>
             <ul className="space-y-2.5 text-[13px] text-ink-soft">
               <li><span>Closed beta</span></li>
@@ -70,7 +70,7 @@ export default function SiteFooter() {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-ink/10 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] mono-stat text-ink/55">
           <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
-            <span>&copy; 2026 CLARITAS</span>
+            <span>&copy; 2026 CITEROUNDS</span>
             <Link href="/privacy" className="hover:text-teal-deep transition-colors">PRIVACY</Link>
             <Link href="/terms" className="hover:text-teal-deep transition-colors">TERMS</Link>
           </div>

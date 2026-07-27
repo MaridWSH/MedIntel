@@ -108,7 +108,7 @@ def validate_cookie_request_origin(request: Request) -> None:
             "MEDINTEL_ALLOWED_ORIGINS",
             "http://localhost:3000,http://localhost:3001,"
             "http://127.0.0.1:3000,http://127.0.0.1:3001,"
-            "https://med.aidashnews.tech",
+            "https://citerounds.com",
         ).split(",")
         if value.strip()
     }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import Icon from '../components/ui/Icon';
 import TopUtilityStrip from '../components/site/TopUtilityStrip';
 import SiteHeader from '../components/site/SiteHeader';
@@ -6,7 +7,14 @@ import SiteFooter from '../components/site/SiteFooter';
 import HeroSearch from '../components/site/HeroSearch';
 import type { Paper, PaperListResponse } from '../lib/papers/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
+
+export const metadata: Metadata = {
+  title: 'AI-assisted medical literature review',
+  description:
+    'CiteRounds helps clinicians and researchers understand open-access medical papers with structured summaries, source-linked findings, and a visible fidelity self-check.',
+  alternates: { canonical: '/' },
+};
 
 // ── Evidence Engine agent data ──────────────────────────────────────────
 const AGENTS = [
@@ -35,7 +43,7 @@ const METRICS = [
 ];
 
 /* ── Fetch papers directly from API ── */
-async function getRecentPapers(): Promise<Paper[]> {
+async function getRecentPapers(): Promise<PaperListResponse | null> {
   try {
     const res = await fetch(`${API_BASE}/papers?page=1&per_page=6&sort=id`, {
       next: { revalidate: 300 },
@@ -45,27 +53,26 @@ async function getRecentPapers(): Promise<Paper[]> {
     if (!res.ok) {
       const text = await res.text();
       console.error('[HOME] API error:', res.status, text.slice(0, 200));
-      return [];
+      return null;
     }
 
     const data: PaperListResponse = await res.json();
-    return data.items || [];
+    return data;
   } catch (err) {
     console.error('[HOME] Fetch error:', err);
-    return [];
+    return null;
   }
 }
 
 export default async function Home() {
   // Fetch papers from API for the home page
   let recentPapers: Paper[] = [];
-  let firstPaperId = '';
+  let corpusTotal = 0;
 
   try {
-    recentPapers = await getRecentPapers();
-    if (recentPapers.length > 0) {
-      firstPaperId = recentPapers[0].id;
-    }
+    const paperData = await getRecentPapers();
+    recentPapers = paperData?.items || [];
+    corpusTotal = paperData?.total || 0;
   } catch (err) {
     console.error('[HOME] Error:', err);
     recentPapers = [];
@@ -78,96 +85,151 @@ export default async function Home() {
       <main className="relative overflow-x-hidden">
 
         {/* ═══════════════════════════════════════════════════════════════════
-         *  § 01 · HERO — How it works
+         *  § 01 · PRODUCT-FIRST SEARCH
          * ═════════════════════════════════════════════════════════════════ */}
-        <section id="how-it-works" className="relative pt-12 lg:pt-16 pb-20">
-          {/* Atmospheric */}
-          <div className="absolute inset-0 pointer-events-none opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(11,29,42,1) 1px, transparent 1px), linear-gradient(90deg, rgba(11,29,42,1) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
-          <div className="absolute inset-x-0 top-0 h-[640px] pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 70% at 50% 35%, rgba(20,184,166,0.18) 0%, rgba(20,184,166,0.06) 40%, rgba(246,243,234,0) 70%)' }} />
+        <section id="how-it-works" className="relative border-b border-ink/10 bg-paper-warm/35">
+          <div className="absolute inset-0 pointer-events-none opacity-[0.035]" style={{ backgroundImage: 'linear-gradient(rgba(11,29,42,1) 1px, transparent 1px), linear-gradient(90deg, rgba(11,29,42,1) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+          <div className="max-w-[1380px] mx-auto px-4 sm:px-6 py-10 md:py-14 lg:py-16 relative">
+            <div className="grid lg:grid-cols-[minmax(0,1.04fr)_minmax(400px,0.96fr)] gap-8 lg:gap-14 items-center">
+              <div className="fade-in min-w-0">
+                <div className="inline-flex items-center gap-2 text-[11px] mono-stat text-teal-deep mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-bright" />
+                  OPEN-ACCESS EVIDENCE SEARCH
+                </div>
 
-          <div className="max-w-[1380px] mx-auto px-6 relative">
-            {/* Live badge */}
-            <div className="fade-in flex justify-center mb-9">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-ink/12 bg-paper/80 backdrop-blur-sm">
-                <span className="flex items-center gap-1.5 text-teal">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-bright animate-pulse" />
-                  <span className="mono-stat">Live</span>
-                </span>
-                <span className="text-ink/30">&mdash;</span>
-                <span className="text-[11.5px] text-ink-soft">Evidence Engine v0.9 &middot; 4 AI agents &middot; closed beta</span>
-              </div>
-            </div>
+                <h1 className="display text-[44px] sm:text-[52px] lg:text-[64px] tracking-[-0.03em] max-w-[780px]">
+                  Find the paper.
+                  <br />
+                  See the evidence.
+                  <br />
+                  <span className="italic text-teal">Check the source.</span>
+                </h1>
 
-            {/* Headline */}
-            <div className="fade-in d-1 text-center max-w-[1100px] mx-auto">
-              <h1 className="display text-[52px] md:text-[72px] lg:text-[96px] tracking-[-0.03em] leading-[0.96]">
-                Medical literature,
-                <br />
-                finally <span className="italic text-teal">understood</span>.
-              </h1>
-            </div>
+                <p className="mt-6 text-[16px] sm:text-[17px] text-ink-soft leading-[1.65] max-w-[660px]">
+                  Search the available PubMed Central corpus, review a structured AI summary, and move
+                  straight to the original paper when a claim matters.
+                </p>
 
-            {/* Subhead */}
-            <div className="fade-in d-2 mt-7 text-center max-w-[620px] mx-auto">
-              <p className="serif-body text-[17px] md:text-[19px] text-ink-soft leading-[1.5]">
-                Six specialised agents read the paper and return a structured summary, a breakdown of the
-                findings, a shareable card, and a clinical bottom line &mdash; in about thirty seconds.
-              </p>
-            </div>
-
-            {/* Search bar */}
-            <div className="fade-in d-3 mt-10 max-w-[760px] mx-auto">
-              <div className="relative">
-                <div className="absolute -inset-1.5 bg-gradient-to-r from-teal-bright/30 via-teal-deep/20 to-teal-bright/20 blur-2xl opacity-50 rounded-[26px]" />
-                <div className="relative bg-paper border border-ink/15 rounded-[22px] shadow-[0_30px_70px_-30px_rgba(11,29,42,0.35),0_2px_8px_-4px_rgba(11,29,42,0.1)] overflow-hidden">
+                <div className="mt-8 max-w-[760px]">
                   <HeroSearch />
-                  {/* Filter rail */}
-                  <div className="border-t border-ink/8 px-4 py-2.5 flex items-center gap-2 text-[11.5px] bg-paper-warm/60 overflow-x-auto">
-                    {['Cardiology', 'Systematic review', '2022 — 2024'].map((f) => (
-                      <span key={f} className="flex items-center gap-1 px-2.5 h-7 rounded-full border border-ink/12 text-ink-soft shrink-0 cursor-pointer">
-                        {f}
-                        <Icon icon="lucide:chevron-down" className="text-[11px] text-ink/40" />
-                      </span>
-                    ))}
-                    <span className="flex items-center gap-1 px-2.5 h-7 rounded-full bg-ink text-paper shrink-0">
-                      Level I &ge;
-                      <Icon icon="lucide:chevron-down" className="text-[11px] text-paper/60" />
-                    </span>
-                    <div className="ml-auto hidden md:flex items-center gap-1.5 text-ink/55 shrink-0">
-                      <span className="mono-stat text-ink/45">N</span>
-                      <span className="font-medium text-ink-soft">1,847</span>
-                      <span>papers</span>
-                    </div>
-                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-[12px]">
+                  <span className="text-ink/50 mr-1">Try:</span>
+                  {[
+                    'heart failure rehabilitation',
+                    'GLP-1 cardiovascular outcomes',
+                    'sepsis fluid resuscitation',
+                  ].map((query) => (
+                    <Link
+                      key={query}
+                      href={`/search?q=${encodeURIComponent(query)}`}
+                      className="inline-flex min-h-8 items-center rounded-md border border-ink/12 bg-paper px-2.5 text-ink-soft transition-colors hover:border-teal-deep/35 hover:text-teal-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep"
+                    >
+                      {query}
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-[12px] text-ink/60">
+                  <span className="flex items-center gap-2">
+                    <Icon icon="lucide:database" className="text-[14px] text-teal-deep" />
+                    {corpusTotal > 0 ? `${corpusTotal.toLocaleString()} papers in the current catalogue` : 'Live paper catalogue'}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Icon icon="lucide:external-link" className="text-[14px] text-teal-deep" />
+                    Source link on every paper
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Icon icon="lucide:bot" className="text-[14px] text-teal-deep" />
+                    AI-generated, not clinician-reviewed
+                  </span>
                 </div>
               </div>
+
+              <div className="fade-in d-2 min-w-0">
+                {recentPapers[0] ? (
+                  <article className="overflow-hidden rounded-lg border border-ink/12 bg-paper shadow-[0_24px_70px_-34px_rgba(11,29,42,0.35)]">
+                    <div className="flex items-center justify-between gap-4 border-b border-ink/10 bg-ink px-4 py-3 text-paper sm:px-5">
+                      <div className="flex items-center gap-2 text-[11px] mono-stat">
+                        <Icon icon="lucide:scan-text" className="text-[14px] text-teal-bright" />
+                        LIVE SYNTHESIS PREVIEW
+                      </div>
+                      <span className="text-[10px] mono text-paper/50">{recentPapers[0].id}</span>
+                    </div>
+
+                    <div className="p-5 sm:p-6">
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink/55">
+                        <span className="rounded-md bg-teal-deep/10 px-2 py-1 font-semibold text-teal-deep">
+                          {recentPapers[0].study_type.replace(/[_-]/g, ' ')}
+                        </span>
+                        {recentPapers[0].overall_evidence_level && (
+                          <span className="rounded-md border border-ink/12 px-2 py-1">
+                            {recentPapers[0].overall_evidence_level} evidence signal
+                          </span>
+                        )}
+                        {recentPapers[0].sample_size && (
+                          <span className="rounded-md border border-ink/12 px-2 py-1">{recentPapers[0].sample_size}</span>
+                        )}
+                      </div>
+
+                      <h2 className="serif mt-5 text-[24px] leading-[1.25] tracking-tight sm:text-[28px]">
+                        {recentPapers[0].title}
+                      </h2>
+
+                      {recentPapers[0].journal && (
+                        <p className="mt-2 text-[12px] italic text-ink/50">{recentPapers[0].journal}</p>
+                      )}
+
+                      <div className="mt-6 border-l-2 border-teal-deep pl-4">
+                        <div className="mb-2 text-[10.5px] mono-stat text-ink/45">AI-GENERATED SUMMARY</div>
+                        <p className="line-clamp-3 text-[13.5px] leading-[1.65] text-ink-soft">
+                          {recentPapers[0].tldr}
+                        </p>
+                      </div>
+
+                      <div className="mt-6 flex flex-col gap-3 border-t border-ink/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="flex items-center gap-2 text-[11.5px] text-ink/55">
+                          <Icon icon="lucide:shield-alert" className="text-[14px] text-amber-ink" />
+                          Check important claims against the source
+                        </p>
+                        <Link
+                          href={`/paper/${recentPapers[0].id}`}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink px-4 text-[12.5px] font-semibold text-paper transition-colors hover:bg-teal-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep focus-visible:ring-offset-2"
+                        >
+                          Review this paper
+                          <Icon icon="lucide:arrow-right" className="text-[14px] text-teal-bright" />
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                ) : (
+                  <div className="rounded-lg border border-ink/12 bg-paper p-6">
+                    <Icon icon="lucide:file-search" className="text-[26px] text-teal-deep" />
+                    <h2 className="serif mt-5 text-[26px] tracking-tight">Search, assess, verify.</h2>
+                    <p className="mt-3 text-[13.5px] leading-[1.6] text-ink-soft">
+                      Search results lead into a structured summary, full source text, fidelity status,
+                      concept map, and citation export.
+                    </p>
+                    <Link href="/search" className="mt-6 inline-flex items-center gap-2 text-[12.5px] font-semibold text-teal-deep hover:underline">
+                      Browse the catalogue
+                      <Icon icon="lucide:arrow-right" className="text-[14px]" />
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Hero CTAs */}
-            <div className="fade-in d-4 mt-7 flex flex-col md:flex-row items-center justify-center gap-3">
-              <Link href="/register" className="btn-primary inline-flex items-center justify-center gap-2 px-6 h-12 bg-ink text-paper rounded-[14px] text-[14px] font-semibold w-full md:w-auto">
-                Sign up &mdash; free for physicians
-                <Icon icon="lucide:arrow-right" className="text-[15px]" />
-              </Link>
-              {firstPaperId ? (
-                <Link href={`/paper/${firstPaperId}`} className="inline-flex items-center justify-center gap-2 px-6 h-12 bg-paper border border-ink/15 text-ink rounded-[14px] text-[14px] font-semibold hover-tint w-full md:w-auto">
-                  <Icon icon="lucide:play" className="text-[14px] text-teal" />
-                  Try a paper &mdash; no signup
-                </Link>
-              ) : (
-                <Link href="/search" className="inline-flex items-center justify-center gap-2 px-6 h-12 bg-paper border border-ink/15 text-ink rounded-[14px] text-[14px] font-semibold hover-tint w-full md:w-auto">
-                  <Icon icon="lucide:play" className="text-[14px] text-teal" />
-                  Browse papers
-                </Link>
-              )}
-            </div>
-
-            <div className="fade-in d-5 mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11.5px] text-ink/55">
-              {['Free during beta', 'Every output links to its source', 'AI-generated · not clinician-reviewed'].map((t) => (
-                <span key={t} className="flex items-center gap-1.5">
-                  <Icon icon="lucide:check" className="text-teal text-[13px]" />
-                  {t}
-                </span>
+            <div className="mt-10 grid border-y border-ink/10 bg-paper/55 sm:grid-cols-3">
+              {[
+                ['01', 'Search by clinical question or topic'],
+                ['02', 'Review the structured evidence summary'],
+                ['03', 'Open the source before applying a claim'],
+              ].map(([num, label], index) => (
+                <div key={num} className={`flex items-center gap-3 px-4 py-4 sm:px-5 ${index > 0 ? 'border-t border-ink/10 sm:border-l sm:border-t-0' : ''}`}>
+                  <span className="mono text-[10px] font-semibold text-teal-deep">{num}</span>
+                  <span className="text-[12.5px] font-medium text-ink-soft">{label}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -250,7 +312,7 @@ export default async function Home() {
           <div className="max-w-[1380px] mx-auto px-6">
             {/*
               This block claimed the Egyptian Medical Syndicate and the Arab Board of
-              Health Specialisations "trust Claritas". Neither organisation has any
+              Health Specialisations "trust the product". Neither organisation has any
               relationship with this product. Naming real accreditation bodies as
               endorsers when they have not endorsed you is not marketing licence.
               Replaced with what the corpus actually is.
@@ -263,7 +325,7 @@ export default async function Home() {
                 <span className="italic text-teal">read in minutes</span>.
               </h2>
               <p className="serif-body text-[16px] md:text-[17px] text-ink-soft leading-[1.5] max-w-[620px] mx-auto">
-                Claritas is in closed beta. The corpus is open-access research from PubMed Central,
+                CiteRounds is in closed beta. The corpus is open-access research from PubMed Central,
                 summarised by AI and checked against the source &mdash; not a substitute for reading it.
               </p>
             </div>
@@ -322,8 +384,8 @@ export default async function Home() {
                         <span className="text-[10px] mono-stat text-ink/45">{paper.id}</span>
                         {!paper.has_errors && (
                           <span className="ml-auto flex items-center gap-1 text-[9.5px] mono-stat text-teal-deep">
-                            <Icon icon="lucide:badge-check" className="text-[12px]" />
-                            VERIFIED
+                            <Icon icon="lucide:bot" className="text-[12px]" />
+                            SUMMARY READY
                           </span>
                         )}
                         {paper.has_errors && (
@@ -345,7 +407,7 @@ export default async function Home() {
                           {paper.study_type.replace(/_/g, ' ')}
                         </span>
                         <span className="text-ink/15">|</span>
-                        <span className="mono-stat text-ink/45">{paper.processing_time?.toFixed(1) ?? '—'}s</span>
+                        <span className="mono-stat text-ink/45">{paper.sample_size || paper.id}</span>
                       </div>
                       <span className="mono-stat text-teal-deep">{paper.specialty_tags[0] || 'General'}</span>
                     </div>

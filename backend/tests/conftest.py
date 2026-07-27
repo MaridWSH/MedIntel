@@ -1,4 +1,4 @@
-"""pytest configuration for the MedIntel backend tests."""
+"""pytest configuration for the CiteRounds backend tests."""
 
 import os
 import sys
