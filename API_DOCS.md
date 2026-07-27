@@ -1,6 +1,6 @@
-# MedIntel API Documentation
+# CiteRounds API Documentation
 
-**Base URL:** `https://med.aidashnews.tech/api`
+**Base URL:** `https://citerounds.com/api`
 
 **Version:** 0.1.0
 
@@ -8,11 +8,11 @@
 
 ## Overview
 
-The MedIntel API provides access to 5,865+ processed clinical research papers. Papers are extracted from PubMed Central (PMC) and enriched via an LLM pipeline that generates summaries, key findings, mind maps, and verification scores.
+The CiteRounds API exposes open-access PubMed Central paper metadata and versioned AI pipeline outputs. The audited local catalogue contains 7,184 rows, of which 3,419 have an earlier-generation summary. AI outputs are not clinician-reviewed and must be checked against the source.
 
-**Interactive docs (Swagger UI):** https://med.aidashnews.tech/docs
+**Interactive docs (Swagger UI):** https://citerounds.com/docs
 
-**Alternative docs (ReDoc):** https://med.aidashnews.tech/redoc
+**Alternative docs (ReDoc):** https://citerounds.com/redoc
 
 ---
 
@@ -136,7 +136,7 @@ GET /api/papers?page=1&per_page=20&study_type=RCT&sort=id
       "sample_size": "N=30"
     }
   ],
-  "total": 5865,
+  "total": 3419,
   "page": 1,
   "per_page": 20,
   "pages": 294
@@ -253,18 +253,18 @@ GET /api/papers/search?q=welfare&page=1&per_page=20
 
 ## Advanced Search (Semantic & Keyword)
 
-In addition to the standard text search, MedIntel provides two advanced search endpoints powered by Qdrant vector database and sentence-transformers.
+In addition to the standard text search, CiteRounds provides two advanced search endpoints powered by Qdrant vector database and sentence-transformers.
 
-**Base URL:** `https://med.aidashnews.tech`
+**Base URL:** `https://citerounds.com`
 
 ### Semantic Search
 
 AI-powered search that understands meaning and context. Finds papers with semantically related concepts, even if the exact words don't match.
 
-**How it works:** Converts your query into a 384-dimensional embedding vector using the `all-MiniLM-L6-v2` model, then finds papers with the most similar embeddings using cosine similarity.
+**How it works:** Converts your query into a 1,024-dimensional embedding vector using `BAAI/bge-m3`, then finds papers with the most similar embeddings using cosine similarity.
 
 ```http
-GET /search?query=vitamin+D+deficiency+health+effects&limit=10
+GET /semantic-search?query=vitamin+D+deficiency+health+effects&limit=10
 ```
 
 **Query Parameters:**
@@ -303,7 +303,7 @@ GET /search?query=vitamin+D+deficiency+health+effects&limit=10
 
 **Example:**
 ```bash
-curl "https://med.aidashnews.tech/search?query=obesity+treatment+methods&limit=5"
+curl "https://citerounds.com/semantic-search?query=obesity+treatment+methods&limit=5"
 ```
 
 This will find papers about:
@@ -359,7 +359,7 @@ GET /keyword-search?query=vitamin+D+deficiency&limit=10
 
 **Example:**
 ```bash
-curl "https://med.aidashnews.tech/keyword-search?query=vitamin+D&limit=5"
+curl "https://citerounds.com/keyword-search?query=vitamin+D&limit=5"
 ```
 
 This will only find papers containing the exact words "vitamin" AND "D".
@@ -390,7 +390,7 @@ This will only find papers containing the exact words "vitamin" AND "D".
 ### Implementation Details
 
 - **Vector Database:** Qdrant v1.18.2 running on Docker
-- **Embedding Model:** `all-MiniLM-L6-v2` (384 dimensions)
+- **Embedding Model:** `BAAI/bge-m3` (1,024 dimensions)
 - **Similarity Metric:** Cosine similarity
 - **Indexed Papers:** 1,000+ papers (500 nutrition + 500 ophthalmology)
 - **Service:** FastAPI running on port 8081
@@ -405,7 +405,7 @@ python index_papers.py --limit 1000 --start-from 1000
 
 ### Ingest Papers (Admin)
 
-Trigger ingestion of pipeline JSON results into the database. Requires authentication.
+Trigger insertion or update of pipeline JSON results in the database. Requires authentication and an email listed in `MEDINTEL_ADMIN_EMAILS`. Files are accepted only when they match `MEDINTEL_PIPELINE_VERSION`, contain valid source/prompt/model provenance, report no errors, and pass verification. Rejected files increment `skipped`; an accepted regeneration replaces the existing paper's AI-derived fields.
 
 ```http
 POST /api/papers/ingest
@@ -431,11 +431,42 @@ Content-Type: application/json
   "ingested": 95,
   "skipped": 5,
   "errors": 0,
-  "total_in_db": 5865
+  "total_in_db": 7184
 }
 ```
 
 ---
+
+## Beta Feedback Forms
+
+The two public beta forms do not require an account. Submissions are limited to 10 per IP per form per hour, validate browser origins, and must not contain patient-identifiable or confidential information.
+
+### Submit Research Workflow Survey
+
+```http
+POST /api/feedback/research-methods
+Content-Type: application/json
+```
+
+Stores answers about professional role, research sources, papers normally read, time-consuming review tasks, search problems, and willingness to rely on source-linked AI summaries.
+
+### Submit Product Feedback
+
+```http
+POST /api/feedback/product
+Content-Type: application/json
+```
+
+Stores 1–5 ratings, features used, problems, improvement ideas, feature requests, recommendation intent, and an optional follow-up email.
+
+### Read Responses (Admin)
+
+```http
+GET /api/feedback/research-methods?limit=100
+GET /api/feedback/product?limit=100
+```
+
+Both retrieval endpoints require authentication with an email listed in `MEDINTEL_ADMIN_EMAILS`.
 
 ## Health Check
 
@@ -447,7 +478,7 @@ GET /api/health
 ```json
 {
   "status": "ok",
-  "papers_count": 5865
+  "papers_count": 7184
 }
 ```
 
@@ -486,7 +517,7 @@ All errors follow this format:
 // app/papers/page.tsx
 async function getPapers(page: number = 1, perPage: number = 20) {
   const res = await fetch(
-    `https://med.aidashnews.tech/api/papers?page=${page}&per_page=${perPage}`,
+    `https://citerounds.com/api/papers?page=${page}&per_page=${perPage}`,
     { next: { revalidate: 60 } } // Revalidate every 60s
   );
   if (!res.ok) throw new Error('Failed to fetch papers');
@@ -530,7 +561,7 @@ export default async function SearchPage({
 
   if (query) {
     const res = await fetch(
-      `https://med.aidashnews.tech/api/papers/search?q=${encodeURIComponent(query)}`,
+      `https://citerounds.com/api/papers/search?q=${encodeURIComponent(query)}`,
       { next: { revalidate: 60 } }
     );
     data = await res.json();
@@ -562,7 +593,7 @@ export default async function SearchPage({
 **Login and fetch with token:**
 ```typescript
 // lib/api.ts
-const API_BASE = 'https://med.aidashnews.tech/api';
+const API_BASE = 'https://citerounds.com/api';
 
 export async function login(email: string, password: string) {
   const res = await fetch(`${API_BASE}/auth/login`, {
@@ -598,33 +629,33 @@ export async function getPapers(page: number = 1) {
 
 ```bash
 # Health check
-curl https://med.aidashnews.tech/api/health
+curl https://citerounds.com/api/health
 
 # List papers (first page)
-curl "https://med.aidashnews.tech/api/papers?page=1&per_page=10"
+curl "https://citerounds.com/api/papers?page=1&per_page=10"
 
 # Filter by study type
-curl "https://med.aidashnews.tech/api/papers?study_type=RCT&per_page=5"
+curl "https://citerounds.com/api/papers?study_type=RCT&per_page=5"
 
 # Search
-curl "https://med.aidashnews.tech/api/papers/search?q=diabetes&per_page=5"
+curl "https://citerounds.com/api/papers/search?q=diabetes&per_page=5"
 
 # Get paper detail
-curl "https://med.aidashnews.tech/api/papers/PMC10000089"
+curl "https://citerounds.com/api/papers/PMC10000089"
 
 # Register
-curl -X POST https://med.aidashnews.tech/api/auth/register \
+curl -X POST https://citerounds.com/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","name":"Test User","password":"pass123"}'
 
 # Login and save token
-TOKEN=$(curl -s -X POST https://med.aidashnews.tech/api/auth/login \
+TOKEN=$(curl -s -X POST https://citerounds.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"pass123"}' \
   | jq -r '.access_token')
 
 # Use token
-curl -H "Authorization: Bearer $TOKEN" https://med.aidashnews.tech/api/auth/me
+curl -H "Authorization: Bearer $TOKEN" https://citerounds.com/api/auth/me
 ```
 
 ---
@@ -714,7 +745,7 @@ interface Verification {
 
 ## Rate Limiting
 
-Currently no rate limiting. For production use, consider implementing rate limiting at the Cloudflare level or via nginx.
+Authentication and survey submissions have a process-local per-IP limiter. This protects a single MVP instance, but production with multiple API workers or hosts should enforce shared limits at Cloudflare, nginx, an API gateway, or Redis.
 
 ---
 
@@ -742,9 +773,9 @@ app.add_middleware(
 
 - **Backend:** FastAPI running as systemd service (`medintel-backend.service`) on port 8001
 - **Database:** SQLite at `/root/MedIntel/backend/medintel.db`
-- **Reverse Proxy:** Docker nginx (`kwamelrent_nginx`) proxies `med.aidashnews.tech` to port 8001
+- **Reverse Proxy:** Docker nginx (`kwamelrent_nginx`) proxies `citerounds.com` to port 8001
 - **SSL:** Terminated at Cloudflare edge (domain is proxied through Cloudflare)
-- **Papers:** 5,865 papers ingested from `/root/papers/pipeline_outputs/results/`
+- **Papers:** 7,184 catalogue rows locally; 3,419 contain an earlier-generation summary
 
 ### Managing the Backend
 
@@ -767,6 +798,6 @@ python3 -m backend.seed
 ## Support
 
 For issues or questions, check:
-- Swagger UI: https://med.aidashnews.tech/docs
-- ReDoc: https://med.aidashnews.tech/redoc
+- Swagger UI: https://citerounds.com/docs
+- ReDoc: https://citerounds.com/redoc
 - Backend logs: `journalctl -u medintel-backend -f`

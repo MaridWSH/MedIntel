@@ -101,7 +101,7 @@ function CategoryCard({ node }: { node: MindMapNode }) {
 
 export default function MindMapPane({ paper }: { paper: Paper }) {
   const [copied, setCopied] = useState(false);
-  const nodes = paper.mind_map?.nodes ?? [];
+  const nodes = useMemo(() => paper.mind_map?.nodes ?? [], [paper.mind_map?.nodes]);
 
   // Which node types this paper actually uses — the legend shouldn't advertise
   // categories that aren't on screen.

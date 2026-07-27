@@ -1,4 +1,4 @@
-"""MedIntel Semantic Search services.
+"""CiteRounds Semantic Search services.
 
 This package provides three service modules. Import directly to avoid circular
 dependencies:

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { listPapers } from '../../lib/papers';
 import TopUtilityStrip from '../../components/site/TopUtilityStrip';
 import SiteHeader from '../../components/site/SiteHeader';
@@ -10,6 +11,13 @@ import SiteFooter from '../../components/site/SiteFooter';
  * (7k+ papers, ~72 sequential requests) just to render a list. Fetch one page.
  */
 const PER_PAGE = 50;
+
+export const metadata: Metadata = {
+  title: 'Browse open-access medical papers',
+  description:
+    'Browse the CiteRounds catalogue of open-access medical papers and open a structured, source-linked reading view.',
+  alternates: { canonical: '/paper' },
+};
 
 export default async function PapersListPage() {
   const { items, total } = await listPapers({ page: 1, per_page: PER_PAGE });

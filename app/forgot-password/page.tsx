@@ -23,8 +23,8 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPassword(email);
       setSuccess("Check your email for a password reset link.");
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -57,14 +57,14 @@ export default function ForgotPasswordPage() {
           <div className="fade-in flex items-center justify-between mb-8">
             <div className="flex items-center gap-2 text-[11.5px] text-ink/55">
               <Link href="/" className="hover:text-teal-deep">
-                Claritas
+                CiteRounds
               </Link>
               <Icon icon="lucide:chevron-right" className="text-[12px] text-ink/30" />
               <span className="text-teal-deep font-medium">Reset password</span>
             </div>
             <div className="hidden md:flex items-center gap-2 text-[10.5px] mono-stat text-ink/40">
               <Icon icon="lucide:lock" className="text-[11px]" />
-              ENCRYPTED · TLS 1.3
+              PRIVATE RESET FLOW
             </div>
           </div>
 
@@ -176,9 +176,9 @@ export default function ForgotPasswordPage() {
                     <span className="text-[11.5px] font-semibold text-ink">Account security</span>
                   </div>
                   <p className="text-[11px] text-ink-soft leading-[1.5] mb-3">
-                    Passwords are hashed with Argon2 and never stored in plain text, and the site is
-                    served over TLS. We are a closed beta: we hold no compliance certification, so
-                    don&rsquo;t put patient data here.
+                    Passwords are hashed with Argon2 and browser sessions use HttpOnly cookies.
+                    Production deployment requires HTTPS. We hold no compliance certification, so
+                    do not put patient data here.
                   </p>
                 </div>
               </div>

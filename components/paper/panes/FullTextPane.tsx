@@ -16,6 +16,15 @@ import type { FullTextSection, Paper } from '../../../lib/papers/types';
  */
 
 /** Render **bold**, *italic*, and [links](url) inside one line of text. */
+function safeExternalUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 function renderInline(text: string, keyPrefix: string) {
   const pattern = /(\*\*[^*]+\*\*|(?<!\*)\*(?!\*)[^*]+\*(?!\*)|\[[^\]]+\]\([^)]+\))/g;
   const parts = text.split(pattern).filter(Boolean);
@@ -31,10 +40,12 @@ function renderInline(text: string, keyPrefix: string) {
     }
     const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (link) {
+      const href = safeExternalUrl(link[2]);
+      if (!href) return <span key={key}>{link[1]}</span>;
       return (
         <a
           key={key}
-          href={link[2]}
+          href={href}
           target="_blank"
           rel="noopener noreferrer"
           className="text-teal-deep hover:underline"

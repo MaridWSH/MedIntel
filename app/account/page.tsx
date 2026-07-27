@@ -6,7 +6,7 @@ import Icon from "@/components/ui/Icon";
 import TopUtilityStrip from "@/components/site/TopUtilityStrip";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
-import { fetchCurrentUser, logoutUser } from "@/lib/api";
+import { deleteAccount, fetchCurrentUser, logoutUser } from "@/lib/api";
 
 interface User {
   id: number;
@@ -36,6 +36,15 @@ export default function AccountPage() {
 
   const handleLogout = async () => {
     await logoutUser();
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Permanently delete your account and saved-paper library? This cannot be undone.",
+    );
+    if (!confirmed) return;
+    await deleteAccount();
+    window.location.href = "/";
   };
 
   if (loading) {
@@ -152,8 +161,8 @@ export default function AccountPage() {
                   <Icon icon="lucide:credit-card" className="text-[18px] text-teal-deep" />
                 </div>
                 <div>
-                  <div className="text-[13px] font-medium text-ink">View pricing</div>
-                  <div className="text-[11px] text-ink/55">Upgrade your plan</div>
+                  <div className="text-[13px] font-medium text-ink">Beta access</div>
+                  <div className="text-[11px] text-ink/55">See what is available now</div>
                 </div>
               </Link>
               <button
@@ -169,6 +178,20 @@ export default function AccountPage() {
                 </div>
               </button>
             </div>
+          </div>
+
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+            <h3 className="text-[11px] mono-stat text-red-700 mb-2">DELETE ACCOUNT</h3>
+            <p className="text-[12.5px] text-ink-soft mb-4">
+              Permanently removes your account and saved-paper library. This action cannot be undone.
+            </p>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              className="h-10 px-4 rounded-xl border border-red-300 text-red-700 text-[12.5px] font-semibold hover:bg-red-100 transition-colors"
+            >
+              Delete my account
+            </button>
           </div>
         </section>
       </main>

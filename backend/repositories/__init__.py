@@ -1,4 +1,4 @@
-"""MedIntel Semantic Search repositories.
+"""CiteRounds Semantic Search repositories.
 
 This package implements the Repository Pattern for the semantic search module:
 - paper_repository: abstracts paper metadata persistence in PostgreSQL/SQLite.

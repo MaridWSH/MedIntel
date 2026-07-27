@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '../components/ui/Icon';
+import Link from 'next/link';
 
 export default function Error({
   error,
@@ -39,7 +40,7 @@ export default function Error({
         </h1>
 
         <p className="fade-in d-3 serif-body text-[16px] text-ink-soft leading-[1.55] max-w-[420px] mx-auto mb-10">
-          Our team has been notified. If the problem persists, please contact support with the reference below.
+          We couldn&rsquo;t complete that request. Try again, and keep the reference below if the problem persists.
         </p>
 
         {error.digest && (
@@ -57,12 +58,12 @@ export default function Error({
             <Icon icon="lucide:refresh-cw" className="text-[14px]" />
             Try again
           </button>
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 h-12 px-6 rounded-[14px] border border-ink/15 text-ink text-[13.5px] font-medium hover-tint"
           >
             Go home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

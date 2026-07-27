@@ -10,9 +10,6 @@ from __future__ import annotations
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from fastapi import Depends
-from sqlalchemy.orm import Session
-
 from database import get_db
 from repositories.paper_repository import SQLAlchemyPaperRepository
 from repositories.vector_repository import QdrantVectorRepository

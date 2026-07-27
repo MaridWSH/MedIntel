@@ -27,22 +27,35 @@
 html {
   background-color: var(--paper);
   scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   color: var(--ink);
   background-color: var(--paper);
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal-deep);
+  outline-offset: 2px;
+}
+
 @layer utilities {
   .serif {
-    font-family: 'Zodiak', 'Times New Roman', serif;
+    font-family: var(--font-serif), 'Times New Roman', serif;
   }
 
   .mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono), monospace;
   }
 
   .tnum {
@@ -63,20 +76,20 @@ body {
   }
 
   .display {
-    font-family: 'Zodiak', serif;
+    font-family: var(--font-serif), serif;
     font-weight: 500;
     letter-spacing: -0.025em;
     line-height: 0.96;
   }
 
   .serif-body {
-    font-family: 'Zodiak', serif;
+    font-family: var(--font-serif), serif;
     font-weight: 400;
     letter-spacing: -0.005em;
   }
 
   .mono-stat {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono), monospace;
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.04em;
@@ -333,13 +346,13 @@ html[dir='rtl'] .mono-stat {
 html[dir='rtl'] .italic {
   font-style: normal;
 }
-@keyframes fade-in {
+@keyframes quick-fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+  animation: quick-fade-in 0.3s ease-out;
 }
 
 @keyframes bounce-in {
@@ -350,4 +363,19 @@ html[dir='rtl'] .italic {
 
 .animate-bounce-in {
   animation: bounce-in 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

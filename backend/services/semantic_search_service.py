@@ -1,4 +1,4 @@
-"""Semantic search service for MedIntel.
+"""Semantic search service for CiteRounds.
 
 Responsibilities:
     - Normalize user queries.

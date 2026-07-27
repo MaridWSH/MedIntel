@@ -121,7 +121,7 @@ def seed(source_dir: str, limit: int | None = None):
 
 def main():
     """Parse CLI arguments and run the seed process."""
-    parser = argparse.ArgumentParser(description="Seed MedIntel papers into SQLite")
+    parser = argparse.ArgumentParser(description="Seed CiteRounds papers into SQLite")
     parser.add_argument("--source", default=DEFAULT_SOURCE, help="Directory with pipeline JSON results")
     parser.add_argument("--limit", type=int, default=None, help="Only ingest N files")
     args = parser.parse_args()

@@ -1,1 +1,1 @@
-"""MedIntel API layer helpers."""
+"""CiteRounds API layer helpers."""

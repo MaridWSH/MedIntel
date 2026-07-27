@@ -8,7 +8,7 @@ import {
   PaperSearchParams,
 } from './types';
 
-const BASE_API = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
+const BASE_API = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
 
 async function fetchAPI<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {

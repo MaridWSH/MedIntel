@@ -1,1 +1,1 @@
-"""Unit tests for the MedIntel Semantic Search module."""
+"""Unit tests for the CiteRounds Semantic Search module."""

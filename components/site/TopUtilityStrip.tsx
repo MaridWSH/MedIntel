@@ -18,7 +18,7 @@ import Icon from '../ui/Icon';
  * here, with a module-level cache, is honest about where it actually runs.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://med.aidashnews.tech/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
 
 // Survives remounts across client-side navigation, so the count is fetched once.
 let cachedCount: number | null = null;
@@ -48,7 +48,7 @@ export default function TopUtilityStrip() {
 
   return (
     <div className="bg-ink text-paper">
-      <div className="max-w-[1380px] mx-auto px-6 h-9 flex items-center justify-between text-[10.5px] font-mono font-medium tracking-[0.04em] uppercase">
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 h-9 flex items-center justify-between gap-3 text-[9.5px] sm:text-[10.5px] font-mono font-medium tracking-[0.04em] uppercase">
         <div className="flex items-center gap-5">
           <span className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-teal-bright animate-pulse" />
@@ -61,7 +61,7 @@ export default function TopUtilityStrip() {
         </div>
 
         <div className="flex items-center gap-4 text-paper/65">
-          <span>BETA &middot; v0.9.4</span>
+          <span className="whitespace-nowrap">CLOSED BETA</span>
           <span className="hidden md:inline text-paper/30">&middot;</span>
           <span className="hidden md:inline">Not clinical advice</span>
         </div>

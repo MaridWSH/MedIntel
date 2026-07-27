@@ -3,6 +3,7 @@
 import json
 import logging
 import math
+import os
 import re
 import xml.etree.ElementTree as ET
 from defusedxml.ElementTree import parse as safe_xml_parse
@@ -12,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from auth import get_current_user
+from auth import get_current_admin
 from database import get_db
 from models import Paper, User
 from schemas import (
@@ -47,6 +48,14 @@ XML_DIRS = [
     Path("/root/papers/nutrition_papers_sample"),
 ]
 MD_DIR = Path("/root/papers/pipeline_outputs/markdown")
+CURRENT_PIPELINE_VERSION = os.getenv(
+    "MEDINTEL_PIPELINE_VERSION", "2026-07-14.2"
+).strip()
+_environment = os.getenv("MEDINTEL_ENV", "development").strip().lower()
+REQUIRE_CURRENT_PIPELINE = os.getenv(
+    "MEDINTEL_REQUIRE_CURRENT_PIPELINE",
+    "true" if _environment in {"production", "staging"} else "false",
+).lower() == "true"
 
 
 def _parse_md_title(pmc_id: str) -> str:
@@ -364,18 +373,92 @@ def _build_verification(raw: dict | None) -> VerificationOut | None:
 
 def _has_summary(paper: Paper) -> bool:
     """True when the pipeline actually produced something readable for this paper."""
-    return bool((paper.tldr or "").strip() or (paper.detailed_summary or "").strip())
+    has_text = bool((paper.tldr or "").strip() or (paper.detailed_summary or "").strip())
+    if not has_text:
+        return False
+    if not REQUIRE_CURRENT_PIPELINE:
+        return True
+    verification = _to_json(paper.verification) or {}
+    return (
+        paper.pipeline_version == CURRENT_PIPELINE_VERSION
+        and verification.get("passed") is True
+        and not paper.has_errors
+    )
+
+
+def _pipeline_rejection_reason(data: object, file_stem: str) -> str | None:
+    """Return why a pipeline file is not safe to publish, or None when valid."""
+    if not isinstance(data, dict):
+        return "root value is not an object"
+    paper_id = data.get("paper_id")
+    if (
+        not isinstance(paper_id, str)
+        or paper_id != file_stem
+        or not re.fullmatch(r"[A-Za-z0-9_.-]{1,50}", paper_id)
+    ):
+        return "paper_id is invalid or does not match the filename"
+    if data.get("pipeline_version") != CURRENT_PIPELINE_VERSION:
+        return f"pipeline_version is not {CURRENT_PIPELINE_VERSION}"
+    if data.get("errors"):
+        return "pipeline reported errors"
+    if not isinstance(data.get("summary"), dict) or not data["summary"]:
+        return "summary is missing"
+    if not isinstance(data.get("key_findings"), dict) or not data["key_findings"]:
+        return "key findings are missing"
+    verification = data.get("verification")
+    if not isinstance(verification, dict) or verification.get("passed") is not True:
+        return "verification gate did not pass"
+    source_sha256 = data.get("source_sha256")
+    if not isinstance(source_sha256, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", source_sha256
+    ):
+        return "source hash is missing or invalid"
+    prompt_sha256 = data.get("prompt_sha256")
+    required_prompts = {"summary", "key_findings", "mind_map", "verification"}
+    if not isinstance(prompt_sha256, dict) or not required_prompts.issubset(prompt_sha256):
+        return "prompt provenance is incomplete"
+    if any(
+        not isinstance(prompt_sha256[name], str)
+        or not re.fullmatch(r"[0-9a-f]{64}", prompt_sha256[name])
+        for name in required_prompts
+    ):
+        return "prompt hashes are invalid"
+    models = data.get("models")
+    if not isinstance(models, dict) or not all(
+        isinstance(models.get(name), str) and models[name]
+        for name in ("summary", "key_findings", "verification")
+    ):
+        return "generation-model provenance is incomplete"
+    return None
+
+
+def current_corpus_count(db: Session) -> int:
+    """Count summaries produced by the currently accepted pipeline version."""
+    return (
+        db.query(Paper)
+        .filter(
+            Paper.pipeline_version == CURRENT_PIPELINE_VERSION,
+            Paper.tldr != "",
+            Paper.tldr.isnot(None),
+            Paper.has_errors.is_(False),
+            Paper.verification.ilike('%"passed": true%'),
+        )
+        .count()
+    )
 
 
 def _paper_to_list_item(paper: Paper) -> PaperListItem:
     """Convert a Paper ORM row to a compact list item."""
-    findings = _to_json(paper.key_findings) or {}
+    publishable = _has_summary(paper)
+    findings = (_to_json(paper.key_findings) or {}) if publishable else {}
     return PaperListItem(
         id=paper.id,
         title=paper.title or "",
-        tldr=paper.tldr,
-        study_type=paper.study_type,
-        specialty_tags=json.loads(paper.specialty_tags) if paper.specialty_tags else [],
+        tldr=paper.tldr if publishable else "",
+        study_type=paper.study_type if publishable else "",
+        specialty_tags=(
+            json.loads(paper.specialty_tags) if publishable and paper.specialty_tags else []
+        ),
         journal=paper.journal or "",
         doi=paper.doi or "",
         author_list=paper.author_list or "",
@@ -383,7 +466,7 @@ def _paper_to_list_item(paper: Paper) -> PaperListItem:
         centers_count=paper.centers_count or 0,
         overall_evidence_level=findings.get("overall_evidence_level"),
         sample_size=findings.get("sample_size"),
-        has_summary=_has_summary(paper),
+        has_summary=publishable,
     )
 
 
@@ -481,9 +564,10 @@ def get_paper_fulltext(paper_id: str, db: Session = Depends(get_db)):
 
 def _paper_to_detail(paper: Paper) -> PaperDetail:
     """Convert a Paper ORM row to a full detail response."""
-    mm_raw = _to_json(paper.mind_map)
-    kf_raw = _to_json(paper.key_findings)
-    v_raw = _to_json(paper.verification)
+    publishable = _has_summary(paper)
+    mm_raw = _to_json(paper.mind_map) if publishable else None
+    kf_raw = _to_json(paper.key_findings) if publishable else None
+    v_raw = _to_json(paper.verification) if publishable else None
     sections = _to_json(paper.sections) if paper.sections else []
 
     kf_out = _build_key_findings(kf_raw)
@@ -491,19 +575,21 @@ def _paper_to_detail(paper: Paper) -> PaperDetail:
     return PaperDetail(
         id=paper.id,
         title=paper.title or "",
-        tldr=paper.tldr,
-        detailed_summary=paper.detailed_summary,
-        study_type=paper.study_type,
-        specialty_tags=json.loads(paper.specialty_tags) if paper.specialty_tags else [],
+        tldr=paper.tldr if publishable else "",
+        detailed_summary=paper.detailed_summary if publishable else "",
+        study_type=paper.study_type if publishable else "",
+        specialty_tags=(
+            json.loads(paper.specialty_tags) if publishable and paper.specialty_tags else []
+        ),
         journal=paper.journal or "",
         doi=paper.doi or "",
         author_list=paper.author_list or "",
         authors_count=paper.authors_count or 0,
         centers=_to_json(paper.centers) or [],
         centers_count=paper.centers_count or 0,
-        pico_summary=_to_json(paper.pico_summary),
+        pico_summary=_to_json(paper.pico_summary) if publishable else None,
         # ponytail: typed structured fields
-        has_errors=paper.has_errors,
+        has_errors=paper.has_errors if publishable else False,
         mind_map=_build_mind_map(mm_raw, paper.title or paper.id),
         key_finding=_build_key_finding(kf_out),
         key_findings=kf_out,
@@ -512,7 +598,7 @@ def _paper_to_detail(paper: Paper) -> PaperDetail:
         sections=sections or [],
         excerpt=paper.excerpt or "",
         reviewer=paper.reviewer or "",
-        processing_time=paper.processing_time,
+        processing_time=paper.processing_time if publishable else 0.0,
     )
 
 
@@ -544,6 +630,11 @@ def list_papers(
 
     if summarised_only:
         query = query.filter(Paper.tldr != "", Paper.tldr.isnot(None))
+        if REQUIRE_CURRENT_PIPELINE:
+            query = query.filter(
+                Paper.pipeline_version == CURRENT_PIPELINE_VERSION,
+                Paper.has_errors.is_(False),
+            )
 
     if study_type:
         query = query.filter(Paper.study_type == study_type)
@@ -601,8 +692,14 @@ def _keyword_search(db: Session, q: str) -> list[Paper]:
     nothing unless the words also happened to appear in the summary.
     """
     pattern = f"%{q}%"
+    query = db.query(Paper)
+    if REQUIRE_CURRENT_PIPELINE:
+        query = query.filter(
+            Paper.pipeline_version == CURRENT_PIPELINE_VERSION,
+            Paper.has_errors.is_(False),
+        )
     return (
-        db.query(Paper)
+        query
         .filter(
             or_(
                 Paper.title.ilike(pattern),
@@ -626,7 +723,7 @@ def _semantic_search(db: Session, q: str) -> list[Paper] | None:
 
         service = get_semantic_search_service(db)
         results = service.search(query=q, top_k=SEMANTIC_MAX_RESULTS)
-        return [r.paper for r in results]
+        return [r.paper for r in results if not REQUIRE_CURRENT_PIPELINE or _has_summary(r.paper)]
     except Exception:
         logger.exception("Semantic search failed for %r — falling back to keyword", q)
         return None
@@ -634,7 +731,7 @@ def _semantic_search(db: Session, q: str) -> list[Paper] | None:
 
 @router.get("/search", response_model=SearchResponse)
 def search_papers(
-    q: str = Query(..., min_length=1, description="Search query"),
+    q: str = Query(..., min_length=1, max_length=500, description="Search query"),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     mode: str = Query("auto", pattern="^(auto|semantic|keyword)$"),
@@ -681,6 +778,11 @@ def get_facets(db: Session = Depends(get_db)):
     and omitted the largest real ones.
     """
     summarised = db.query(Paper).filter(Paper.tldr != "", Paper.tldr.isnot(None))
+    if REQUIRE_CURRENT_PIPELINE:
+        summarised = summarised.filter(
+            Paper.pipeline_version == CURRENT_PIPELINE_VERSION,
+            Paper.has_errors.is_(False),
+        )
 
     study_types = [
         FacetValue(value=value, count=count)
@@ -726,15 +828,13 @@ def get_paper(paper_id: str, db: Session = Depends(get_db)):
 def ingest_papers(
     body: IngestRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
 ):
     """Ingest pipeline JSON results into the database. Requires auth.
 
     For fields missing from the pipeline JSON (title, journal, doi, authors, centers),
     falls back to parsing the corresponding JATS XML file from the source directory.
     """
-    import os
-
     # Restrict to allowed base directory to prevent path traversal
     ALLOWED_BASE = os.path.realpath(str(RESULTS_DIR))
 
@@ -763,13 +863,13 @@ def ingest_papers(
     for f in files:
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
-            paper_id = data.get("paper_id", f.stem)
-
-            existing = db.query(Paper).filter(Paper.id == paper_id).first()
-            if existing:
+            rejection_reason = _pipeline_rejection_reason(data, f.stem)
+            if rejection_reason:
+                logger.warning("Skipping pipeline result %s: %s", f, rejection_reason)
                 skipped += 1
                 continue
 
+            paper_id = data["paper_id"]
             summary = data.get("summary") or {}
             key_findings_raw = data.get("key_findings")
             mind_map_raw = data.get("mind_map")
@@ -781,34 +881,56 @@ def ingest_papers(
             title = summary.get("title", "") or xml_meta.get("title", "") or _parse_md_title(paper_id)
             centers_list = xml_meta.get("centers", [])
 
-            paper = Paper(
-                id=paper_id,
-                title=title,
-                tldr=summary.get("tldr", ""),
-                detailed_summary=summary.get("detailed_summary", ""),
-                study_type=summary.get("study_type", ""),
-                specialty_tags=json.dumps(summary.get("specialty_tags", [])),
-                pico_summary=json.dumps(summary.get("pico_summary")) if summary.get("pico_summary") else "null",
-                key_findings=json.dumps(key_findings_raw) if key_findings_raw else "null",
-                mind_map=json.dumps(mind_map_raw) if mind_map_raw else "null",
-                verification=json.dumps(verification_raw) if verification_raw else "null",
-                processing_time=data.get("processing_time_seconds", 0.0) or 0.0,
-                has_errors=bool(data.get("errors")),
-                journal=xml_meta.get("journal", ""),
-                doi=xml_meta.get("doi", ""),
-                author_list=xml_meta.get("author_list", ""),
-                authors_count=xml_meta.get("authors_count", 0),
-                centers=json.dumps(centers_list) if centers_list else "[]",
-                centers_count=xml_meta.get("centers_count", 0),
-                citation=xml_meta.get("citation", ""),
-                sections=json.dumps(xml_meta.get("sections", [])),
-                excerpt=xml_meta.get("excerpt", ""),
-                reviewer=xml_meta.get("reviewer", ""),
-            )
-            db.add(paper)
+            with db.begin_nested():
+                paper = db.query(Paper).filter(Paper.id == paper_id).first()
+                if paper is None:
+                    paper = Paper(id=paper_id)
+                    db.add(paper)
+
+                # AI-derived fields are replaced on every accepted regeneration.
+                paper.title = title or paper.title or ""
+                paper.tldr = summary.get("tldr", "")
+                paper.detailed_summary = summary.get("detailed_summary", "")
+                paper.study_type = summary.get("study_type", "")
+                paper.specialty_tags = json.dumps(summary.get("specialty_tags", []))
+                paper.pico_summary = (
+                    json.dumps(summary.get("pico_summary"))
+                    if summary.get("pico_summary")
+                    else "null"
+                )
+                paper.key_findings = json.dumps(key_findings_raw)
+                paper.mind_map = json.dumps(mind_map_raw) if mind_map_raw else "null"
+                paper.verification = json.dumps(verification_raw)
+                paper.processing_time = data.get("processing_time_seconds", 0.0) or 0.0
+                paper.has_errors = False
+                paper.pipeline_version = data["pipeline_version"]
+                paper.source_sha256 = data["source_sha256"]
+                paper.prompt_sha256 = json.dumps(data["prompt_sha256"], sort_keys=True)
+                paper.generation_models = json.dumps(data["models"], sort_keys=True)
+
+                # Preserve existing bibliographic metadata if its XML source is
+                # temporarily unavailable during a regeneration.
+                paper.journal = xml_meta.get("journal") or paper.journal or ""
+                paper.doi = xml_meta.get("doi") or paper.doi or ""
+                paper.author_list = xml_meta.get("author_list") or paper.author_list or ""
+                paper.authors_count = xml_meta.get("authors_count") or paper.authors_count or 0
+                paper.centers = (
+                    json.dumps(centers_list) if centers_list else paper.centers or "[]"
+                )
+                paper.centers_count = xml_meta.get("centers_count") or paper.centers_count or 0
+                paper.citation = xml_meta.get("citation") or paper.citation or ""
+                paper.sections = (
+                    json.dumps(xml_meta.get("sections", []))
+                    if xml_meta.get("sections")
+                    else paper.sections or "[]"
+                )
+                paper.excerpt = xml_meta.get("excerpt") or paper.excerpt or ""
+                paper.reviewer = xml_meta.get("reviewer") or paper.reviewer or ""
+                db.flush()
             ingested += 1
 
         except Exception:
+            logger.exception("Failed to ingest pipeline result %s", f)
             errors += 1
 
     db.commit()
@@ -826,7 +948,7 @@ def ingest_papers(
 def backfill_metadata(
     body: BackfillRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
 ):
     """Backfill missing metadata (journal, doi, authors, centers, title) from XML.
 

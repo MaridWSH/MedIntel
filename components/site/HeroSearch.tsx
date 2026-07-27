@@ -35,26 +35,35 @@ export default function HeroSearch() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-3 pl-5 pr-3 py-3.5">
-      <Icon icon="lucide:search" className="text-[20px] text-teal shrink-0" />
-      <input
-        ref={inputRef}
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-ink/35 w-full"
-        placeholder="Ask a question, or search by topic"
-        aria-label="Search papers"
-      />
-      <span className="hidden md:flex items-center gap-1 px-2 h-7 rounded-md border border-ink/12 text-ink/55 text-[11.5px] mono-stat">
-        ⌘K
-      </span>
+    <form
+      onSubmit={handleSubmit}
+      role="search"
+      className="flex items-center gap-2 rounded-lg border border-ink/15 bg-paper p-2 shadow-[0_18px_50px_-30px_rgba(11,29,42,0.45)] transition-shadow focus-within:border-teal-deep/50 focus-within:ring-2 focus-within:ring-teal-deep/20"
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-3 pl-2 sm:pl-3">
+        <Icon icon="lucide:search" className="shrink-0 text-[19px] text-teal-deep" />
+        <input
+          ref={inputRef}
+          name="q"
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="h-11 min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-ink/40 sm:text-[15px]"
+          placeholder="Ask a clinical question or search a topic"
+          aria-label="Search the paper catalogue"
+          autoComplete="off"
+        />
+        <span className="hidden items-center gap-1 rounded border border-ink/12 px-2 py-1 text-[10px] text-ink/50 md:flex mono">
+          ⌘K
+        </span>
+      </div>
       <button
         type="submit"
-        className="btn-primary h-10 px-5 bg-ink text-paper rounded-[12px] text-[13px] font-semibold inline-flex items-center gap-1.5"
+        className="btn-primary inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-ink px-3.5 text-[13px] font-semibold text-paper sm:px-5"
+        aria-label="Search papers"
       >
-        Search
-        <Icon icon="lucide:arrow-right" className="text-[14px] text-teal-bright" />
+        <span className="hidden sm:inline">Search papers</span>
+        <Icon icon="lucide:arrow-right" className="text-[15px] text-teal-bright" />
       </button>
     </form>
   );
