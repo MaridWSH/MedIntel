@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Newsreader } from 'next/font/google';
+import { getSiteUrl } from './lib/site';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -20,8 +21,10 @@ const newsreader = Newsreader({
   display: 'swap',
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://citerounds.com'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'CiteRounds | AI-assisted medical literature review',
     template: '%s | CiteRounds',
@@ -53,7 +56,7 @@ export const metadata: Metadata = {
     title: 'CiteRounds | AI-assisted medical literature review',
     description:
       'Review open-access medical papers with structured summaries, source-linked findings, and an explicit automated fidelity status.',
-    url: 'https://citerounds.com/',
+    url: `${siteUrl}/`,
   },
   twitter: {
     card: 'summary',
@@ -69,19 +72,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@graph': [
       {
         '@type': 'Organization',
-        '@id': 'https://citerounds.com/#organization',
+        '@id': `${siteUrl}/#organization`,
         name: 'CiteRounds',
-        url: 'https://citerounds.com/',
+        url: `${siteUrl}/`,
       },
       {
         '@type': 'WebSite',
-        '@id': 'https://citerounds.com/#website',
+        '@id': `${siteUrl}/#website`,
         name: 'CiteRounds',
-        url: 'https://citerounds.com/',
-        publisher: { '@id': 'https://citerounds.com/#organization' },
+        url: `${siteUrl}/`,
+        publisher: { '@id': `${siteUrl}/#organization` },
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://citerounds.com/search?q={search_term_string}',
+          target: `${siteUrl}/search?q={search_term_string}`,
           'query-input': 'required name=search_term_string',
         },
       },

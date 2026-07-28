@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Icon from '../ui/Icon';
+import { getApiBase } from '../../app/lib/site';
 
 /**
  * Every claim in this strip is one we can stand behind.
@@ -18,7 +19,7 @@ import Icon from '../ui/Icon';
  * here, with a module-level cache, is honest about where it actually runs.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
+const API_BASE = getApiBase();
 
 // Survives remounts across client-side navigation, so the count is fetched once.
 let cachedCount: number | null = null;
