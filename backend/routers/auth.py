@@ -18,6 +18,7 @@ from auth import (
     enforce_rate_limit,
     ACCESS_TOKEN_COOKIE,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    COOKIE_DOMAIN,
     ENVIRONMENT,
     get_current_user,
     get_refresh_token_from_request,
