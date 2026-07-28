@@ -1,5 +1,13 @@
 # MedIntel Sandbox Deployment Implementation Plan
 
+> **SUPERSEDED — do not follow this plan.** It was written against assumptions
+> that turned out not to hold: production runs SQLite and `all-MiniLM-L6-v2` at
+> 384 dimensions, not Postgres and BGE-M3 at 1024; ports 80/443 belong to the
+> `kwamelrent_nginx` container, so Caddy was never installed; and several of the
+> ports below collide with running production services. See
+> [`docs/sandbox-runbook.md`](../../sandbox-runbook.md) for what is actually
+> deployed.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Create a second, isolated instance of the MedIntel/CiteRounds project on `med.90days.online` with a public GitHub repo and a self-hosted GitHub Actions runner so every push to `main` auto-deploys to the sandbox domain.
