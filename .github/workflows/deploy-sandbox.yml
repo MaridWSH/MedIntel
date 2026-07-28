@@ -1,0 +1,84 @@
+name: Deploy sandbox
+
+# Rebuilds https://med.90days.online from main. Runs on the self-hosted runner
+# that lives on the sandbox server itself, so no SSH key ever leaves GitHub.
+#
+# This file is mirrored into MaridWSH/MedIntel, which has no self-hosted
+# runner — the repository guard below stops the job from queueing forever there.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-sandbox
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'MaridWSH/medintel-sandbox'
+    runs-on: [self-hosted, sandbox]
+    timeout-minutes: 45
+
+    steps:
+      - name: Sync deploy directory to main
+        run: |
+          set -euo pipefail
+          cd /opt/medintel-sandbox
+          git fetch --prune origin main
+          git reset --hard origin/main
+          # .env / .env.sandbox are untracked and survive the reset.
+          cp .env.sandbox .env
+
+      - name: Build and start backend
+        run: |
+          set -euo pipefail
+          cd /opt/medintel-sandbox
+          # The backend must be live before the frontend image is built: the
+          # Next.js prerender pass fetches from it.
+          docker compose -f docker-compose.sandbox.yml up -d --build qdrant backend
+
+      - name: Wait for backend health
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -fsS -m 5 http://172.19.0.1:8011/api/health >/dev/null; then
+              echo "backend healthy after ${i} attempt(s)"
+              curl -fsS http://172.19.0.1:8011/api/health
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "backend did not become healthy within 5 minutes" >&2
+          docker compose -f /opt/medintel-sandbox/docker-compose.sandbox.yml logs --tail 80 backend >&2
+          exit 1
+
+      - name: Build and start frontend
+        run: |
+          set -euo pipefail
+          cd /opt/medintel-sandbox
+          docker compose -f docker-compose.sandbox.yml up -d --build frontend
+
+      - name: Verify the deployed site
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if curl -fsS -m 10 -o /dev/null http://172.19.0.1:3001/; then
+              echo "frontend responding after ${i} attempt(s)"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "frontend never responded" >&2
+              docker compose -f /opt/medintel-sandbox/docker-compose.sandbox.yml logs --tail 80 frontend >&2
+              exit 1
+            fi
+            sleep 5
+          done
+          # Through nginx and Cloudflare, i.e. what a visitor actually gets.
+          curl -fsS -m 20 -o /dev/null -w 'public site: %{http_code}\n' https://med.90days.online/
+          curl -fsS -m 20 -o /dev/null -w 'public api:  %{http_code}\n' https://med.90days.online/api/health
+
+      - name: Prune dangling images
+        if: always()
+        run: docker image prune -f --filter "dangling=true"

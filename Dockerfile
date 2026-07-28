@@ -11,6 +11,10 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# public/ is empty in this repo, and git does not track empty directories, so
+# a fresh clone has no public/ for the runner stage to copy. Standalone output
+# does not bundle it either.
+RUN mkdir -p public
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_API_BASE
 # Where the prerender pass should reach the backend. Falls back to the public

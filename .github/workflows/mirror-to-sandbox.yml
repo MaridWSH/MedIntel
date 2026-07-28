@@ -1,0 +1,53 @@
+name: Mirror main to sandbox
+
+# MaridWSH/MedIntel is the repo the team works in; MaridWSH/medintel-sandbox is
+# a deploy mirror whose own push event triggers the self-hosted deploy that
+# rebuilds https://med.90days.online. So: merge to MedIntel main -> mirrored
+# here -> sandbox redeploys.
+#
+# MedIntel is authoritative, so this force-pushes. Do not land work directly on
+# medintel-sandbox main; it will be overwritten by the next merge here.
+#
+# Auth is a write-enabled deploy key on medintel-sandbox, held as the
+# SANDBOX_DEPLOY_KEY secret here. GITHUB_TOKEN cannot push across repos.
+#
+# This file is mirrored into medintel-sandbox too; the guard below keeps it
+# from running there and pushing the mirror back into itself.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-to-sandbox
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    if: github.repository == 'MaridWSH/MedIntel'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push main to the sandbox repo
+        env:
+          DEPLOY_KEY: ${{ secrets.SANDBOX_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_KEY:-}" ]; then
+            echo "SANDBOX_DEPLOY_KEY is not set — cannot mirror to the sandbox." >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          git push --force \
+            git@github.com:MaridWSH/medintel-sandbox.git \
+            HEAD:refs/heads/main
+          echo "Mirrored $(git rev-parse --short HEAD) to medintel-sandbox main."
