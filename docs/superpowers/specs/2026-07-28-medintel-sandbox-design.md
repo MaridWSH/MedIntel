@@ -114,11 +114,13 @@ Create a deployable, isolated copy of the current MedIntel / CiteRounds project 
   - `app/sitemap.ts`
   - `app/page.tsx` and other pages that reference the API base
 - Set `NEXT_PUBLIC_API_BASE` to `/api` or `https://med.90days.online/api`.
+- Update `next.config.js` security headers (CSP `connect-src`, CORS, etc.) to allow `https://med.90days.online` and the sandbox backend origin.
 
 ### Backend
 - Backend CORS allowed origins use `MEDINTEL_ALLOWED_ORIGINS` and include `https://med.90days.online`.
-- Auth cookie domain reads from `MEDINTEL_COOKIE_DOMAIN=med.90days.online`.
+- Auth cookie domain reads from `MEDINTEL_COOKIE_DOMAIN=med.90days.online`. If currently hardcoded to `citerounds.com`, refactor to use the env var.
 - `FROM_EMAIL` defaults to `noreply@med.90days.online` via env var.
+- Ensure any backend redirect URLs or absolute links are domain-aware.
 
 ## GitHub Actions Workflow
 
@@ -134,23 +136,25 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - name: Checkout latest code
-        uses: actions/checkout@v4
-
       - name: Deploy sandbox
         run: |
           cd /opt/medintel-sandbox
           git pull origin main
           cp .env.sandbox .env
-          cd backend && alembic upgrade head && cd ..
           docker compose -f docker-compose.sandbox.yml down
           docker compose -f docker-compose.sandbox.yml up -d --build
+          docker compose -f docker-compose.sandbox.yml exec -T backend alembic upgrade head
 
       - name: Health check
         run: |
           curl -f http://localhost:8001/health || exit 1
           curl -f http://localhost:3001 || exit 1
 ```
+
+Notes:
+- The runner's working directory is configured as `/opt/medintel-sandbox`, so the workflow operates directly on the live checkout.
+- Migrations run inside the backend container after the stack is up, ensuring the correct Python/dependency environment.
+- Health check assumes the FastAPI backend exposes `/health`; adjust if the app uses a different path.
 
 ## Dev Workflow
 1. Developers clone the sandbox repo, create a feature branch, and open a PR or push directly to `main`.
