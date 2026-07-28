@@ -1,0 +1,124 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: medintel-sandbox-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medintel_sandbox}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-medintel_sandbox}
+    volumes:
+      - postgres_sandbox_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medintel_sandbox} -d ${POSTGRES_DB:-medintel_sandbox}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medintel-sandbox
+
+  qdrant:
+    image: qdrant/qdrant:v1.18.2
+    container_name: medintel-sandbox-qdrant
+    ports:
+      - "127.0.0.1:6334:6333"
+      - "127.0.0.1:6335:6334"
+    volumes:
+      - qdrant_sandbox_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medintel-sandbox
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medintel-sandbox-backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-medintel_sandbox}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medintel_sandbox}
+      MEDINTEL_QDRANT_URL: http://qdrant:6333
+      MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers_sandbox}
+      MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-BAAI/bge-m3}
+      MEDINTEL_SECRET_KEY: ${MEDINTEL_SECRET_KEY:?MEDINTEL_SECRET_KEY is required}
+      MEDINTEL_SECURE_COOKIES: ${MEDINTEL_SECURE_COOKIES:-true}
+      MEDINTEL_ENV: ${MEDINTEL_ENV:-staging}
+      MEDINTEL_ALLOWED_ORIGINS: ${MEDINTEL_ALLOWED_ORIGINS:-https://med.90days.online}
+      MEDINTEL_ADMIN_EMAILS: ${MEDINTEL_ADMIN_EMAILS:-}
+      MEDINTEL_ENABLE_DOCS: ${MEDINTEL_ENABLE_DOCS:-false}
+      MEDINTEL_RESET_URL: ${MEDINTEL_RESET_URL:-https://med.90days.online/reset-password}
+      MEDINTEL_PIPELINE_VERSION: ${MEDINTEL_PIPELINE_VERSION:-2026-07-14.2}
+      MEDINTEL_REQUIRE_CURRENT_PIPELINE: ${MEDINTEL_REQUIRE_CURRENT_PIPELINE:-true}
+      MEDINTEL_COOKIE_DOMAIN: ${MEDINTEL_COOKIE_DOMAIN:-med.90days.online}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@med.90days.online}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+    ports:
+      - "127.0.0.1:8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    command: >
+      uvicorn main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medintel-sandbox
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medintel-sandbox-frontend
+    environment:
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://med.90days.online}
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-https://med.90days.online/api}
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: >
+      node_modules/.bin/next start -p 3000
+    networks:
+      - medintel-sandbox
+
+  index-embeddings:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-medintel_sandbox}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medintel_sandbox}
+      MEDINTEL_QDRANT_URL: http://qdrant:6333
+      MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers_sandbox}
+      MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-BAAI/bge-m3}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    command: >
+      python -m backend.index_embeddings --batch-size 100
+    profiles:
+      - indexing
+    networks:
+      - medintel-sandbox
+
+volumes:
+  postgres_sandbox_data:
+  qdrant_sandbox_data:
+
+networks:
+  medintel-sandbox:
+    name: medintel-sandbox
