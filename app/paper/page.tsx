@@ -28,7 +28,7 @@ export default async function PapersListPage() {
       <SiteHeader />
       <main className="relative max-w-[1380px] mx-auto px-6 py-10">
         <div className="flex items-baseline justify-between mb-8">
-          <h1 className="text-3xl font-bold">All Papers DEPLOYCHECK7f3a</h1>
+          <h1 className="text-3xl font-bold">All Papers</h1>
           <span className="text-sm text-ink/50">
             Showing {items.length} of {total.toLocaleString()}
           </span>
