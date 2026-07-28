@@ -4,9 +4,11 @@ import TopUtilityStrip from '../../../components/site/TopUtilityStrip';
 import SiteHeader from '../../../components/site/SiteHeader';
 import SiteFooter from '../../../components/site/SiteFooter';
 import PaperDetailView from '../../../components/paper/PaperDetailView';
+import { getApiBase, getSiteUrl } from '../../../app/lib/site';
 import type { FullText, Paper } from '../../../lib/papers/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
+const API_BASE = getApiBase();
+const SITE_URL = getSiteUrl();
 
 async function getPaperById(id: string): Promise<Paper | null> {
   const res = await fetch(`${API_BASE}/papers/${encodeURIComponent(id)}`, {
@@ -79,13 +81,13 @@ export default async function PaperPage({ params }: { params: Promise<{ slug: st
   const paperJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ScholarlyArticle',
-    '@id': `https://citerounds.com/paper/${encodeURIComponent(paper.id)}#article`,
+    '@id': `${SITE_URL}/paper/${encodeURIComponent(paper.id)}#article`,
     headline: paper.title,
     name: paper.title,
-    url: `https://citerounds.com/paper/${encodeURIComponent(paper.id)}`,
+    url: `${SITE_URL}/paper/${encodeURIComponent(paper.id)}`,
     description: (paper.tldr || paper.excerpt || paper.detailed_summary || '').replace(/\s+/g, ' ').trim().slice(0, 500),
     isAccessibleForFree: true,
-    publisher: { '@id': 'https://citerounds.com/#organization' },
+    publisher: { '@id': `${SITE_URL}/#organization` },
     identifier: paper.id,
     ...(paper.author_list
       ? {

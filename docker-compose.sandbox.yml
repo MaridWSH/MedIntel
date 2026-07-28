@@ -1,0 +1,152 @@
+# Sandbox stack for https://med.90days.online
+#
+# This mirrors the production CiteRounds topology rather than the generic
+# Postgres/BGE-M3 stack: production runs SQLite (medintel.db) against Qdrant
+# collection `papers_v1` embedded with all-MiniLM-L6-v2 at 384 dimensions.
+# The sandbox keeps the same shape so a merge behaves here exactly as it will
+# in production.
+#
+# Port map — every published port is deliberately off the production defaults:
+#   frontend  172.19.0.1:3001  (prod frontend holds 172.19.0.1:3000)
+#   backend   172.19.0.1:8011  (prod backend holds 172.19.0.1:8001)
+#   qdrant    127.0.0.1:6344/6345 (prod qdrant holds 127.0.0.1:6333/6334)
+#
+# Frontend and backend publish on 172.19.0.1 — the kwamelrent bridge gateway —
+# because the nginx container that terminates TLS lives on that network and
+# cannot reach the host's 127.0.0.1. This is the same mechanism production uses.
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.18.2
+    container_name: medintel-sandbox-qdrant
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6344:6333"
+      - "127.0.0.1:6345:6334"
+    volumes:
+      - qdrant_sandbox_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - medintel-sandbox
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medintel-sandbox-backend
+    restart: unless-stopped
+    environment:
+      # SQLite lives on a named volume so a rebuild never destroys demo data.
+      DATABASE_URL: sqlite:////data/medintel.db
+      MEDINTEL_QDRANT_URL: http://qdrant:6333
+      MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers_sandbox}
+      MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      MEDINTEL_EMBEDDING_DIMENSION: ${MEDINTEL_EMBEDDING_DIMENSION:-384}
+      MEDINTEL_QUERY_INSTRUCTION: ${MEDINTEL_QUERY_INSTRUCTION:-}
+      MEDINTEL_EMBEDDING_BATCH_SIZE: ${MEDINTEL_EMBEDDING_BATCH_SIZE:-64}
+      MEDINTEL_SECRET_KEY: ${MEDINTEL_SECRET_KEY:?MEDINTEL_SECRET_KEY is required}
+      MEDINTEL_SECURE_COOKIES: ${MEDINTEL_SECURE_COOKIES:-true}
+      MEDINTEL_ENV: ${MEDINTEL_ENV:-staging}
+      MEDINTEL_ALLOWED_ORIGINS: ${MEDINTEL_ALLOWED_ORIGINS:-https://med.90days.online}
+      # Requests arrive from the nginx container via the docker bridge gateway,
+      # so the whole private docker range must be trusted for X-Forwarded-For.
+      MEDINTEL_TRUSTED_PROXY_NETWORKS: ${MEDINTEL_TRUSTED_PROXY_NETWORKS:-172.16.0.0/12}
+      MEDINTEL_ADMIN_EMAILS: ${MEDINTEL_ADMIN_EMAILS:-}
+      MEDINTEL_ACCESS_TOKEN_MINUTES: ${MEDINTEL_ACCESS_TOKEN_MINUTES:-15}
+      MEDINTEL_ENABLE_DOCS: ${MEDINTEL_ENABLE_DOCS:-false}
+      MEDINTEL_RESET_URL: ${MEDINTEL_RESET_URL:-https://med.90days.online/reset-password}
+      MEDINTEL_PIPELINE_VERSION: ${MEDINTEL_PIPELINE_VERSION:-2026-07-14.2}
+      MEDINTEL_REQUIRE_CURRENT_PIPELINE: ${MEDINTEL_REQUIRE_CURRENT_PIPELINE:-false}
+      MEDINTEL_COOKIE_DOMAIN: ${MEDINTEL_COOKIE_DOMAIN:-}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@med.90days.online}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      # Pre-seeded sentence-transformers cache; offline so a HuggingFace
+      # outage can never take the demo's search down.
+      HF_HOME: /hf-cache
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    volumes:
+      - medintel_sandbox_db:/data
+      - hf_sandbox_cache:/hf-cache
+    ports:
+      - "172.19.0.1:8011:8000"
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    networks:
+      - medintel-sandbox
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # NEXT_PUBLIC_* values are inlined at build time, so they must be build
+      # args. Passing them only as runtime env silently bakes in the fallback.
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://med.90days.online}
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-https://med.90days.online/api}
+        # The build container is not on the compose network, so it reaches the
+        # running backend through its published host port.
+        MEDINTEL_INTERNAL_API_BASE: ${MEDINTEL_BUILD_API_BASE:-http://172.19.0.1:8011/api}
+    container_name: medintel-sandbox-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://med.90days.online}
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-https://med.90days.online/api}
+      # At runtime the compose network is available, so SSR talks to the
+      # backend container directly rather than looping out through Cloudflare.
+      MEDINTEL_INTERNAL_API_BASE: http://backend:8000/api
+    ports:
+      - "172.19.0.1:3001:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - medintel-sandbox
+
+  # Re-embed the SQLite corpus into the sandbox Qdrant collection.
+  # Only needed if the seeded snapshot is unusable: `--profile indexing`.
+  index-embeddings:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: sqlite:////data/medintel.db
+      MEDINTEL_QDRANT_URL: http://qdrant:6333
+      MEDINTEL_QDRANT_COLLECTION: ${MEDINTEL_QDRANT_COLLECTION:-papers_sandbox}
+      MEDINTEL_EMBEDDING_MODEL: ${MEDINTEL_EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      MEDINTEL_EMBEDDING_DIMENSION: ${MEDINTEL_EMBEDDING_DIMENSION:-384}
+      HF_HOME: /hf-cache
+    volumes:
+      - medintel_sandbox_db:/data
+      - hf_sandbox_cache:/hf-cache
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    command: ["python", "-m", "index_embeddings", "--batch-size", "64"]
+    profiles:
+      - indexing
+    networks:
+      - medintel-sandbox
+
+volumes:
+  qdrant_sandbox_data:
+  medintel_sandbox_db:
+  hf_sandbox_cache:
+
+networks:
+  medintel-sandbox:
+    name: medintel-sandbox

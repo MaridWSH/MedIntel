@@ -5,9 +5,10 @@ import TopUtilityStrip from '../components/site/TopUtilityStrip';
 import SiteHeader from '../components/site/SiteHeader';
 import SiteFooter from '../components/site/SiteFooter';
 import HeroSearch from '../components/site/HeroSearch';
+import { getApiBase } from './lib/site';
 import type { Paper, PaperListResponse } from '../lib/papers/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
+const API_BASE = getApiBase();
 
 export const metadata: Metadata = {
   title: 'AI-assisted medical literature review',

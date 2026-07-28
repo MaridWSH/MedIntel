@@ -48,6 +48,9 @@ SECURE_COOKIES = os.getenv(
 ).lower() == "true"
 ACCESS_TOKEN_COOKIE = "access_token"
 REFRESH_TOKEN_COOKIE = "refresh_token"
+# An empty value must collapse to None: passing domain="" emits a malformed
+# `Domain=` attribute instead of host-scoping the cookie.
+COOKIE_DOMAIN = os.getenv("MEDINTEL_COOKIE_DOMAIN") or None
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)

@@ -7,8 +7,9 @@ import {
   PaperListParams,
   PaperSearchParams,
 } from './types';
+import { getApiBase } from '../site';
 
-const BASE_API = process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api';
+const BASE_API = getApiBase();
 
 async function fetchAPI<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {

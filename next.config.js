@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const apiOrigin = (() => {
   try {
-    return new URL(process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api').origin;
+    return new URL(
+      process.env.NEXT_PUBLIC_API_BASE ||
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        'https://citerounds.com/api',
+    ).origin;
   } catch {
     return 'https://citerounds.com';
   }
@@ -24,6 +28,7 @@ const contentSecurityPolicy = [
 
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  output: 'standalone',
   poweredByHeader: false,
   async headers() {
     return [

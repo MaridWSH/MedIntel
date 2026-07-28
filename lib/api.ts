@@ -1,4 +1,6 @@
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE || 'https://citerounds.com/api').replace(/\/$/, '');
+import { getApiBase } from './site';
+
+const API_BASE_URL = getApiBase();
 
 function apiErrorMessage(payload: unknown, fallback: string): string {
   if (!payload || typeof payload !== 'object' || !('detail' in payload)) return fallback;

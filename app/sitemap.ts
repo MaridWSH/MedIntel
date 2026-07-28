@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next';
 
+import { getApiBase, getSiteUrl } from './lib/site';
 import type { PaperListResponse } from '../lib/papers/types';
 
-const SITE_URL = 'https://citerounds.com';
-const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || `${SITE_URL}/api`).replace(/\/$/, '');
+const SITE_URL = getSiteUrl();
+const API_BASE = getApiBase();
 const PAGE_SIZE = 100;
 
 const publicRoutes: MetadataRoute.Sitemap = [
