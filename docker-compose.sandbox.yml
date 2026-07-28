@@ -98,11 +98,17 @@ services:
       args:
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://med.90days.online}
         NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-https://med.90days.online/api}
+        # The build container is not on the compose network, so it reaches the
+        # running backend through its published host port.
+        MEDINTEL_INTERNAL_API_BASE: ${MEDINTEL_BUILD_API_BASE:-http://172.19.0.1:8011/api}
     container_name: medintel-sandbox-frontend
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://med.90days.online}
       NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-https://med.90days.online/api}
+      # At runtime the compose network is available, so SSR talks to the
+      # backend container directly rather than looping out through Cloudflare.
+      MEDINTEL_INTERNAL_API_BASE: http://backend:8000/api
     ports:
       - "172.19.0.1:3001:3000"
     depends_on:

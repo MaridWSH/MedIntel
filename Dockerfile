@@ -13,8 +13,12 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_API_BASE
+# Where the prerender pass should reach the backend. Falls back to the public
+# URL when unset, which only works if the site is already serving.
+ARG MEDINTEL_INTERNAL_API_BASE
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 ENV NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE}
+ENV MEDINTEL_INTERNAL_API_BASE=${MEDINTEL_INTERNAL_API_BASE}
 RUN npm run build
 
 FROM base AS runner
