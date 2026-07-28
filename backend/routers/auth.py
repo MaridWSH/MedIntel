@@ -66,6 +66,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         secure=SECURE_COOKIES,
         samesite="lax",
         path="/api",
+        domain=COOKIE_DOMAIN,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     response.set_cookie(
@@ -75,13 +76,14 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         secure=SECURE_COOKIES,
         samesite="lax",
         path="/api/auth",
+        domain=COOKIE_DOMAIN,
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
     )
 
 
 def _clear_auth_cookies(response: Response) -> None:
-    response.delete_cookie(ACCESS_TOKEN_COOKIE, path="/api")
-    response.delete_cookie(REFRESH_TOKEN_COOKIE, path="/api/auth")
+    response.delete_cookie(ACCESS_TOKEN_COOKIE, path="/api", domain=COOKIE_DOMAIN)
+    response.delete_cookie(REFRESH_TOKEN_COOKIE, path="/api/auth", domain=COOKIE_DOMAIN)
 
 
 @router.post(

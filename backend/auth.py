@@ -48,6 +48,7 @@ SECURE_COOKIES = os.getenv(
 ).lower() == "true"
 ACCESS_TOKEN_COOKIE = "access_token"
 REFRESH_TOKEN_COOKIE = "refresh_token"
+COOKIE_DOMAIN = os.getenv("MEDINTEL_COOKIE_DOMAIN")
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
