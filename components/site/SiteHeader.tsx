@@ -9,6 +9,7 @@ import Icon from '../ui/Icon';
 interface HeaderUser {
   name: string;
   email: string;
+  is_admin?: boolean;
 }
 
 export default function SiteHeader() {
@@ -25,7 +26,7 @@ export default function SiteHeader() {
 
   useEffect(() => {
     fetchCurrentUser()
-      .then((data) => setUser(data ? { name: data.name, email: data.email } : null))
+      .then((data) => setUser(data ? { name: data.name, email: data.email, is_admin: data.is_admin } : null))
       .catch(() => setUser(null))
       .finally(() => setChecking(false));
   }, []);
@@ -222,6 +223,21 @@ export default function SiteHeader() {
                       <Icon icon="lucide:user-round" className="text-[16px]" />
                       Account
                     </Link>
+
+                    {user.is_admin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setProfileMenuOpen(false)}
+                        className={`flex h-10 items-center gap-3 rounded-xl px-3 text-[12.5px] font-medium transition-colors ${
+                          pathname.startsWith('/admin')
+                            ? 'bg-teal-deep/10 text-teal-deep'
+                            : 'text-ink-soft hover:bg-ink/5'
+                        }`}
+                      >
+                        <Icon icon="lucide:shield-check" className="text-[16px]" />
+                        Admin
+                      </Link>
+                    )}
 
                     <div className="my-2 border-t border-ink/10" />
                     <button

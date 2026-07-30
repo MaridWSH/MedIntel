@@ -6,10 +6,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from api.dependencies import get_semantic_search_service
-from auth import create_access_token, hash_password
+from core.auth import create_access_token, hash_password
 from database import Base, get_db
+from database.models import User
 from main import app
-from models import User
 from services.semantic_search_service import SemanticSearchResult
 
 

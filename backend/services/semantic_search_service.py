@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from sqlalchemy.orm import Session
 
-from models import Paper
+from database.models import Paper
 from repositories.paper_repository import PaperRepository, SQLAlchemyPaperRepository
 from repositories.vector_repository import VectorRepository
 from services.embedding_service import EmbeddingService, encode_papers, get_embedding_service

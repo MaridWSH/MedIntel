@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from models import Paper
+from database.models import Paper
 from repositories.paper_repository import PaperRepository
 from repositories.vector_repository import VectorRepository
 from services.embedding_service import EmbeddingService

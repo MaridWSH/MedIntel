@@ -3,9 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import Icon from '@/components/ui/Icon';
-import SiteFooter from '@/components/site/SiteFooter';
-import SiteHeader from '@/components/site/SiteHeader';
-import TopUtilityStrip from '@/components/site/TopUtilityStrip';
 import {
   FeedbackResponsesError,
   fetchFeedbackResponses,
@@ -337,10 +334,7 @@ export default function ResponsesPage() {
   const accessError = error && (error.status === 401 || error.status === 403);
 
   return (
-    <>
-      <TopUtilityStrip />
-      <SiteHeader />
-      <main className="min-h-screen bg-paper-warm/30">
+    <main className="min-h-screen bg-paper-warm/30">
         <div className="mx-auto max-w-[1380px] px-4 py-8 sm:px-6 sm:py-10 lg:py-12">
           <header className="flex flex-col justify-between gap-5 border-b border-ink/10 pb-7 lg:flex-row lg:items-end">
             <div>
@@ -494,7 +488,5 @@ export default function ResponsesPage() {
           )}
         </div>
       </main>
-      <SiteFooter />
-    </>
   );
 }

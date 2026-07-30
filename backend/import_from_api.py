@@ -17,7 +17,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from database import Base, SessionLocal, engine
-from models import Paper
+from database.models import Paper
 
 
 DEFAULT_BASE_URL = "https://citerounds.com/api/papers"

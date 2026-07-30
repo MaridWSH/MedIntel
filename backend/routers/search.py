@@ -6,8 +6,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.dependencies import get_semantic_search_service
-from auth import get_current_user
-from models import User
+from core.auth import get_current_user
+from database.models import User
 from schemas import SemanticSearchRequest, SemanticSearchResponse, SemanticSearchResult
 from services.semantic_search_service import SemanticSearchService
 

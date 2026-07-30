@@ -5,11 +5,11 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from auth import hash_password
+from core.auth import hash_password
 from database import Base
-from models import Paper, User
-from routers import papers as papers_router
-from routers.papers import ingest_papers
+from database.models import Paper, User
+from services import papers as papers_service
+from services.ingest import ingest_papers
 from schemas import IngestRequest
 
 
@@ -76,13 +76,11 @@ def test_ingest_papers_from_pipeline_json(tmp_path: Path, db_session, authentica
     file_path = source_dir / "PMC_TEST.json"
     file_path.write_text(json.dumps(paper_data), encoding="utf-8")
 
-    def fake_realpath(path: str) -> str:
-        normalized = str(path)
-        if normalized == "/root/papers/pipeline_outputs/results":
+    def fake_realpath(path: str, **kwargs) -> str:
+        normalized = str(path).replace("\\", "/")
+        if normalized in {"/root/papers/pipeline_outputs/results", str(source_dir).replace("\\", "/")}:
             return str(source_dir)
-        if normalized == str(source_dir):
-            return str(source_dir)
-        return str(Path(normalized).resolve())
+        return normalized
 
     monkeypatch.setattr("os.path.realpath", fake_realpath)
 
@@ -155,9 +153,10 @@ def test_ingest_rejects_unverified_pipeline_result(
 
     monkeypatch.setattr(
         "os.path.realpath",
-        lambda path: str(source_dir)
-        if str(path) in {"/root/papers/pipeline_outputs/results", str(source_dir)}
-        else str(Path(path).resolve()),
+        lambda path, **kwargs: str(source_dir)
+        if str(path).replace("\\", "/")
+        in {"/root/papers/pipeline_outputs/results", str(source_dir).replace("\\", "/")}
+        else str(path).replace("\\", "/"),
     )
 
     response = ingest_papers(
@@ -173,7 +172,7 @@ def test_ingest_rejects_unverified_pipeline_result(
 
 
 def test_production_publication_gate_hides_stale_ai_output(monkeypatch):
-    monkeypatch.setattr(papers_router, "REQUIRE_CURRENT_PIPELINE", True)
+    monkeypatch.setattr(papers_service, "REQUIRE_CURRENT_PIPELINE", True)
     paper = Paper(
         id="PMC_STALE",
         title="Source title",
@@ -187,11 +186,11 @@ def test_production_publication_gate_hides_stale_ai_output(monkeypatch):
         has_errors=False,
     )
 
-    stale_item = papers_router._paper_to_list_item(paper)
+    stale_item = papers_service.paper_to_list_item(paper)
     assert stale_item.has_summary is False
     assert stale_item.tldr == ""
 
-    paper.pipeline_version = papers_router.CURRENT_PIPELINE_VERSION
-    current_item = papers_router._paper_to_list_item(paper)
+    paper.pipeline_version = papers_service.CURRENT_PIPELINE_VERSION
+    current_item = papers_service.paper_to_list_item(paper)
     assert current_item.has_summary is True
     assert current_item.tldr == "An old AI summary"

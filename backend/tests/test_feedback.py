@@ -4,10 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from auth import _RATE_LIMIT_STATE, get_current_admin
+from core.auth import _RATE_LIMIT_STATE, get_current_admin
 from database import Base, get_db
+from database.models import ProductFeedbackSubmission, ResearchSurveySubmission, User
 from main import app
-from models import ProductFeedbackSubmission, ResearchSurveySubmission, User
 
 
 @pytest.fixture

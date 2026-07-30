@@ -25,6 +25,16 @@ const contentSecurityPolicy = [
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   poweredByHeader: false,
+  // Local dev: proxy same-origin /backend-api/* to the FastAPI backend so the
+  // browser treats API calls as first-party (auth cookies are always sent,
+  // avoiding SameSite=Lax cross-site blocking between localhost:3000 and
+  // 127.0.0.1:8000). In production the frontend uses the absolute API base.
+  async rewrites() {
+    const target = (process.env.API_PROXY_TARGET || 'http://127.0.0.1:8000').replace(/\/$/, '');
+    return [
+      { source: '/api/:path*', destination: `${target}/api/:path*` },
+    ];
+  },
   async headers() {
     return [
       {

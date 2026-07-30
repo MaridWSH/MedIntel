@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from auth import (
+from core.auth import (
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
@@ -29,7 +29,7 @@ from auth import (
     verify_password,
 )
 from database import get_db
-from models import User
+from database.models import User
 from schemas import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
@@ -43,6 +43,8 @@ from schemas import (
     UserLogin,
     UserOut,
 )
+from services import analytics as analytics_service
+from services import users as user_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
@@ -97,37 +99,25 @@ def _clear_auth_cookies(response: Response) -> None:
 def register(body: UserCreate, response: Response, request: Request, db: Session = Depends(get_db)):
     """Create a new user account and return a JWT access token."""
     enforce_rate_limit(request, "register", limit=5, window_seconds=60)
-
-    email = str(body.email).strip().lower()
-    name = body.name.strip()
-    if not name:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Name is required")
-
-    if db.query(User).filter(User.email == email).first():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
-
-    user = User(
-        email=email,
-        name=name,
-        hashed_password=hash_password(body.password),
+    result = user_service.register_user(
+        body,
+        db,
+        response,
+        create_access_token,
+        create_refresh_token,
+        SECURE_COOKIES,
+        ACCESS_TOKEN_EXPIRE_MINUTES,
+        REFRESH_TOKEN_EXPIRE_DAYS,
     )
-    db.add(user)
-    try:
-        db.commit()
-    except IntegrityError:
-        # The unique email constraint protects concurrent registrations that
-        # both pass the optimistic existence check above.
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered",
-        ) from None
-    db.refresh(user)
-
-    token = create_access_token(_token_claims(user))
-    refresh_token = create_refresh_token(_token_claims(user))
-    _set_auth_cookies(response, token, refresh_token)
-    return RegisterResponse(access_token=token, user=UserOut.model_validate(user))
+    analytics_service.track_backend_event(
+        db,
+        event_type=analytics_service.analytics_repository.SIGNUP,
+        user_id=result.user.id,
+        visitor_id=request.headers.get("x-visitor-id") or None,
+        session_id=request.headers.get("x-session-id") or None,
+        path="/api/auth/register",
+    )
+    return result
 
 
 @router.post(
@@ -142,16 +132,25 @@ def register(body: UserCreate, response: Response, request: Request, db: Session
 def login(body: UserLogin, response: Response, request: Request, db: Session = Depends(get_db)):
     """Authenticate a user with email and password, returning a JWT access token."""
     enforce_rate_limit(request, "login", limit=5, window_seconds=60)
-
-    email = str(body.email).strip().lower()
-    user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(body.password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-    token = create_access_token(_token_claims(user))
-    refresh_token = create_refresh_token(_token_claims(user))
-    _set_auth_cookies(response, token, refresh_token)
-    return LoginResponse(access_token=token, user=UserOut.model_validate(user))
+    result = user_service.login_user(
+        body,
+        db,
+        response,
+        create_access_token,
+        create_refresh_token,
+        SECURE_COOKIES,
+        ACCESS_TOKEN_EXPIRE_MINUTES,
+        REFRESH_TOKEN_EXPIRE_DAYS,
+    )
+    analytics_service.track_backend_event(
+        db,
+        event_type=analytics_service.analytics_repository.LOGIN,
+        user_id=result.user.id,
+        visitor_id=request.headers.get("x-visitor-id") or None,
+        session_id=request.headers.get("x-session-id") or None,
+        path="/api/auth/login",
+    )
+    return result
 
 
 @router.get("/me", response_model=UserOut)
