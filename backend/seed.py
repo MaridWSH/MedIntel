@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from database import Base, SessionLocal, engine
-from models import Paper
+from database.models import Paper
 
 DEFAULT_SOURCE = "/root/papers/pipeline_outputs/results"
 

@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("reindex")
 
 from database import SessionLocal  # noqa: E402
-from models import Paper  # noqa: E402
+from database.models import Paper  # noqa: E402
 from services import qdrant_service  # noqa: E402
 from services.embedding_service import get_embedding_service  # noqa: E402
 from services.qdrant_service import PaperEmbeddingPayload  # noqa: E402

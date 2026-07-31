@@ -1,14 +1,24 @@
-"""User router — saved papers, dashboard stats."""
+"""User router — saved papers, dashboard stats.
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.exc import IntegrityError
+Business logic lives in services.users and repositories.users.
+This router only handles HTTP concerns.
+"""
+
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
-from auth import get_current_user
+from core.auth import get_current_user
 from database import get_db
-from models import Paper, SavedPaper, User
-from routers.papers import REQUIRE_CURRENT_PIPELINE, current_corpus_count
-from schemas import DeleteAccountResponse, SavedPaperOut, SavedPapersListResponse, SavePaperResponse
+from database.models import User
+from repositories.catalogue import current_corpus_count, REQUIRE_CURRENT_PIPELINE
+from repositories.users import count_saved_papers, find_saved_paper
+from schemas import DeleteAccountResponse, SavedPapersListResponse, SavePaperResponse
+from services.users import (
+    delete_account as delete_user_account,
+    list_saved_papers_for_user,
+    save_paper_for_user,
+    unsave_paper_for_user,
+)
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -20,12 +30,7 @@ def delete_account(
     db: Session = Depends(get_db),
 ):
     """Permanently delete the current account and its saved-paper records."""
-    db.query(SavedPaper).filter(SavedPaper.user_id == current_user.id).delete()
-    db.delete(current_user)
-    db.commit()
-    response.delete_cookie("access_token", path="/api")
-    response.delete_cookie("refresh_token", path="/api/auth")
-    return DeleteAccountResponse(message="Account deleted")
+    return delete_user_account(db, current_user, response)
 
 
 @router.post(
@@ -39,31 +44,7 @@ def save_paper(
     db: Session = Depends(get_db),
 ):
     """Save a paper to the user's library."""
-    # Check paper exists
-    paper = db.query(Paper).filter(Paper.id == paper_id).first()
-    if not paper:
-        raise HTTPException(status_code=404, detail="Paper not found")
-
-    # Check if already saved
-    existing = (
-        db.query(SavedPaper)
-        .filter(SavedPaper.user_id == current_user.id, SavedPaper.paper_id == paper_id)
-        .first()
-    )
-    if existing:
-        return SavePaperResponse(message="Paper already saved", paper_id=paper_id)
-
-    # Save it
-    saved = SavedPaper(user_id=current_user.id, paper_id=paper_id)
-    db.add(saved)
-    try:
-        db.commit()
-    except IntegrityError:
-        # The database constraint also protects concurrent duplicate saves.
-        db.rollback()
-        return SavePaperResponse(message="Paper already saved", paper_id=paper_id)
-
-    return SavePaperResponse(message="Paper saved", paper_id=paper_id)
+    return save_paper_for_user(db, current_user, paper_id)
 
 
 @router.delete(
@@ -77,18 +58,7 @@ def unsave_paper(
     db: Session = Depends(get_db),
 ):
     """Remove a paper from the user's library."""
-    saved = (
-        db.query(SavedPaper)
-        .filter(SavedPaper.user_id == current_user.id, SavedPaper.paper_id == paper_id)
-        .first()
-    )
-    if not saved:
-        raise HTTPException(status_code=404, detail="Paper not in saved library")
-
-    db.delete(saved)
-    db.commit()
-
-    return SavePaperResponse(message="Paper removed from library", paper_id=paper_id)
+    return unsave_paper_for_user(db, current_user, paper_id)
 
 
 @router.get(
@@ -101,26 +71,7 @@ def list_saved_papers(
     db: Session = Depends(get_db),
 ):
     """Get all papers saved by the current user."""
-    saved_rows = (
-        db.query(SavedPaper, Paper)
-        .join(Paper, Paper.id == SavedPaper.paper_id)
-        .filter(SavedPaper.user_id == current_user.id)
-        .order_by(SavedPaper.saved_at.desc())
-        .all()
-    )
-    return SavedPapersListResponse(
-        items=[
-            SavedPaperOut(
-                paper_id=saved.paper_id,
-                saved_at=saved.saved_at,
-                title=paper.title or "",
-                tldr=paper.tldr or "",
-                study_type=paper.study_type or "",
-            )
-            for saved, paper in saved_rows
-        ],
-        total=len(saved_rows),
-    )
+    return list_saved_papers_for_user(db, current_user)
 
 
 @router.get(
@@ -133,11 +84,7 @@ def is_paper_saved(
     db: Session = Depends(get_db),
 ):
     """Check if a paper is in the user's saved library."""
-    saved = (
-        db.query(SavedPaper)
-        .filter(SavedPaper.user_id == current_user.id, SavedPaper.paper_id == paper_id)
-        .first()
-    )
+    saved = find_saved_paper(db, current_user.id, paper_id)
     return {"is_saved": saved is not None}
 
 
@@ -150,11 +97,7 @@ def dashboard_stats(
     db: Session = Depends(get_db),
 ):
     """Get dashboard statistics for the current user."""
-    saved_count = (
-        db.query(SavedPaper)
-        .filter(SavedPaper.user_id == current_user.id)
-        .count()
-    )
+    saved_count = count_saved_papers(db, current_user.id)
     total_papers = (
         current_corpus_count(db)
         if REQUIRE_CURRENT_PIPELINE

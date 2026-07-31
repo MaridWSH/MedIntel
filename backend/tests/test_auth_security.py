@@ -8,10 +8,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from auth import _client_ip, create_refresh_token, get_current_admin
+from core.auth import _client_ip, create_refresh_token, get_current_admin
 from database import Base, get_db
+from database.models import User
 from main import app
-from models import User
 
 
 @pytest.fixture

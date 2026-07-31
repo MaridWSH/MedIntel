@@ -15,7 +15,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import User
+from database.models import User
 
 # JWT secret — must be set via environment variable in production.
 # Generates a random key for local dev if not provided.
@@ -231,14 +231,19 @@ def get_current_user(
     return user
 
 
-def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
-    """Restrict maintenance endpoints to explicitly configured admin emails."""
+def is_admin_user(user: User) -> bool:
+    """Return True if the user is an admin via env list or database flag."""
     admin_emails = {
         email.strip().lower()
         for email in os.getenv("MEDINTEL_ADMIN_EMAILS", "").split(",")
         if email.strip()
     }
-    if current_user.email.lower() not in admin_emails:
+    return user.email.lower() in admin_emails or bool(user.is_admin)
+
+
+def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Restrict maintenance endpoints to configured admins or users with is_admin=True."""
+    if not is_admin_user(current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Administrator access required",

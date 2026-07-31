@@ -11,7 +11,7 @@ from typing import Iterable, Protocol
 
 from sqlalchemy.orm import Session
 
-from models import Paper
+from database.models import Paper
 
 
 # ---------------------------------------------------------------------------
