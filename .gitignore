@@ -42,6 +42,12 @@ backend/.venv/
 # database
 *.db
 medintel.db
+*.sqlite
+*.sqlite3
+
+# runtime logs
+*.log
+backend/logs/
 
 # vercel
 .vercel

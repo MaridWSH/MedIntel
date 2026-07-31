@@ -13,6 +13,23 @@ from sqlalchemy.orm import Session
 from database.models import AnalyticsEvent, User
 
 
+def _resolve_visitor_id(user_id: int | None, visitor_id: str | None) -> str | None:
+    """Resolve the deduplication identity for an analytics event.
+
+    - An explicit ``visitor_id`` (the browser localStorage UUID) is kept.
+    - An authenticated event (``user_id`` set) with no visitor_id stores None:
+      the user is already counted via ``count_active_users`` and must not
+      double-count as an anonymous visitor.
+    - Anonymous events with no visitor_id still get a random UUID so they
+      remain distinguishable (e.g. signup/login tracking).
+    """
+    if visitor_id:
+        return visitor_id
+    if user_id is not None:
+        return None
+    return str(uuid.uuid4())
+
+
 # Analytics event type constants
 PAGE_VIEW = "PAGE_VIEW"
 SIGNUP = "SIGNUP"
@@ -43,7 +60,7 @@ def create_event(
     event = AnalyticsEvent(
         event_type=event_type,
         user_id=user_id,
-visitor_id=visitor_id or str(uuid.uuid4()),
+        visitor_id=_resolve_visitor_id(user_id, visitor_id),
         session_id=session_id or str(uuid.uuid4()),
         path=path,
         paper_id=paper_id,
